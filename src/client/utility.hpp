@@ -17,33 +17,13 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "card.hpp"
-#include "utility.hpp"
-#include <vector>
-#include <array>
+#include <algorithm>
 
 namespace nlp {
-    class deck {
-    public:
-        bool is_valid() const {
-            return is_problems_valid();
-        }
-    private:
-        bool is_mane_valid() const {
-            return m_mane && m_mane.get_type() == card::type::mane;
-        }
-        bool is_problems_valid() const {
-            return m_problems.size() == 10 && std::all_of(m_problems.cbegin(), m_problems.cend(), [this](card const & c) {
-                return c && c.get_type() == card::type::problem && std::count(m_problems.cbegin(), m_problems.cend(), c) <= 2;
-            });
-        }
-        bool is_normal_valid() const {
-            return m_problems.size() >= 45 && std::all_of(m_problems.cbegin(), m_problems.cend(), [this](card const & c) {
-                return c && equal_to_any_of({card::type::pfriend, card::type::resource, card::type::event, card::type::troublemaker}, c.get_type()) && std::count(m_problems.cbegin(), m_problems.cend(), c) <= 3;
-            });
-        }
-        card m_mane;
-        std::vector<card> m_problems;
-        std::vector<card> m_normal;
-    };
+    template <typename T, typename U>
+    bool equal_to_any_of(std::initializer_list<T> const & haystack, U const & needle) {
+        return std::any_of(haystack.begin(), haystack.end(), [&needle](T const & piece) {
+            return piece == needle;
+        });
+    }
 }

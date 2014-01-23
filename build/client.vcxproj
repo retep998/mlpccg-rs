@@ -24,5 +24,6 @@
     <ClInclude Include="..\src\client\deck.hpp" />
     <ClInclude Include="..\src\client\field.hpp" />
     <ClInclude Include="..\src\client\ptr.hpp" />
+    <ClInclude Include="..\src\client\utility.hpp" />
   </ItemGroup>
 </Project>
