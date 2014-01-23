@@ -16,40 +16,50 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-#include <stdexcept>
-#include <memory>
+#include "card.hpp"
 
 namespace nlp {
-    //Non-owning pointer with null pointer checking
-    template <typename T>
-    class ptr {
+    class card::data {
     public:
-        ptr() = default;
-        ptr(ptr const &) = default;
-        //ptr(ptr &&) = default;//Enable with VS 2014
-        ptr & operator=(ptr const &) = default;
-        //ptr & operator=(ptr &&) = default;//Enable with VS 2014
-        ptr(std::unique_ptr<T> const & o) : m_ptr(o.get()) {}
-        ptr(T & o) : m_ptr(&o) {}
-        ptr(nullptr_t) : m_ptr(nullptr) {}
-        explicit operator bool() const {
-            return m_ptr != nullptr;
+        virtual type get_type() const = 0;
+        virtual bool is_mane() const {
+            return false;
         }
-        T * operator->() const {
-            if (m_ptr == nullptr)
-                throw std::runtime_error("Null pointer exception!");
-            return m_ptr;
+        virtual bool is_problem() const {
+            return false;
         }
-        T & operator*() const {
-            if (m_ptr == nullptr)
-                throw std::runtime_error("Null pointer exception!");
-            return *m_ptr;
-        }
-        bool operator==(ptr const & o) const {
-            return m_ptr == o.m_ptr;
+        virtual bool is_regular() const {
+            return false;
         }
     private:
-        T * m_ptr = nullptr;
     };
+    class card_mane final : public card::data {
+    public:
+        card::type get_type() const override {
+            return card::type::mane;
+        }
+        bool is_mane() const override {
+            return true;
+        }
+    private:
+    };
+    card::operator bool() const {
+        return !!m_data;
+    }
+    bool card::operator==(card const & o) const {
+        return m_data == o.m_data;
+    }
+    card::type card::get_type() const {
+        return m_data->get_type();
+    }
+    bool card::is_mane() const {
+        return m_data->is_mane();
+    }
+    bool card::is_problem() const {
+        return m_data->is_problem();
+    }
+    //Returns whether the card is a regular card, aka a card that goes directly in the deck, and not separately as a problem or mane.
+    bool card::is_regular() const {
+        return m_data->is_regular();
+    }
 }

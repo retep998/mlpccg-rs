@@ -22,6 +22,7 @@
 namespace nlp {
     class card {
     public:
+        class data;
         enum class type {
             mane,
             pfriend,
@@ -30,32 +31,16 @@ namespace nlp {
             resource,
             troublemaker
         };
-    private:
-        class data {
-        public:
-            virtual type get_type() const = 0;
-        private:
-        };
-        class data_mane final : public data {
-        public:
-            type get_type() const override {
-                return type::mane;
-            }
-        private:
-        };
-    public:
         card() = default;
         card(card const &) = default;
         card & operator=(card const &) = default;
-        explicit operator bool() const {
-            return !!m_data;
-        }
-        bool operator==(card const & o) const {
-            return m_data == o.m_data;
-        }
-        type get_type() const {
-            return m_data->get_type();
-        }
+        explicit operator bool() const;
+        bool operator==(card const & o) const;
+        type get_type() const;
+        bool is_mane() const;
+        bool is_problem() const;
+        //Returns whether the card is a regular card, aka a card that goes directly in the deck, and not separately as a problem or mane.
+        bool is_regular() const;
     private:
         ptr<data> m_data = nullptr;
     };

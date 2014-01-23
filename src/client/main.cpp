@@ -20,10 +20,14 @@
 #include "deck.hpp"
 #include "field.hpp"
 #include <SFML/Graphics.hpp>
+#include <iostream>
 
 using namespace nlp;
 
 int main() {
+    deck d;
+    if (d.is_valid())
+        std::cout << "test" << std::endl;
     sf::RenderWindow window;
     window.create(sf::VideoMode(800, 600), "NoLifePony");
     while (window.isOpen()) {

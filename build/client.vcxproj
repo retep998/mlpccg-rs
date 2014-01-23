@@ -17,6 +17,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\client\card.cpp" />
     <ClCompile Include="..\src\client\main.cpp" />
   </ItemGroup>
   <ItemGroup>

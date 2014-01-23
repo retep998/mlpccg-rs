@@ -26,24 +26,24 @@ namespace nlp {
     class deck {
     public:
         bool is_valid() const {
-            return is_problems_valid();
+            return is_mane_valid() && is_problems_valid() && is_regulars_valid();
         }
-    private:
         bool is_mane_valid() const {
-            return m_mane && m_mane.get_type() == card::type::mane;
+            return m_mane && m_mane.is_mane();
         }
         bool is_problems_valid() const {
             return m_problems.size() == 10 && std::all_of(m_problems.cbegin(), m_problems.cend(), [this](card const & c) {
-                return c && c.get_type() == card::type::problem && std::count(m_problems.cbegin(), m_problems.cend(), c) <= 2;
+                return c && c.is_problem() && std::count(m_problems.cbegin(), m_problems.cend(), c) <= 2;
             });
         }
-        bool is_normal_valid() const {
+        bool is_regulars_valid() const {
             return m_problems.size() >= 45 && std::all_of(m_problems.cbegin(), m_problems.cend(), [this](card const & c) {
-                return c && equal_to_any_of({card::type::pfriend, card::type::resource, card::type::event, card::type::troublemaker}, c.get_type()) && std::count(m_problems.cbegin(), m_problems.cend(), c) <= 3;
+                return c && c.is_regular() && std::count(m_problems.cbegin(), m_problems.cend(), c) <= 3;
             });
         }
+    private:
         card m_mane;
         std::vector<card> m_problems;
-        std::vector<card> m_normal;
+        std::vector<card> m_regulars;
     };
 }
