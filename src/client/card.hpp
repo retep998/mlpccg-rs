@@ -17,23 +17,28 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "ptr.hpp"
 
 namespace nlp {
     class card {
+    public:
         enum class type {
             mane,
             pfriend,
             event,
-
+            problem,
+            resource,
+            troublemaker
         };
+    private:
         class data {
         public:
-            virtual type get_type() = 0;
+            virtual type get_type() const = 0;
         private:
         };
         class data_mane final : public data {
         public:
-            type get_type() override {
+            type get_type() const override {
                 return type::mane;
             }
         private:
@@ -42,14 +47,16 @@ namespace nlp {
         card() = default;
         card(card const &) = default;
         card & operator=(card const &) = default;
-        explicit operator bool() {
-            return m_data != nullptr;
+        explicit operator bool() const {
+            return !!m_data;
         }
-        type get_type() {
-            if (!m_data)
-                throw std::runtime_error("Null pointer exception!");
+        bool operator==(card const & o) const {
+            return m_data == o.m_data;
+        }
+        type get_type() const {
+            return m_data->get_type();
         }
     private:
-        data * m_data = nullptr;
+        ptr<data> m_data = nullptr;
     };
 }

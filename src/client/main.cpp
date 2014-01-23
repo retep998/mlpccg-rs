@@ -17,6 +17,8 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "card.hpp"
+#include "deck.hpp"
+#include "field.hpp"
 #include <SFML/Graphics.hpp>
 
 using namespace nlp;
