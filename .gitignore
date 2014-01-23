@@ -1,0 +1,17 @@
+*
+!.gitignore
+!.gitattributes
+!*.cmake
+!*.md
+!*.txt
+!sdk/
+!sdk/README.md
+!src/
+!src/**/
+!src/**/*.cpp
+!src/**/*.hpp
+!build/
+!build/*.sln
+!build/*.vcxproj
+!build/*.vcxproj.filters
+!build/*.props
