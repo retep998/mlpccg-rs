@@ -16,40 +16,37 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-#include <stdexcept>
-#include <memory>
+#include "server.hpp"
+#include "player.hpp"
+#include <SFML/Network.hpp>
+#include <vector>
+#include <iostream>
+#include <thread>
+#include <atomic>
+#include <string>
+#include <chrono>
 
 namespace nlp {
-    //Non-owning pointer with null pointer checking
-    template <typename T>
-    class ptr {
-    public:
-        ptr() = default;
-        ptr(ptr const &) = default;
-        //ptr(ptr &&) = default;//Enable with VS 2014
-        ptr & operator=(ptr const &) = default;
-        //ptr & operator=(ptr &&) = default;//Enable with VS 2014
-        ptr(std::unique_ptr<T> const & o) : m_ptr(o.get()) {}
-        ptr(T & o) : m_ptr(&o) {}
-        ptr(nullptr_t) : m_ptr(nullptr) {}
-        explicit operator bool() const {
-            return m_ptr != nullptr;
+    namespace server {
+        std::vector<player> players;
+        void run() {
+            std::cout << "Starting NoLifePony server" << std::endl;
+            sf::TcpListener listener;
+            listener.listen(273);
+            listener.setBlocking(false);
+            std::unique_ptr<sf::TcpSocket> next_socket = std::make_unique<sf::TcpSocket>();
+            for (;;) {
+                if (listener.accept(*next_socket) == sf::Socket::Done) {
+                    std::cout << "Accepted connection from " << next_socket->getRemoteAddress() << ":" << next_socket->getRemotePort() << std::endl;
+                    players.emplace_back(next_socket);
+                    next_socket = std::make_unique<sf::TcpSocket>();
+                }
+                for (auto && p : players) {
+
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+            std::cout << "Shutting down NoLifePony server" << std::endl;
         }
-        T * operator->() const {
-            if (m_ptr == nullptr)
-                throw std::runtime_error("Null pointer exception!");
-            return m_ptr;
-        }
-        T & operator*() const {
-            if (m_ptr == nullptr)
-                throw std::runtime_error("Null pointer exception!");
-            return *m_ptr;
-        }
-        bool operator==(ptr const & o) const {
-            return m_ptr == o.m_ptr;
-        }
-    private:
-        T * m_ptr = nullptr;
-    };
+    }
 }

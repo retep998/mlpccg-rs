@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // NoLifePony - Pony Card Game                                              //
-// Copyright © 2014 Peter Atashian                                          //
+// Copyright Â© 2014 Peter Atashian                                          //
 //                                                                          //
 // This program is free software: you can redistribute it and/or modify     //
 // it under the terms of the GNU Affero General Public License as           //
@@ -33,7 +33,9 @@ namespace nlp {
         };
         card() = default;
         card(card const &) = default;
+        //card(card &&) = default;
         card & operator=(card const &) = default;
+        //card & operator=(card &&) = default;
         explicit operator bool() const;
         bool operator==(card const & o) const;
         type get_type() const;
@@ -42,6 +44,6 @@ namespace nlp {
         //Returns whether the card is a regular card, aka a card that goes directly in the deck, and not separately as a problem or mane.
         bool is_regular() const;
     private:
-        ptr<data> m_data = nullptr;
+        ptr<data> m_data;
     };
 }
