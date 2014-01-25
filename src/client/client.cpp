@@ -17,22 +17,40 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "client.hpp"
-#include <utility/connection.hpp>
-#include <SFML/Network.hpp>
+#include "context.hpp"
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include <chrono>
 #include <thread>
+#include <atomic>
 
 namespace nlp {
     namespace client {
         void run() {
-            std::unique_ptr<sf::TcpSocket> socket = std::make_unique<sf::TcpSocket>();
-            socket->connect("127.0.0.1", 273, sf::seconds(3));
-            connection conn(std::move(socket));
+            std::unique_ptr<sf::TcpSocket> socket;
+            std::unique_ptr<context> current;
+            std::atomic_bool connected = {false};
+            std::thread connect_thread;
             sf::RenderWindow window;
             window.create(sf::VideoMode(800, 600), "NoLifePony");
             while (window.isOpen()) {
+                if (!current) {
+                    if (!socket) {
+                        connected = false;
+                        socket = std::make_unique<sf::TcpSocket>();
+                        connect_thread = std::thread([&] {
+                            while (socket->connect("127.0.0.1", 273, sf::seconds(5)) != sf::Socket::Status::Done);
+                            connected = true;
+                        });
+                    } else if (connected) {
+                        connect_thread.join();
+                        current = std::make_unique<context>(std::move(socket));
+                    }
+                } else {
+                    current->update();
+                    if (current->is_disconnected())
+                        current.release();
+                }
                 sf::Event e;
                 while (window.pollEvent(e)) switch (e.type) {
                 case sf::Event::Closed:
@@ -40,8 +58,7 @@ namespace nlp {
                     break;
                 default:;
                 }
-                conn.update();
-                window.clear(conn.is_disconnected() ? sf::Color::Red : sf::Color::Green);
+                window.clear(current ? sf::Color::Green : sf::Color::Red);
                 window.display();
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }

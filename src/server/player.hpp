@@ -22,20 +22,13 @@
 #include <memory>
 
 namespace nlp {
-    class player {
+    class player : public connection {
     public:
-        player() = delete;
-        player(player const &) = delete;
-        player & operator=(player const &) = delete;
-        player(std::unique_ptr<sf::TcpSocket> && ptr) : conn(std::move(ptr)) {
+        player(std::unique_ptr<sf::TcpSocket> && ptr) : connection(std::move(ptr)) {
         }
         void update() {
-            conn.update();
-        }
-        bool is_disconnected() {
-            return conn.is_disconnected();
+            connection::update();
         }
     private:
-        connection conn;
     };
 }

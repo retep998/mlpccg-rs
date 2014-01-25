@@ -10,5 +10,6 @@
     <ClInclude Include="..\src\client\client.hpp" />
     <ClInclude Include="..\src\client\deck.hpp" />
     <ClInclude Include="..\src\client\field.hpp" />
+    <ClInclude Include="..\src\client\context.hpp" />
   </ItemGroup>
 </Project>

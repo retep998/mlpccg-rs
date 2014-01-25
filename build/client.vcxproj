@@ -24,6 +24,7 @@
   <ItemGroup>
     <ClInclude Include="..\src\client\card.hpp" />
     <ClInclude Include="..\src\client\client.hpp" />
+    <ClInclude Include="..\src\client\context.hpp" />
     <ClInclude Include="..\src\client\deck.hpp" />
     <ClInclude Include="..\src\client\field.hpp" />
   </ItemGroup>
