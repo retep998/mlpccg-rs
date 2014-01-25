@@ -33,6 +33,7 @@ namespace nlp {
         std::list<player> players;
         void run() {
             std::cout << "NoLifePony server." << std::endl;
+            player::init();
             sf::TcpListener listener;
             listener.listen(273);
             listener.setBlocking(false);

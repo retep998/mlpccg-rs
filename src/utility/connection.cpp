@@ -18,32 +18,55 @@
 
 #include "connection.hpp"
 #include <iostream>
+#include <functional>
 
 namespace nlp {
-    std::ostream & report(std::unique_ptr<sf::TcpSocket> & socket) {
+    std::vector<connection::handler> handlers;
+    std::ostream & connection::report() {
         std::cout << "[" << socket->getRemoteAddress() << ":" << socket->getRemotePort() << "] ";
         return std::cout;
     }
     connection::connection(std::unique_ptr<sf::TcpSocket> && ptr) : socket(std::move(ptr)) {
         socket->setBlocking(false);
-        report(socket) << "Connected." << std::endl;
+        report() << "Connected." << std::endl;
     }
     void connection::update() {
         if (disconnected)
             return;
+        auto now = std::chrono::steady_clock::now();
+        if (now - last_ping > std::chrono::seconds(5)) {
+            send_ping();
+        }
+        if (now - last_pong > std::chrono::seconds(10)) {
+            report() << "Timed out." << std::endl;
+            disconnected = true;
+            return;
+        }
         sf::Packet p;
         auto err = socket->receive(p);
         switch (err) {
         case sf::Socket::Status::Disconnected:
-            report(socket) << "Disconnected." << std::endl;
+            report() << "Disconnected." << std::endl;
             disconnected = true;
             break;
-        case sf::Socket::Status::Done:
-            report(socket) << "Received packet." << std::endl;
-            //Handle packet
+        case sf::Socket::Status::Done: {
+            report() << "Received packet." << std::endl;
+            uint16_t opcode;
+            p >> opcode;
+            if (opcode >= handlers.size()) {
+                report() << "Invalid opcode: " << opcode << std::endl;
+                break;
+            }
+            auto & f = handlers[opcode];
+            if (!f) {
+                report() << "Invalid opcode: " << opcode << std::endl;
+                break;
+            }
+            (this->*f)(p);
             break;
+        }
         case sf::Socket::Status::Error:
-            report(socket) << "Error." << std::endl;
+            report() << "Error." << std::endl;
             disconnected = true;
             break;
         case sf::Socket::Status::NotReady:
@@ -52,5 +75,36 @@ namespace nlp {
     }
     bool connection::is_disconnected() {
         return disconnected;
+    }
+    void connection::add_handler(size_t opcode, handler func) {
+        if (opcode >= handlers.size())
+            handlers.resize(opcode + 1);
+        handlers[opcode] = func;
+    }
+    void connection::init() {
+        add_handler(0x0001, &connection::handle_ping);
+        add_handler(0x0002, &connection::handle_pong);
+    }
+    void connection::handle_ping(sf::Packet &) {
+        report() << "Received ping." << std::endl;
+        send_pong();
+    }
+    void connection::handle_pong(sf::Packet &) {
+        report() << "Recieved pong." << std::endl;
+        last_pong = std::chrono::steady_clock::now();
+        ping_time = last_pong - last_ping;
+    }
+    void connection::send_ping() {
+        report() << "Sending ping." << std::endl;
+        last_ping = std::chrono::steady_clock::now();
+        sf::Packet p;
+        p << uint16_t(0x0001);
+        socket->send(p);
+    }
+    void connection::send_pong() {
+        report() << "Sending pong." << std::endl;
+        sf::Packet p;
+        p << uint16_t(0x0002);
+        socket->send(p);
     }
 }

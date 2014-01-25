@@ -29,6 +29,9 @@ namespace nlp {
         void update() {
             connection::update();
         }
+        static void init() {
+            connection::init();
+        }
     private:
     };
 }

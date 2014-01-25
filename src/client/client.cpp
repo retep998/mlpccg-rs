@@ -27,6 +27,7 @@
 namespace nlp {
     namespace client {
         void run() {
+            context::init();
             context::manager current;
             sf::RenderWindow window;
             window.create(sf::VideoMode(800, 600), "NoLifePony");
@@ -39,7 +40,7 @@ namespace nlp {
                 default:;
                 }
                 current.update();
-                window.clear(current.get() ? sf::Color::Green : sf::Color::Red);
+                current.render(window);
                 window.display();
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }

@@ -25,7 +25,7 @@ namespace nlp {
             if (!socket) {
                 connected = false;
                 socket = std::make_unique<sf::TcpSocket>();
-                std::thread([&] {
+                std::thread([this] {
                     while (socket->connect("127.0.0.1", 273, sf::seconds(5)) != sf::Socket::Status::Done);
                     connected = true;
                 }).detach();
@@ -37,6 +37,13 @@ namespace nlp {
             if (current->is_disconnected()) {
                 current.release();
             }
+        }
+    }
+    void context::manager::render(sf::RenderWindow & window) {
+        if (!current) {
+            window.clear(sf::Color::Red);
+        } else {
+            window.clear(sf::Color::Green);
         }
     }
 }

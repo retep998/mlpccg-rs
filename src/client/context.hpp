@@ -18,6 +18,7 @@
 
 #pragma once
 #include <utility/connection.hpp>
+#include <SFML/Graphics.hpp>
 #include <atomic>
 
 namespace nlp {
@@ -26,6 +27,7 @@ namespace nlp {
         class manager {
         public:
             void update();
+            void render(sf::RenderWindow &);
             std::unique_ptr<context> const & get() {
                 return current;
             }
@@ -34,10 +36,13 @@ namespace nlp {
             std::unique_ptr<context> current;
             std::atomic_bool connected;
         };
+        static void init() {
+            connection::init();
+        }
         context(std::unique_ptr<sf::TcpSocket> && ptr) : connection(std::move(ptr)) {}
     private:
-        void update() {
-            connection::update();
+        void render(sf::RenderWindow &) {
+
         }
     };
 }

@@ -20,15 +20,25 @@
 #include <SFML/Network.hpp>
 #include <memory>
 #include <chrono>
+#include <iostream>
+#include <functional>
 
 namespace nlp {
     class connection {
     public:
+        using handler = void(connection::*)(sf::Packet &);
         bool is_disconnected();
+        void update();
     protected:
         connection(std::unique_ptr<sf::TcpSocket> && ptr);
-        void update();
+        static void init();
+        static void add_handler(size_t, handler);
+        std::ostream & report();
     private:
+        void handle_ping(sf::Packet &);
+        void handle_pong(sf::Packet &);
+        void send_ping();
+        void send_pong();
         std::unique_ptr<sf::TcpSocket> socket;
         std::chrono::steady_clock::time_point last_ping = std::chrono::steady_clock::now();
         std::chrono::steady_clock::time_point last_pong = std::chrono::steady_clock::now();

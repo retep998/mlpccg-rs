@@ -21,6 +21,8 @@
 namespace nlp {
     class card::data {
     public:
+        class mane;
+        virtual ~data() {}
         virtual type get_type() const = 0;
         virtual bool is_mane() const {
             return false;
@@ -33,15 +35,15 @@ namespace nlp {
         }
     private:
     };
-    class card_mane final : public card::data {
-    public:
-        card::type get_type() const override {
-            return card::type::mane;
-        }
-        bool is_mane() const override {
-            return true;
-        }
-    private:
+    class card::data::mane final : public data {
+        public:
+            type get_type() const override {
+                return type::mane;
+            }
+            bool is_mane() const override {
+                return true;
+            }
+        private:
     };
     card::operator bool() const {
         return !!m_data;
