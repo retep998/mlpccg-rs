@@ -4,6 +4,7 @@
     <ClCompile Include="..\src\client\card.cpp" />
     <ClCompile Include="..\src\client\client.cpp" />
     <ClCompile Include="..\src\client\main.cpp" />
+    <ClCompile Include="..\src\client\context.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\client\card.hpp" />

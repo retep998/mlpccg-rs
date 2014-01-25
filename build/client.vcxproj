@@ -19,6 +19,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\client\card.cpp" />
     <ClCompile Include="..\src\client\client.cpp" />
+    <ClCompile Include="..\src\client\context.cpp" />
     <ClCompile Include="..\src\client\main.cpp" />
   </ItemGroup>
   <ItemGroup>

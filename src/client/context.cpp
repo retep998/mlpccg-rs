@@ -16,32 +16,26 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "client.hpp"
 #include "context.hpp"
-#include <SFML/Graphics.hpp>
-#include <memory>
-#include <chrono>
 #include <thread>
-#include <atomic>
 
 namespace nlp {
-    namespace client {
-        void run() {
-            context::manager current;
-            sf::RenderWindow window;
-            window.create(sf::VideoMode(800, 600), "NoLifePony");
-            while (window.isOpen()) {
-                sf::Event e;
-                while (window.pollEvent(e)) switch (e.type) {
-                case sf::Event::Closed:
-                    window.close();
-                    break;
-                default:;
-                }
-                current.update();
-                window.clear(current.get() ? sf::Color::Green : sf::Color::Red);
-                window.display();
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    void context::manager::update() {
+        if (!current) {
+            if (!socket) {
+                connected = false;
+                socket = std::make_unique<sf::TcpSocket>();
+                std::thread([&] {
+                    while (socket->connect("127.0.0.1", 273, sf::seconds(5)) != sf::Socket::Status::Done);
+                    connected = true;
+                }).detach();
+            } else if (connected) {
+                current = std::make_unique<context>(std::move(socket));
+            }
+        } else {
+            current->update();
+            if (current->is_disconnected()) {
+                current.release();
             }
         }
     }

@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // NoLifePony - Pony Card Game                                              //
-// Copyright © 2014 Peter Atashian                                          //
+// Copyright Â© 2014 Peter Atashian                                          //
 //                                                                          //
 // This program is free software: you can redistribute it and/or modify     //
 // it under the terms of the GNU Affero General Public License as           //
@@ -18,14 +18,26 @@
 
 #pragma once
 #include <utility/connection.hpp>
+#include <atomic>
 
 namespace nlp {
     class context : public connection {
     public:
+        class manager {
+        public:
+            void update();
+            std::unique_ptr<context> const & get() {
+                return current;
+            }
+        private:
+            std::unique_ptr<sf::TcpSocket> socket;
+            std::unique_ptr<context> current;
+            std::atomic_bool connected;
+        };
         context(std::unique_ptr<sf::TcpSocket> && ptr) : connection(std::move(ptr)) {}
+    private:
         void update() {
             connection::update();
         }
-    private:
     };
 }
