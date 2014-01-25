@@ -14,8 +14,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\utility\connection.cpp" />
+    <ClCompile Include="..\src\utility\packet.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\utility\connection.hpp" />
+    <ClInclude Include="..\src\utility\packet.hpp" />
   </ItemGroup>
 </Project>

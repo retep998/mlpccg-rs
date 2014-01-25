@@ -17,7 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "ptr.hpp"
+#include <utility/ptr.hpp>
 
 namespace nlp {
     class card {

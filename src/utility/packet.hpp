@@ -17,33 +17,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "card.hpp"
-#include <vector>
-#include <array>
-#include <algorithm>
 
 namespace nlp {
-    class deck {
-    public:
-        bool is_valid() const {
-            return is_mane_valid() && is_problems_valid() && is_regulars_valid();
-        }
-        bool is_mane_valid() const {
-            return m_mane && m_mane.is_mane();
-        }
-        bool is_problems_valid() const {
-            return m_problems.size() == 10 && std::all_of(m_problems.cbegin(), m_problems.cend(), [this](card const & c) {
-                return c && c.is_problem() && std::count(m_problems.cbegin(), m_problems.cend(), c) <= 2;
-            });
-        }
-        bool is_regulars_valid() const {
-            return m_problems.size() >= 45 && std::all_of(m_problems.cbegin(), m_problems.cend(), [this](card const & c) {
-                return c && c.is_regular() && std::count(m_problems.cbegin(), m_problems.cend(), c) <= 3;
-            });
-        }
-    private:
-        card m_mane;
-        std::vector<card> m_problems;
-        std::vector<card> m_regulars;
-    };
+    namespace packet {
+        class handler {
+        };
+    }
 }
