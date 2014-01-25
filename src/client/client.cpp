@@ -17,7 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "client.hpp"
-#include "../connection.hpp"
+#include <utility/connection.hpp>
 #include <SFML/Network.hpp>
 #include <SFML/Graphics.hpp>
 #include <memory>

@@ -17,7 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "../connection.hpp"
+#include <utility/connection.hpp>
 #include <SFML/Network.hpp>
 #include <memory>
 

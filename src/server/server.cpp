@@ -32,7 +32,7 @@ namespace nlp {
     namespace server {
         std::list<player> players;
         void run() {
-            std::cout << "Starting NoLifePony server" << std::endl;
+            std::cout << "NoLifePony server." << std::endl;
             sf::TcpListener listener;
             listener.listen(273);
             listener.setBlocking(false);
@@ -49,7 +49,6 @@ namespace nlp {
                 });
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
             }
-            std::cout << "Shutting down NoLifePony server" << std::endl;
         }
     }
 }

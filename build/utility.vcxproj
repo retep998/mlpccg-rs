@@ -1,26 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{70AA9451-4AC8-4F7F-B617-5AA674451A0A}</ProjectGuid>
+    <ProjectGuid>{CF6381E4-CA60-4FCC-AA1A-CA6576BD6BBD}</ProjectGuid>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
   </PropertyGroup>
   <Import Project="common.props" />
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <Link>
-      <AdditionalDependencies>sfml.lib;Winmm.lib;jpeg.lib;Ws2_32.lib;utility.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\server\player.hpp" />
-    <ClInclude Include="..\src\server\server.hpp" />
+    <ClCompile Include="..\src\utility\connection.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\server\main.cpp" />
-    <ClCompile Include="..\src\server\server.cpp" />
+    <ClInclude Include="..\src\utility\connection.hpp" />
   </ItemGroup>
 </Project>
