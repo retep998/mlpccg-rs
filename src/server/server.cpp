@@ -25,10 +25,12 @@
 #include <atomic>
 #include <string>
 #include <chrono>
+#include <list>
+#include <algorithm>
 
 namespace nlp {
     namespace server {
-        std::vector<player> players;
+        std::list<player> players;
         void run() {
             std::cout << "Starting NoLifePony server" << std::endl;
             sf::TcpListener listener;
@@ -37,13 +39,14 @@ namespace nlp {
             std::unique_ptr<sf::TcpSocket> next_socket = std::make_unique<sf::TcpSocket>();
             for (;;) {
                 if (listener.accept(*next_socket) == sf::Socket::Done) {
-                    std::cout << "Accepted connection from " << next_socket->getRemoteAddress() << ":" << next_socket->getRemotePort() << std::endl;
-                    players.emplace_back(next_socket);
+                    players.emplace_back(std::move(next_socket));
                     next_socket = std::make_unique<sf::TcpSocket>();
                 }
-                for (auto && p : players) {
-
-                }
+                for (auto && p : players)
+                    p.update();
+                players.remove_if([](player & p) {
+                    return p.is_disconnected();
+                });
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
             }
             std::cout << "Shutting down NoLifePony server" << std::endl;

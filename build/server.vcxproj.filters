@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\src\server\main.cpp" />
+    <ClCompile Include="..\src\server\server.cpp" />
+    <ClCompile Include="..\src\connection.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\server\player.hpp" />
+    <ClInclude Include="..\src\server\server.hpp" />
+    <ClInclude Include="..\src\connection.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="common">
+      <UniqueIdentifier>{2e42762a-daf9-447b-852f-9a07f5e8412f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

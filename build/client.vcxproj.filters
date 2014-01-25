@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\src\client\card.cpp" />
+    <ClCompile Include="..\src\client\client.cpp" />
+    <ClCompile Include="..\src\client\main.cpp" />
+    <ClCompile Include="..\src\connection.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\client\card.hpp" />
+    <ClInclude Include="..\src\client\client.hpp" />
+    <ClInclude Include="..\src\client\deck.hpp" />
+    <ClInclude Include="..\src\client\field.hpp" />
+    <ClInclude Include="..\src\client\ptr.hpp" />
+    <ClInclude Include="..\src\client\utility.hpp" />
+    <ClInclude Include="..\src\connection.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="common">
+      <UniqueIdentifier>{76e0f685-cebd-4df8-a082-2fcf9e1df2e7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

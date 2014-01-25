@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // NoLifePony - Pony Card Game                                              //
-// Copyright Â© 2014 Peter Atashian                                          //
+// Copyright © 2014 Peter Atashian                                          //
 //                                                                          //
 // This program is free software: you can redistribute it and/or modify     //
 // it under the terms of the GNU Affero General Public License as           //
@@ -17,13 +17,24 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <algorithm>
+#include <SFML/Network.hpp>
+#include <memory>
+#include <chrono>
 
 namespace nlp {
-    template <typename T, typename U>
-    bool equal_to_any_of(std::initializer_list<T> const & haystack, U const & needle) {
-        return std::any_of(haystack.begin(), haystack.end(), [&needle](T const & piece) {
-            return piece == needle;
-        });
-    }
+    class connection {
+    public:
+        connection() = delete;
+        connection(connection const &) = delete;
+        connection & operator=(connection const &) = delete;
+        connection(std::unique_ptr<sf::TcpSocket> && ptr);
+        void update();
+        bool is_disconnected();
+    private:
+        std::unique_ptr<sf::TcpSocket> socket;
+        std::chrono::steady_clock::time_point last_ping = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point last_pong = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::duration ping_time = std::chrono::seconds(0);
+        bool disconnected = false;
+    };
 }

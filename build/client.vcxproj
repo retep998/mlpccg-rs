@@ -20,6 +20,7 @@
     <ClCompile Include="..\src\client\card.cpp" />
     <ClCompile Include="..\src\client\client.cpp" />
     <ClCompile Include="..\src\client\main.cpp" />
+    <ClCompile Include="..\src\connection.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\client\card.hpp" />
@@ -28,5 +29,6 @@
     <ClInclude Include="..\src\client\field.hpp" />
     <ClInclude Include="..\src\client\ptr.hpp" />
     <ClInclude Include="..\src\client\utility.hpp" />
+    <ClInclude Include="..\src\connection.hpp" />
   </ItemGroup>
 </Project>

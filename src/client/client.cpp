@@ -17,16 +17,19 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "client.hpp"
+#include "../connection.hpp"
 #include <SFML/Network.hpp>
 #include <SFML/Graphics.hpp>
+#include <memory>
+#include <chrono>
+#include <thread>
 
 namespace nlp {
     namespace client {
         void run() {
-            sf::TcpSocket socket;
-            bool success = false;
-            if (socket.connect("127.0.0.1", 273, sf::seconds(3)) == sf::Socket::Done)
-                success = true;
+            std::unique_ptr<sf::TcpSocket> socket = std::make_unique<sf::TcpSocket>();
+            socket->connect("127.0.0.1", 273, sf::seconds(3));
+            connection conn(std::move(socket));
             sf::RenderWindow window;
             window.create(sf::VideoMode(800, 600), "NoLifePony");
             while (window.isOpen()) {
@@ -37,10 +40,11 @@ namespace nlp {
                     break;
                 default:;
                 }
-                window.clear(success ? sf::Color::Green : sf::Color::Red);
+                conn.update();
+                window.clear(conn.is_disconnected() ? sf::Color::Red : sf::Color::Green);
                 window.display();
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
-
         }
     }
 }

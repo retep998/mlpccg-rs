@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "../connection.hpp"
 #include <SFML/Network.hpp>
 #include <memory>
 
@@ -25,15 +26,16 @@ namespace nlp {
     public:
         player() = delete;
         player(player const &) = delete;
-        player(player && o) : socket(std::move(o.socket)) {}
         player & operator=(player const &) = delete;
-        player & operator=(player && o) {
-            socket.swap(o.socket);
+        player(std::unique_ptr<sf::TcpSocket> && ptr) : conn(std::move(ptr)) {
         }
-        player(std::unique_ptr<sf::TcpSocket> & ptr) {
-            socket.swap(ptr);
+        void update() {
+            conn.update();
+        }
+        bool is_disconnected() {
+            return conn.is_disconnected();
         }
     private:
-        std::unique_ptr<sf::TcpSocket> socket;
+        connection conn;
     };
 }
