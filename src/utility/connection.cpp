@@ -39,8 +39,8 @@ namespace nlp {
             std::cout << "Timeouts: " << c.second.timeouts << std::endl;
             std::cout << "Errors: " << c.second.errors << std::endl;
             std::cout << "Invalid opcodes: " << c.second.invalidopcodes << std::endl;
-            c.second = {};
         }
+        counts.clear();
     }
     std::vector<connection::handler> handlers;
     connection::connection(std::unique_ptr<sf::TcpSocket> && ptr) : socket(std::move(ptr)) {

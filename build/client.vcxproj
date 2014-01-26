@@ -12,7 +12,7 @@
       <PreprocessorDefinitions>GLEW_STATIC;SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>glew.lib;glu32.lib;opengl32.lib;sfml.lib;Winmm.lib;jpeg.lib;Ws2_32.lib;utility.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew.lib;glu32.lib;opengl32.lib;sfml.lib;Winmm.lib;jpeg.lib;Ws2_32.lib;utility.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

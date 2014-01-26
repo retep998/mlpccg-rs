@@ -20,6 +20,7 @@
 #include <thread>
 
 namespace nlp {
+    std::unique_ptr<sf::Font> font;
     void context::manager::update() {
         if (!current) {
             if (!socket) {
@@ -40,10 +41,26 @@ namespace nlp {
         }
     }
     void context::manager::render(sf::RenderWindow & window) {
+        if (!font) {
+            font = std::make_unique<sf::Font>();
+            font->loadFromFile("assets/font.ttf");
+        }
         if (!current) {
-            window.clear(sf::Color::Red);
+            sf::Text t;
+            t.setCharacterSize(64);
+            t.setString("Offline");
+            t.setColor(sf::Color::Red);
+            t.setPosition(32, 0);
+            t.setFont(*font);
+            window.draw(t);
         } else {
-            window.clear(sf::Color::Green);
+            sf::Text t;
+            t.setCharacterSize(64);
+            t.setString("Online");
+            t.setColor(sf::Color::Green);
+            t.setPosition(32, 0);
+            t.setFont(*font);
+            window.draw(t);
         }
     }
 }

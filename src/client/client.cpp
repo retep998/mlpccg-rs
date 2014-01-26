@@ -24,30 +24,39 @@
 #include <thread>
 #include <atomic>
 #include <list>
+#include <filesystem>
+#include <vector>
+#include <algorithm>
+#include <random>
+
+namespace sys = std::tr2::sys;
 
 namespace nlp {
     namespace client {
         void run() {
-            std::list<sf::TcpSocket> sockets;
-            sf::Packet in;
-            sf::Packet out;
-            out << uint16_t(2);
-            for (;;) {
-                sockets.emplace_back();
-                sockets.back().setBlocking(false);
-                sockets.back().connect("72.19.121.29", 273);
-                for (auto & s : sockets) {
-                    auto err = s.receive(in);
-                    if (err == sf::Socket::Status::Done) {
-                        uint16_t op;
-                        in >> op;
-                        if (op == 1) {
-                            s.send(out);
-                        }
-                    }
-                }
-                //std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            std::vector<sys::path> paths;
+            for (auto it = sys::directory_iterator("assets/backgrounds"); it != sys::directory_iterator(); ++it) {
+                paths.push_back(it->path());
             }
+            std::random_device rand;
+            std::mt19937 engine(rand());
+            std::shuffle(paths.begin(), paths.end(), engine);
+            sf::Texture image;
+            image.setSmooth(true);
+            bool success = false;
+            for (auto & p : paths) {
+                if (image.loadFromFile(p.string())) {
+                    success = true;
+                    break;
+                }
+            }
+            if (!success)
+                exit(1);
+            auto isize = image.getSize();
+            auto iratio = 1. * isize.y / isize.x;
+            sf::Sprite sprite;
+            sprite.setTexture(image);
+            sprite.setOrigin(isize.x / 2, isize.y / 2);
             context::init();
             context::manager current;
             sf::RenderWindow window;
@@ -60,7 +69,20 @@ namespace nlp {
                     break;
                 default:;
                 }
+                auto wsize = window.getSize();
+                sf::View view;
+                view.reset(sf::FloatRect(0, 0, wsize.x, wsize.y));
+                auto wratio = 1. * wsize.y / wsize.x;
+                if (wratio > iratio) {
+                    sprite.setScale(wratio / iratio * wsize.x / isize.x, 1. * wsize.y / isize.y);
+                } else {
+                    sprite.setScale(1. * wsize.x / isize.x, iratio / wratio * wsize.y / isize.y);
+                }
+                sprite.setPosition(wsize.x / 2, wsize.y / 2);
+                window.setView(view);
                 current.update();
+                window.clear(sf::Color::Black);
+                window.draw(sprite);
                 current.render(window);
                 window.display();
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
