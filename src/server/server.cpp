@@ -37,7 +37,8 @@ namespace nlp {
             sf::TcpListener listener;
             listener.listen(273);
             listener.setBlocking(false);
-            std::unique_ptr<sf::TcpSocket> next_socket = std::make_unique<sf::TcpSocket>();
+            auto next_socket = std::make_unique<sf::TcpSocket>();
+            auto last_update = std::chrono::steady_clock::now();
             for (;;) {
                 if (listener.accept(*next_socket) == sf::Socket::Done) {
                     players.emplace_back(std::move(next_socket));
@@ -46,8 +47,25 @@ namespace nlp {
                 for (auto && p : players)
                     p.update();
                 players.remove_if([](player & p) {
-                    return p.is_disconnected();
+                    if (p.is_disconnected()) {
+                        return true;
+                    }
+                    return false;
                 });
+                auto now = std::chrono::steady_clock::now();
+                if (now - last_update > std::chrono::seconds(5)) {
+                    last_update = now;
+                    std::cout << "================Update================" << std::endl;
+                    std::cout << "Total: " << players.size() << std::endl;
+                    std::map<std::string, size_t> counts;
+                    for (auto & p : players) {
+                        ++counts[p.get_address()];
+                    }
+                    for (auto & c : counts) {
+                        std::cout << c.first << ": " << c.second << std::endl;
+                    }
+                    connection::print_counts();
+                }
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
         }

@@ -21,14 +21,31 @@
 #include <functional>
 
 namespace nlp {
-    std::vector<connection::handler> handlers;
-    std::ostream & connection::report() {
-        std::cout << "[" << socket->getRemoteAddress() << ":" << socket->getRemotePort() << "] ";
-        return std::cout;
+    struct count_t {
+        size_t connects;
+        size_t disconnects;
+        size_t connections;
+        size_t timeouts;
+        size_t errors;
+        size_t invalidopcodes;
+    };
+    std::map<std::string, count_t> counts;
+    void connection::print_counts() {
+        for (auto & c : counts) {
+            std::cout << "--------------------------------------" << std::endl;
+            std::cout << "Address: " << c.first << std::endl;
+            std::cout << "Connects: " << c.second.connects << std::endl;
+            std::cout << "Disconnects: " << c.second.disconnects << std::endl;
+            std::cout << "Timeouts: " << c.second.timeouts << std::endl;
+            std::cout << "Errors: " << c.second.errors << std::endl;
+            std::cout << "Invalid opcodes: " << c.second.invalidopcodes << std::endl;
+            c.second = {};
+        }
     }
+    std::vector<connection::handler> handlers;
     connection::connection(std::unique_ptr<sf::TcpSocket> && ptr) : socket(std::move(ptr)) {
         socket->setBlocking(false);
-        report() << "Connected." << std::endl;
+        ++counts[get_address()].connects;
     }
     void connection::update() {
         if (disconnected)
@@ -38,28 +55,27 @@ namespace nlp {
             send_ping();
         }
         if (now - last_pong > std::chrono::seconds(20)) {
-            report() << "Timed out." << std::endl;
+            ++counts[get_address()].timeouts;
             disconnected = true;
             return;
         }
-        sf::Packet p;
         auto err = socket->receive(p);
         switch (err) {
         case sf::Socket::Status::Disconnected:
-            report() << "Disconnected." << std::endl;
+            ++counts[get_address()].disconnects;
             disconnected = true;
             break;
         case sf::Socket::Status::Done: {
             uint16_t opcode;
             p >> opcode;
             if (opcode >= handlers.size()) {
-                report() << "Invalid opcode: " << opcode << std::endl;
+                ++counts[get_address()].invalidopcodes;
                 disconnected = true;
                 break;
             }
             auto & f = handlers[opcode];
             if (!f) {
-                report() << "Invalid opcode: " << opcode << std::endl;
+                ++counts[get_address()].invalidopcodes;
                 disconnected = true;
                 break;
             }
@@ -67,7 +83,7 @@ namespace nlp {
             break;
         }
         case sf::Socket::Status::Error:
-            report() << "Error." << std::endl;
+            ++counts[get_address()].errors;
             disconnected = true;
             break;
         case sf::Socket::Status::NotReady:
@@ -92,16 +108,15 @@ namespace nlp {
     void connection::handle_pong(sf::Packet &) {
         last_pong = std::chrono::steady_clock::now();
         ping_time = last_pong - last_ping;
-        report() << "Ping: " << std::chrono::duration_cast<std::chrono::milliseconds>(ping_time).count() << "ms" << std::endl;
     }
     void connection::send_ping() {
         last_ping = std::chrono::steady_clock::now();
-        sf::Packet p;
+        p.clear();
         p << uint16_t(0x0001);
         socket->send(p);
     }
     void connection::send_pong() {
-        sf::Packet p;
+        p.clear();
         p << uint16_t(0x0002);
         socket->send(p);
     }

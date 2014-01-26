@@ -29,11 +29,14 @@ namespace nlp {
         using handler = void(connection::*)(sf::Packet &);
         bool is_disconnected();
         void update();
+        static void print_counts();
+        std::string get_address() {
+            return socket->getRemoteAddress().toString();
+        }
     protected:
         connection(std::unique_ptr<sf::TcpSocket> && ptr);
         static void init();
         static void add_handler(size_t, handler);
-        std::ostream & report();
     private:
         void handle_ping(sf::Packet &);
         void handle_pong(sf::Packet &);
@@ -44,5 +47,6 @@ namespace nlp {
         std::chrono::steady_clock::time_point last_pong = std::chrono::steady_clock::now();
         std::chrono::steady_clock::duration ping_time = std::chrono::seconds(0);
         bool disconnected = false;
+        sf::Packet p;
     };
 }
