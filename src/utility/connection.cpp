@@ -34,10 +34,10 @@ namespace nlp {
         if (disconnected)
             return;
         auto now = std::chrono::steady_clock::now();
-        if (now - last_ping > std::chrono::seconds(5)) {
+        if (now - last_ping > std::chrono::seconds(10)) {
             send_ping();
         }
-        if (now - last_pong > std::chrono::seconds(10)) {
+        if (now - last_pong > std::chrono::seconds(20)) {
             report() << "Timed out." << std::endl;
             disconnected = true;
             return;
@@ -50,16 +50,17 @@ namespace nlp {
             disconnected = true;
             break;
         case sf::Socket::Status::Done: {
-            report() << "Received packet." << std::endl;
             uint16_t opcode;
             p >> opcode;
             if (opcode >= handlers.size()) {
                 report() << "Invalid opcode: " << opcode << std::endl;
+                disconnected = true;
                 break;
             }
             auto & f = handlers[opcode];
             if (!f) {
                 report() << "Invalid opcode: " << opcode << std::endl;
+                disconnected = true;
                 break;
             }
             (this->*f)(p);
@@ -86,23 +87,20 @@ namespace nlp {
         add_handler(0x0002, &connection::handle_pong);
     }
     void connection::handle_ping(sf::Packet &) {
-        report() << "Received ping." << std::endl;
         send_pong();
     }
     void connection::handle_pong(sf::Packet &) {
-        report() << "Recieved pong." << std::endl;
         last_pong = std::chrono::steady_clock::now();
         ping_time = last_pong - last_ping;
+        report() << "Ping: " << std::chrono::duration_cast<std::chrono::milliseconds>(ping_time).count() << "ms" << std::endl;
     }
     void connection::send_ping() {
-        report() << "Sending ping." << std::endl;
         last_ping = std::chrono::steady_clock::now();
         sf::Packet p;
         p << uint16_t(0x0001);
         socket->send(p);
     }
     void connection::send_pong() {
-        report() << "Sending pong." << std::endl;
         sf::Packet p;
         p << uint16_t(0x0002);
         socket->send(p);
