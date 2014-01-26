@@ -32,7 +32,7 @@ namespace nlp {
     std::map<std::string, count_t> counts;
     void connection::print_counts() {
         for (auto & c : counts) {
-            std::cout << "--------------------------------------" << std::endl;
+            std::cout << "-------------------------------------" << std::endl;
             std::cout << "Address: " << c.first << std::endl;
             std::cout << "Connects: " << c.second.connects << std::endl;
             std::cout << "Disconnects: " << c.second.disconnects << std::endl;

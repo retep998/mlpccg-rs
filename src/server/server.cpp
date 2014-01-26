@@ -27,6 +27,7 @@
 #include <chrono>
 #include <list>
 #include <algorithm>
+#include <iomanip>
 
 namespace nlp {
     namespace server {
@@ -53,9 +54,11 @@ namespace nlp {
                     return false;
                 });
                 auto now = std::chrono::steady_clock::now();
-                if (now - last_update > std::chrono::seconds(20)) {
+                if (now - last_update > std::chrono::seconds(60)) {
                     last_update = now;
-                    std::cout << "================Update================" << std::endl;
+                    auto t = time(nullptr);
+                    auto tl = std::localtime(&t);
+                    std::cout << std::put_time(tl, "================%H:%M================") << std::endl;
                     std::cout << "Total: " << players.size() << std::endl;
                     std::map<std::string, size_t> counts;
                     for (auto & p : players) {
