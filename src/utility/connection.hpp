@@ -37,6 +37,7 @@ namespace nlp {
         connection(std::unique_ptr<sf::TcpSocket> && ptr);
         static void init();
         static void add_handler(size_t, handler);
+        ~connection() {}
     private:
         void handle_ping(sf::Packet &);
         void handle_pong(sf::Packet &);

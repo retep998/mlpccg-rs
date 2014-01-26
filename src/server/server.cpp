@@ -40,7 +40,7 @@ namespace nlp {
             auto next_socket = std::make_unique<sf::TcpSocket>();
             auto last_update = std::chrono::steady_clock::now();
             for (;;) {
-                if (listener.accept(*next_socket) == sf::Socket::Done) {
+                while (listener.accept(*next_socket) == sf::Socket::Done) {
                     players.emplace_back(std::move(next_socket));
                     next_socket = std::make_unique<sf::TcpSocket>();
                 }
@@ -53,7 +53,7 @@ namespace nlp {
                     return false;
                 });
                 auto now = std::chrono::steady_clock::now();
-                if (now - last_update > std::chrono::seconds(5)) {
+                if (now - last_update > std::chrono::seconds(20)) {
                     last_update = now;
                     std::cout << "================Update================" << std::endl;
                     std::cout << "Total: " << players.size() << std::endl;
