@@ -23,11 +23,10 @@
 
 namespace nlp {
     class packet_handler;
-    class listener_manager;
-    class connection_manager;
+    using packet_handler_creator = std::function<std::unique_ptr<packet_handler>()>;
     class manager final {
     public:
-        manager() = default;
+        manager();
         manager(manager const &) = delete;
         manager & operator=(manager const &) = delete;
         template <typename T>
@@ -36,9 +35,10 @@ namespace nlp {
                 return std::make_unique<T>();
             });
         }
+        void update();
     private:
-        void add_listener(uint16_t, std::function<std::unique_ptr<packet_handler>()>);
-        std::unique_ptr<listener_manager> lmanager;
-        std::unique_ptr<connection_manager> cmanager;
+        class impl;
+        void add_listener(uint16_t, packet_handler_creator &&);
+        std::unique_ptr<impl> m_data;
     };
 }

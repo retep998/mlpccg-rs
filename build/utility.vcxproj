@@ -14,13 +14,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\utility\connection.cpp" />
-    <ClCompile Include="..\src\utility\manager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\utility\algorithm.hpp" />
     <ClInclude Include="..\src\utility\connection.hpp" />
-    <ClInclude Include="..\src\utility\manager.hpp" />
-    <ClInclude Include="..\src\utility\packet_handler.hpp" />
     <ClInclude Include="..\src\utility\ptr.hpp" />
   </ItemGroup>
 </Project>

@@ -27,10 +27,11 @@ namespace nlp {
     public:
         ptr() = default;
         ptr(ptr const &) = default;
-        ptr & operator=(ptr const &) = default;
         ptr(std::unique_ptr<T> const & o) : m_ptr(o.get()) {}
         ptr(T & o) : m_ptr(&o) {}
         ptr(nullptr_t) {}
+        ptr(T * o) : m_ptr(o) {}
+        ptr & operator=(ptr const &) = default;
         explicit operator bool() const {
             return m_ptr != nullptr;
         }
