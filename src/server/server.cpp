@@ -54,7 +54,7 @@ namespace nlp {
                     return false;
                 });
                 auto now = std::chrono::steady_clock::now();
-                if (now - last_update > std::chrono::seconds(60)) {
+                if (now - last_update > std::chrono::minutes(5)) {
                     last_update = now;
                     auto t = time(nullptr);
                     auto tl = std::localtime(&t);

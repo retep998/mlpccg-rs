@@ -17,37 +17,28 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <stdexcept>
 #include <memory>
+#include <functional>
+#include <cstdint>
 
 namespace nlp {
-    //Non-owning pointer with null pointer checking
-    template <typename T>
-    class ptr {
+    class packet_handler;
+    class listener_manager;
+    class connection_manager;
+    class manager final {
     public:
-        ptr() = default;
-        ptr(ptr const &) = default;
-        ptr & operator=(ptr const &) = default;
-        ptr(std::unique_ptr<T> const & o) : m_ptr(o.get()) {}
-        ptr(T & o) : m_ptr(&o) {}
-        ptr(nullptr_t) {}
-        explicit operator bool() const {
-            return m_ptr != nullptr;
-        }
-        T * operator->() const {
-            if (m_ptr == nullptr)
-                throw std::runtime_error("Null pointer exception!");
-            return m_ptr;
-        }
-        T & operator*() const {
-            if (m_ptr == nullptr)
-                throw std::runtime_error("Null pointer exception!");
-            return *m_ptr;
-        }
-        bool operator==(ptr const & o) const {
-            return m_ptr == o.m_ptr;
+        manager() = default;
+        manager(manager const &) = delete;
+        manager & operator=(manager const &) = delete;
+        template <typename T>
+        void listen(uint16_t port) {
+            add_listener(port, [] {
+                return std::make_unique<T>();
+            });
         }
     private:
-        T * m_ptr = nullptr;
+        void add_listener(uint16_t, std::function<std::unique_ptr<packet_handler>()>);
+        std::unique_ptr<listener_manager> lmanager;
+        std::unique_ptr<connection_manager> cmanager;
     };
 }

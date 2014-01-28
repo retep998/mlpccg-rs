@@ -60,7 +60,7 @@ namespace nlp {
             context::init();
             context::manager current;
             sf::RenderWindow window;
-            window.create(sf::VideoMode(800, 600), "NoLifePony");
+            window.create(sf::VideoMode(960, 540), "NoLifePony");
             while (window.isOpen()) {
                 sf::Event e;
                 while (window.pollEvent(e)) switch (e.type) {

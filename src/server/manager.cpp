@@ -16,38 +16,36 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-#include <stdexcept>
-#include <memory>
+#include "manager.hpp"
+#include <SFML/Network/TcpListener.hpp>
+#include <SFML/Network/TcpSocket.hpp>
+#include <list>
 
 namespace nlp {
-    //Non-owning pointer with null pointer checking
-    template <typename T>
-    class ptr {
+    class listener {
     public:
-        ptr() = default;
-        ptr(ptr const &) = default;
-        ptr & operator=(ptr const &) = default;
-        ptr(std::unique_ptr<T> const & o) : m_ptr(o.get()) {}
-        ptr(T & o) : m_ptr(&o) {}
-        ptr(nullptr_t) {}
-        explicit operator bool() const {
-            return m_ptr != nullptr;
-        }
-        T * operator->() const {
-            if (m_ptr == nullptr)
-                throw std::runtime_error("Null pointer exception!");
-            return m_ptr;
-        }
-        T & operator*() const {
-            if (m_ptr == nullptr)
-                throw std::runtime_error("Null pointer exception!");
-            return *m_ptr;
-        }
-        bool operator==(ptr const & o) const {
-            return m_ptr == o.m_ptr;
+        listener() = default;
+        listener(listener const &) = delete;
+        listener & operator=(listener const &) = delete;
+    private:
+        sf::TcpListener listen;
+        std::unique_ptr<sf::TcpSocket> next_socket;
+    };
+    class listener_manager {
+    public:
+        listener_manager() = default;
+        listener_manager(listener_manager const &) = delete;
+        listener_manager & operator=(listener_manager const &) = delete;
+        void add_listener(uint16_t port, std::function<std::unique_ptr<packet_handler>()> func) {
+
         }
     private:
-        T * m_ptr = nullptr;
+        std::list<listener> listeners;
     };
+    void manager::add_listener(uint16_t port, std::function<std::unique_ptr<packet_handler>()> func) {
+        if (!lmanager) {
+            lmanager = std::make_unique<listener_manager>();
+        }
+        lmanager->add_listener(port, func);
+    }
 }

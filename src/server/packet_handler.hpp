@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // NoLifePony - Pony Card Game                                              //
-// Copyright Â© 2014 Peter Atashian                                          //
+// Copyright © 2014 Peter Atashian                                          //
 //                                                                          //
 // This program is free software: you can redistribute it and/or modify     //
 // it under the terms of the GNU Affero General Public License as           //
@@ -17,37 +17,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <stdexcept>
-#include <memory>
+#include <SFML/Network/Packet.hpp>
 
 namespace nlp {
-    //Non-owning pointer with null pointer checking
-    template <typename T>
-    class ptr {
-    public:
-        ptr() = default;
-        ptr(ptr const &) = default;
-        ptr & operator=(ptr const &) = default;
-        ptr(std::unique_ptr<T> const & o) : m_ptr(o.get()) {}
-        ptr(T & o) : m_ptr(&o) {}
-        ptr(nullptr_t) {}
-        explicit operator bool() const {
-            return m_ptr != nullptr;
-        }
-        T * operator->() const {
-            if (m_ptr == nullptr)
-                throw std::runtime_error("Null pointer exception!");
-            return m_ptr;
-        }
-        T & operator*() const {
-            if (m_ptr == nullptr)
-                throw std::runtime_error("Null pointer exception!");
-            return *m_ptr;
-        }
-        bool operator==(ptr const & o) const {
-            return m_ptr == o.m_ptr;
-        }
-    private:
-        T * m_ptr = nullptr;
+    class packet_handler {
+        virtual void handle(sf::Packet &) = 0;
     };
 }
