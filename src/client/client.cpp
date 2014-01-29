@@ -53,10 +53,10 @@ namespace nlp {
             if (!success)
                 exit(1);
             auto isize = image.getSize();
-            auto iratio = 1. * isize.y / isize.x;
+            auto iratio = 1.f * isize.y / isize.x;
             sf::Sprite sprite;
             sprite.setTexture(image);
-            sprite.setOrigin(isize.x / 2, isize.y / 2);
+            sprite.setOrigin(isize.x / 2.f, isize.y / 2.f);
             context::init();
             context::manager current;
             sf::RenderWindow window;
@@ -71,14 +71,14 @@ namespace nlp {
                 }
                 auto wsize = window.getSize();
                 sf::View view;
-                view.reset(sf::FloatRect(0, 0, wsize.x, wsize.y));
-                auto wratio = 1. * wsize.y / wsize.x;
+                view.reset(sf::FloatRect(0, 0, static_cast<float>(wsize.x), static_cast<float>(wsize.y)));
+                auto wratio = 1.f * wsize.y / wsize.x;
                 if (wratio > iratio) {
-                    sprite.setScale(wratio / iratio * wsize.x / isize.x, 1. * wsize.y / isize.y);
+                    sprite.setScale(wratio / iratio * wsize.x / isize.x, 1.f * wsize.y / isize.y);
                 } else {
-                    sprite.setScale(1. * wsize.x / isize.x, iratio / wratio * wsize.y / isize.y);
+                    sprite.setScale(1.f * wsize.x / isize.x, iratio / wratio * wsize.y / isize.y);
                 }
-                sprite.setPosition(wsize.x / 2, wsize.y / 2);
+                sprite.setPosition(wsize.x / 2.f, wsize.y / 2.f);
                 window.setView(view);
                 current.update();
                 window.clear(sf::Color::Black);

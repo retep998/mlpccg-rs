@@ -16,20 +16,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-#include "recv_handler.hpp"
-#include <utility/ptr.hpp>
-#include <chrono>
+#include "player.hpp"
 
 namespace nlp {
-    class send_handler;
-    class player final : public recv_handler {
-    public:
-        player(ptr<send_handler> send);
-    private:
-        void recv(sf::Packet &);
-        void update();
-        ptr<send_handler> send;
-        std::chrono::steady_clock::time_point last_ping = std::chrono::steady_clock::now();
-    };
+    player::player(ptr<send_handler> send) : send(send) {}
+    void player::recv(sf::Packet &) {}
+    void player::update() {}
 }

@@ -17,149 +17,57 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "manager.hpp"
-#include "packet_handler.hpp"
+#include "connection.hpp"
+#include "listener.hpp"
 #include <utility/ptr.hpp>
-#include <SFML/Network/TcpListener.hpp>
-#include <SFML/Network/TcpSocket.hpp>
 #include <SFML/Network/SocketSelector.hpp>
-#include <SFML/Network/IpAddress.hpp>
 #include <list>
-#include <stdexcept>
 #include <iostream>
 #include <chrono>
 
 namespace nlp {
-    class connection final : private packet_handler {
-    public:
-        connection() = delete;
-        connection(connection const &) = delete;
-        connection(recv_handler_creator const & func, std::unique_ptr<sf::TcpSocket> && socket) : socket(std::move(socket)) {
-            recv = func(this);
-            socket->setBlocking(false);
-        }
-        connection & operator=(connection const &) = delete;
-        void handle(sf::Packet &) override {
-
-        }
-        sf::Socket & get_socket() {
-            return *socket;
-        }
-        void update() {
-
-        }
-    private:
-        std::unique_ptr<packet_handler> recv;
-        std::unique_ptr<sf::TcpSocket> socket;
-    };
-    class listener final {
-    public:
-        class iterator final {
-        public:
-            iterator() = delete;
-            iterator(iterator const &) = delete;
-            iterator(iterator && o) : listen(o.listen), next(std::move(o.next)) {}
-            iterator(ptr<listener> listen, bool pop) : listen(listen) {
-                if (pop) {
-                    next = listen->get_next();
-                }
-            }
-            iterator & operator=(iterator const &) = delete;
-            bool operator!=(iterator const & o) const {
-                return next != o.next;
-            }
-            iterator & operator++() {
-                next = listen->get_next();
-                return *this;
-            }
-            std::unique_ptr<connection> operator*() {
-                return std::move(next);
-            }
-        private:
-            ptr<listener> listen;
-            std::unique_ptr<connection> next;
-        };
-        listener() = delete;
-        listener(listener const &) = delete;
-        listener(std::unique_ptr<sf::TcpListener> && listen, recv_handler_creator && func) : listen(std::move(listen)), func(std::move(func)) {}
-        listener & operator=(listener const &) = delete;
-        static std::unique_ptr<listener> create(uint16_t port, recv_handler_creator && func) {
-            auto listen = std::make_unique<sf::TcpListener>();
-            auto err = listen->listen(port);
-            if (err != sf::Socket::Status::Done) {
-                std::cerr << "Failed to listen to port " << port << std::endl;
-                return nullptr;
-            }
-            std::cout << "Listening on port " << port << std::endl;
-            listen->setBlocking(false);
-            return std::make_unique<listener>(std::move(listen), std::move(func));
-        }
-        iterator begin() {
-            return{this, true};
-        }
-        iterator end() {
-            return{this, false};
-        }
-        sf::Socket & get_socket() {
-            return *listen;
-        }
-    protected:
-        std::unique_ptr<connection> get_next() {
-            if (!socket) {
-                socket = std::make_unique<sf::TcpSocket>();
-            }
-            auto err = listen->accept(*socket);
-            if (err != sf::Socket::Status::Done) {
-                return nullptr;
-            }
-            std::cout << "Accepted connection from " << socket->getRemoteAddress() << std::endl;
-            auto next = std::make_unique<connection>(func, std::move(socket));
-            return next;
-        }
-    private:
-        std::unique_ptr<sf::TcpListener> listen;
-        std::unique_ptr<sf::TcpSocket> socket;
-        recv_handler_creator func;
-    };
-    class manager::impl final {
-    public:
-        impl() = default;
-        impl(impl const &) = delete;
-        impl & operator=(impl const &) = delete;
-        void add_listener(uint16_t port, recv_handler_creator && func) {
-            if (auto listen = listener::create(port, std::move(func))) {
-                select.add(listen->get_socket());
-                listeners.emplace_back(std::move(listen));
-            }
-        }
-        void update() {
-            if (select.wait(sf::seconds(1))) {
-                for (auto & listen : listeners) {
-                    if (select.isReady(listen->get_socket())) {
-                        for (auto && next : *listen) {
-                            select.add(next->get_socket());
-                            connections.emplace_back(std::move(next));
-                        }
-                    }
-                }
-                for (auto & connect : connections) {
-                    if (select.isReady(connect->get_socket())) {
-                        connect->update();
-                    }
-                }
-            }
-        }
-    private:
-        std::vector<std::unique_ptr<listener>> listeners;
-        std::vector<std::unique_ptr<connection>> connections;
-        sf::SocketSelector select;
-        std::chrono::steady_clock::time_point last_clear = std::chrono::steady_clock::now();
-    };
-    manager::manager() : m_data(std::make_unique<impl>()) {}
+    manager::manager() {}
     manager::~manager() {}
     void manager::add_listener(uint16_t port, recv_handler_creator && func) {
-        m_data->add_listener(port, std::move(func));
+        if (auto listen = listener::create(port, std::move(func))) {
+            select.add(listen->get_socket());
+            listeners.emplace_back(std::move(listen));
+        }
     }
     void manager::update() {
-        m_data->update();
+        std::vector<std::list<std::unique_ptr<connection>>::iterator> to_remove;
+        if (select.wait(sf::seconds(1))) {
+            for (auto & listen : listeners) {
+                if (select.isReady(listen->get_socket())) {
+                    for (auto && next : *listen) {
+                        select.add(next->get_socket());
+                        connections.emplace_back(std::move(next));
+                    }
+                }
+            }
+            for (auto it = connections.begin(); it != connections.end(); ++it) {
+                auto & connect = **it;
+                if (select.isReady(connect.get_socket())) {
+                    if (!connect.update()) {
+                        to_remove.push_back(it);
+                        select.remove(connect.get_socket());
+                    }
+                }
+            }
+        }
+        auto now = std::chrono::steady_clock::now();
+        if (now - last_update > std::chrono::seconds(5)) {
+            last_update = now;
+            for (auto it = connections.begin(); it != connections.end(); ++it) {
+                auto & connect = **it;
+                if (!connect.recv_update()) {
+                    to_remove.push_back(it);
+                    select.remove(connect.get_socket());
+                }
+            }
+        }
+        for (auto & it : to_remove) {
+            connections.erase(it);
+        }
     }
 }

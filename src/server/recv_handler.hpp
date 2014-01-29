@@ -17,19 +17,13 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "recv_handler.hpp"
-#include <utility/ptr.hpp>
-#include <chrono>
+#include <SFML/Network/Packet.hpp>
 
 namespace nlp {
-    class send_handler;
-    class player final : public recv_handler {
+    class recv_handler {
     public:
-        player(ptr<send_handler> send);
-    private:
-        void recv(sf::Packet &);
-        void update();
-        ptr<send_handler> send;
-        std::chrono::steady_clock::time_point last_ping = std::chrono::steady_clock::now();
+        virtual ~recv_handler() {}
+        virtual void recv(sf::Packet &) = 0;
+        virtual void update() = 0;
     };
 }

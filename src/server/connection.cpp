@@ -16,13 +16,49 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-#include <SFML/Network/Packet.hpp>
+#include "connection.hpp"
+#include "recv_handler.hpp"
+#include <iostream>
 
 namespace nlp {
-    class packet_handler {
-    public:
-        virtual ~packet_handler() {}
-        virtual void handle(sf::Packet & p) = 0;
-    };
+    connection::connection(recv_handler_creator const & func, std::unique_ptr<sf::TcpSocket> && sock) : socket(std::move(sock)) {
+        recv = func(this);
+        socket->setBlocking(false);
+    }
+    connection::~connection() {}
+    sf::Socket & connection::get_socket() const {
+        return *socket;
+    }
+    bool connection::update() {
+        if (disconnected) {
+            return false;
+        }
+        for (;;) {
+            auto err = socket->receive(packet);
+            if (err == sf::Socket::Status::Error || err == sf::Socket::Status::Disconnected) {
+                std::cout << "Disconnected!" << std::endl;
+                disconnected = true;
+                return false;
+            } else if (err == sf::Socket::Status::Done) {
+                std::cout << "Got packet!" << std::endl;
+                recv->recv(packet);
+            } else {
+                //Out of packets to handle
+                return true;
+            }
+        }
+    }
+    bool connection::recv_update() {
+        if (disconnected) {
+            return false;
+        }
+        recv->update();
+        return true;
+    }
+    void connection::send(sf::Packet & p) {
+        socket->send(p);
+    }
+    void connection::disconnect() {
+        disconnected = true;
+    }
 }

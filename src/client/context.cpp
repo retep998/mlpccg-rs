@@ -36,7 +36,7 @@ namespace nlp {
         } else {
             current->update();
             if (current->is_disconnected()) {
-                current.release();
+                current.reset();
             }
         }
     }

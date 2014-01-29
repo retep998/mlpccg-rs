@@ -17,19 +17,33 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "recv_handler.hpp"
+#include "send_handler.hpp"
 #include <utility/ptr.hpp>
-#include <chrono>
+#include <SFML/Network/TcpSocket.hpp>
+#include <memory>
+#include <functional>
 
 namespace nlp {
+    class recv_handler;
     class send_handler;
-    class player final : public recv_handler {
+    using recv_handler_creator = std::function<std::unique_ptr<recv_handler>(ptr<send_handler>)>;
+    class connection final : private send_handler {
     public:
-        player(ptr<send_handler> send);
+        connection() = delete;
+        connection(connection const &) = delete;
+        connection(recv_handler_creator const & func, std::unique_ptr<sf::TcpSocket> && sock);
+        ~connection();
+        connection & operator=(connection const &) = delete;
+        sf::Socket & get_socket() const;
+        bool update();
+        bool recv_update();
     private:
-        void recv(sf::Packet &);
-        void update();
-        ptr<send_handler> send;
-        std::chrono::steady_clock::time_point last_ping = std::chrono::steady_clock::now();
+        void send(sf::Packet &) override;
+        void disconnect() override;
+        std::unique_ptr<recv_handler> recv;
+        std::unique_ptr<sf::TcpSocket> socket;
+        sf::Packet packet;
+        bool disconnected = false;
     };
+
 }

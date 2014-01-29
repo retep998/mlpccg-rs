@@ -17,39 +17,48 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include <SFML/Network/TcpListener.hpp>
+#include <SFML/Network/TcpSocket.hpp>
 #include <utility/ptr.hpp>
-#include <SFML/Network/Packet.hpp>
-#include <SFML/Network/SocketSelector.hpp>
 #include <memory>
 #include <functional>
-#include <cstdint>
-#include <list>
-#include <chrono>
 
 namespace nlp {
-    class listener;
     class connection;
     class recv_handler;
     class send_handler;
     using recv_handler_creator = std::function<std::unique_ptr<recv_handler>(ptr<send_handler>)>;
-    class manager final {
+    class listener final {
     public:
-        manager();
-        manager(manager const &) = delete;
-        ~manager();
-        manager & operator=(manager const &) = delete;
-        template <typename T>
-        void listen(uint16_t port) {
-            add_listener(port, [](ptr<send_handler> p) {
-                return std::make_unique<T>(p);
-            });
-        }
-        void update();
+        class iterator final {
+        public:
+            iterator() = delete;
+            iterator(iterator const &) = delete;
+            iterator(iterator && o);
+            iterator(ptr<listener> listen, bool pop);
+            ~iterator();
+            iterator & operator=(iterator const &) = delete;
+            bool operator!=(iterator const & o) const;
+            iterator & operator++();
+            std::unique_ptr<connection> operator*();
+        private:
+            ptr<listener> listen;
+            std::unique_ptr<connection> next;
+        };
+        listener() = delete;
+        listener(listener const &) = delete;
+        listener(std::unique_ptr<sf::TcpListener> && listen, recv_handler_creator && func);
+        ~listener();
+        listener & operator=(listener const &) = delete;
+        static std::unique_ptr<listener> create(uint16_t port, recv_handler_creator && func);
+        iterator begin();
+        iterator end();
+        sf::Socket & get_socket() const;
+    protected:
+        std::unique_ptr<connection> get_next();
     private:
-        void add_listener(uint16_t port, recv_handler_creator && func);
-        std::vector<std::unique_ptr<listener>> listeners;
-        std::list<std::unique_ptr<connection>> connections;
-        sf::SocketSelector select;
-        std::chrono::steady_clock::time_point last_update = std::chrono::steady_clock::now();
+        std::unique_ptr<sf::TcpListener> listen;
+        std::unique_ptr<sf::TcpSocket> socket;
+        recv_handler_creator func;
     };
 }

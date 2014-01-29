@@ -16,14 +16,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\server\connection.hpp" />
+    <ClInclude Include="..\src\server\listener.hpp" />
     <ClInclude Include="..\src\server\manager.hpp" />
-    <ClInclude Include="..\src\server\packet_handler.hpp" />
+    <ClInclude Include="..\src\server\recv_handler.hpp" />
     <ClInclude Include="..\src\server\player.hpp" />
+    <ClInclude Include="..\src\server\send_handler.hpp" />
     <ClInclude Include="..\src\server\server.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\server\connection.cpp" />
+    <ClCompile Include="..\src\server\listener.cpp" />
     <ClCompile Include="..\src\server\main.cpp" />
     <ClCompile Include="..\src\server\manager.cpp" />
+    <ClCompile Include="..\src\server\player.cpp" />
     <ClCompile Include="..\src\server\server.cpp" />
   </ItemGroup>
 </Project>
