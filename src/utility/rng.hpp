@@ -20,5 +20,5 @@
 #include <random>
 
 namespace nlp {
-    auto rng = std::mt19937_64{std::random_device{}()};
+    static std::mt19937_64 rng{std::random_device{}()};
 }

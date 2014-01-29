@@ -22,8 +22,8 @@
 #include <iostream>
 
 namespace nlp {
-    listener::iterator::iterator(iterator && o) : listen(o.listen), next(std::move(o.next)) {}
-    listener::iterator::iterator(ptr<listener> listen, bool pop) : listen(listen) {
+    listener::iterator::iterator(iterator && o) : listen{o.listen}, next{std::move(o.next)} {}
+    listener::iterator::iterator(ptr<listener> listen, bool pop) : listen{listen} {
         if (pop) {
             next = listen->get_next();
         }
@@ -39,7 +39,7 @@ namespace nlp {
     std::unique_ptr<connection> listener::iterator::operator*() {
         return std::move(next);
     }
-    listener::listener(std::unique_ptr<sf::TcpListener> && listen, recv_handler_creator && func) : listen(std::move(listen)), func(std::move(func)) {}
+    listener::listener(std::unique_ptr<sf::TcpListener> && listen, recv_handler_creator && func) : listen{std::move(listen)}, func{std::move(func)} {}
     listener::~listener() {}
     std::unique_ptr<listener> listener::create(uint16_t port, recv_handler_creator && func) {
         auto listen = std::make_unique<sf::TcpListener>();

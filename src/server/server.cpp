@@ -32,11 +32,9 @@
 
 namespace nlp {
     namespace server {
-        std::list<player> players;
-        void run(bool);
         void run() {
             std::cout << "NoLifePony server." << std::endl;
-            manager manage;
+            manager manage{};
             manage.listen<player>(273);
             for (;;) {
                 manage.update();

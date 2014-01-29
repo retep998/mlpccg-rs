@@ -17,7 +17,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <stdexcept>
 #include <memory>
 
 namespace nlp {
@@ -27,22 +26,18 @@ namespace nlp {
     public:
         ptr() = default;
         ptr(ptr const &) = default;
-        ptr(std::unique_ptr<T> const & o) : m_ptr(o.get()) {}
-        ptr(T & o) : m_ptr(&o) {}
+        ptr(std::unique_ptr<T> const & o) : m_ptr{o.get()} {}
+        ptr(T & o) : m_ptr{&o} {}
         ptr(nullptr_t) {}
-        ptr(T * o) : m_ptr(o) {}
+        ptr(T * o) : m_ptr{o} {}
         ptr & operator=(ptr const &) = default;
         explicit operator bool() const {
             return m_ptr != nullptr;
         }
         T * operator->() const {
-            if (m_ptr == nullptr)
-                throw std::runtime_error("Null pointer exception!");
             return m_ptr;
         }
         T & operator*() const {
-            if (m_ptr == nullptr)
-                throw std::runtime_error("Null pointer exception!");
             return *m_ptr;
         }
         bool operator==(ptr const & o) const {
@@ -52,6 +47,6 @@ namespace nlp {
             return m_ptr != o.m_ptr;
         }
     private:
-        T * m_ptr = nullptr;
+        T * m_ptr{nullptr};
     };
 }

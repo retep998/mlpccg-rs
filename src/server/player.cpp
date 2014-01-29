@@ -43,18 +43,19 @@ namespace nlp {
             }
         } break;
         case 0x0003: {
+            std::cout << nickname << " has renamed themselves to ";
             p >> nickname;
-            std::cout << "Player has set their nickname to " << nickname << std::endl;
+            std::cout << nickname << std::endl;
         } break;
         }
     }
     void player::update() {
         auto now = std::chrono::steady_clock::now();
         if (last_ping_id) {
-            if (now - last_ping > std::chrono::seconds(20)) {
+            if (now - last_ping > std::chrono::seconds{20}) {
                 send->disconnect();
             }
-        } else if (now - last_ping > std::chrono::seconds(10)) {
+        } else if (now - last_ping > std::chrono::seconds{15}) {
             std::uniform_int_distribution<uint32_t> dist{1, std::numeric_limits<uint32_t>::max()};
             packet.clear();
             last_ping_id = dist(rng);

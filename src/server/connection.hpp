@@ -44,7 +44,7 @@ namespace nlp {
         std::unique_ptr<recv_handler> recv;
         std::unique_ptr<sf::TcpSocket> socket;
         sf::Packet packet;
-        bool disconnected = false;
+        bool disconnected{false};
     };
 
 }

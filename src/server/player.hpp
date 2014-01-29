@@ -31,8 +31,8 @@ namespace nlp {
         void recv(sf::Packet &);
         void update();
         ptr<send_handler> send;
-        std::chrono::steady_clock::time_point last_ping = std::chrono::steady_clock::now();
-        uint32_t last_ping_id = 0;
+        std::chrono::steady_clock::time_point last_ping{std::chrono::steady_clock::now()};
+        uint32_t last_ping_id{};
         sf::Packet packet;
         std::string nickname;
     };

@@ -51,7 +51,7 @@ namespace nlp {
             }
         }
         auto now = std::chrono::steady_clock::now();
-        if (now - last_update > std::chrono::seconds(5)) {
+        if (now - last_update > std::chrono::seconds{5}) {
             last_update = now;
             for (auto & c : connections) {
                 c->recv_update();

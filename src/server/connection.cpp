@@ -22,7 +22,7 @@
 #include <iostream>
 
 namespace nlp {
-    connection::connection(recv_handler_creator const & func, std::unique_ptr<sf::TcpSocket> && sock) : socket(std::move(sock)) {
+    connection::connection(recv_handler_creator const & func, std::unique_ptr<sf::TcpSocket> && sock) : socket{std::move(sock)} {
         recv = func(this);
         socket->setBlocking(false);
     }

@@ -50,6 +50,6 @@ namespace nlp {
         std::vector<std::unique_ptr<listener>> listeners;
         std::list<std::unique_ptr<connection>> connections;
         sf::SocketSelector select;
-        std::chrono::steady_clock::time_point last_update = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point last_update{std::chrono::steady_clock::now()};
     };
 }
