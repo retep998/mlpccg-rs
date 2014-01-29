@@ -17,9 +17,49 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "player.hpp"
+#include "send_handler.hpp"
+#include <utility/rng.hpp>
+#include <iostream>
 
 namespace nlp {
-    player::player(ptr<send_handler> send) : send(send) {}
-    void player::recv(sf::Packet &) {}
-    void player::update() {}
+    player::player(ptr<send_handler> send) : send{send} {}
+    void player::recv(sf::Packet & p) {
+        uint16_t opcode{};
+        p >> opcode;
+        switch (opcode) {
+        case 0x0001: {
+            uint32_t id{};
+            p >> id;
+            packet.clear();
+            packet << uint16_t{0x0002} << id;
+            send->send(packet);
+        } break;
+        case 0x0002: {
+            uint32_t id{};
+            p >> id;
+            if (last_ping_id && id == last_ping_id) {
+                last_ping = std::chrono::steady_clock::now();
+                last_ping_id = 0;
+            }
+        } break;
+        case 0x0003: {
+            p >> nickname;
+            std::cout << "Player has set their nickname to " << nickname << std::endl;
+        } break;
+        }
+    }
+    void player::update() {
+        auto now = std::chrono::steady_clock::now();
+        if (last_ping_id) {
+            if (now - last_ping > std::chrono::seconds(20)) {
+                send->disconnect();
+            }
+        } else if (now - last_ping > std::chrono::seconds(10)) {
+            std::uniform_int_distribution<uint32_t> dist{1, std::numeric_limits<uint32_t>::max()};
+            packet.clear();
+            last_ping_id = dist(rng);
+            packet << uint16_t{0x0001} << last_ping_id;
+            send->send(packet);
+        }
+    }
 }

@@ -19,6 +19,7 @@
 #pragma once
 #include "recv_handler.hpp"
 #include <utility/ptr.hpp>
+#include <SFML/Network/Packet.hpp>
 #include <chrono>
 
 namespace nlp {
@@ -31,5 +32,8 @@ namespace nlp {
         void update();
         ptr<send_handler> send;
         std::chrono::steady_clock::time_point last_ping = std::chrono::steady_clock::now();
+        uint32_t last_ping_id = 0;
+        sf::Packet packet;
+        std::string nickname;
     };
 }

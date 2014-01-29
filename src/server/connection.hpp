@@ -35,8 +35,9 @@ namespace nlp {
         ~connection();
         connection & operator=(connection const &) = delete;
         sf::Socket & get_socket() const;
-        bool update();
-        bool recv_update();
+        void update();
+        void recv_update();
+        bool is_disconnected() const;
     private:
         void send(sf::Packet &) override;
         void disconnect() override;

@@ -35,7 +35,6 @@ namespace nlp {
         }
     }
     void manager::update() {
-        std::vector<std::list<std::unique_ptr<connection>>::iterator> to_remove;
         if (select.wait(sf::seconds(1))) {
             for (auto & listen : listeners) {
                 if (select.isReady(listen->get_socket())) {
@@ -45,29 +44,26 @@ namespace nlp {
                     }
                 }
             }
-            for (auto it = connections.begin(); it != connections.end(); ++it) {
-                auto & connect = **it;
-                if (select.isReady(connect.get_socket())) {
-                    if (!connect.update()) {
-                        to_remove.push_back(it);
-                        select.remove(connect.get_socket());
-                    }
+            for (auto & c : connections) {
+                if (select.isReady(c->get_socket())) {
+                    c->update();
                 }
             }
         }
         auto now = std::chrono::steady_clock::now();
         if (now - last_update > std::chrono::seconds(5)) {
             last_update = now;
-            for (auto it = connections.begin(); it != connections.end(); ++it) {
-                auto & connect = **it;
-                if (!connect.recv_update()) {
-                    to_remove.push_back(it);
-                    select.remove(connect.get_socket());
+            for (auto & c : connections) {
+                c->recv_update();
+            }
+            for (auto & c : connections) {
+                if (c->is_disconnected()) {
+                    select.remove(c->get_socket());
                 }
             }
-        }
-        for (auto & it : to_remove) {
-            connections.erase(it);
+            connections.remove_if([](std::unique_ptr<connection> const & c) {
+                return c->is_disconnected();
+            });
         }
     }
 }

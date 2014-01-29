@@ -18,6 +18,7 @@
 
 #include "connection.hpp"
 #include "recv_handler.hpp"
+#include <SFML/Network/IpAddress.hpp>
 #include <iostream>
 
 namespace nlp {
@@ -29,36 +30,36 @@ namespace nlp {
     sf::Socket & connection::get_socket() const {
         return *socket;
     }
-    bool connection::update() {
+    void connection::update() {
         if (disconnected) {
-            return false;
+            return;
         }
         for (;;) {
             auto err = socket->receive(packet);
             if (err == sf::Socket::Status::Error || err == sf::Socket::Status::Disconnected) {
-                std::cout << "Disconnected!" << std::endl;
-                disconnected = true;
-                return false;
+                disconnect();
+                return;
             } else if (err == sf::Socket::Status::Done) {
-                std::cout << "Got packet!" << std::endl;
                 recv->recv(packet);
             } else {
-                //Out of packets to handle
-                return true;
+                return;
             }
         }
     }
-    bool connection::recv_update() {
+    void connection::recv_update() {
         if (disconnected) {
-            return false;
+            return;
         }
         recv->update();
-        return true;
     }
     void connection::send(sf::Packet & p) {
         socket->send(p);
     }
     void connection::disconnect() {
+        std::cout << socket->getRemoteAddress() << " has disconnected." << std::endl;
         disconnected = true;
+    }
+    bool connection::is_disconnected() const {
+        return disconnected;
     }
 }

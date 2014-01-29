@@ -18,12 +18,14 @@
   <ItemGroup>
     <ClCompile Include="..\src\client\card.cpp" />
     <ClCompile Include="..\src\client\client.cpp" />
+    <ClCompile Include="..\src\client\connection.cpp" />
     <ClCompile Include="..\src\client\context.cpp" />
     <ClCompile Include="..\src\client\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\client\card.hpp" />
     <ClInclude Include="..\src\client\client.hpp" />
+    <ClInclude Include="..\src\client\connection.hpp" />
     <ClInclude Include="..\src\client\context.hpp" />
     <ClInclude Include="..\src\client\deck.hpp" />
     <ClInclude Include="..\src\client\field.hpp" />

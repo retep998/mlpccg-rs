@@ -17,32 +17,8 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "connection.hpp"
-#include <SFML/Graphics.hpp>
-#include <atomic>
+#include <random>
 
 namespace nlp {
-    class context : public connection {
-    public:
-        class manager {
-        public:
-            void update();
-            void render(sf::RenderWindow &);
-            std::unique_ptr<context> const & get() {
-                return current;
-            }
-        private:
-            std::unique_ptr<sf::TcpSocket> socket;
-            std::unique_ptr<context> current;
-            std::atomic_bool connected;
-        };
-        static void init() {
-            connection::init();
-        }
-        context(std::unique_ptr<sf::TcpSocket> && ptr) : connection(std::move(ptr)) {}
-    private:
-        void render(sf::RenderWindow &) {
-
-        }
-    };
+    auto rng = std::mt19937_64{std::random_device{}()};
 }
