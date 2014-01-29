@@ -18,6 +18,7 @@
 
 #include "server.hpp"
 #include "player.hpp"
+#include "manager.hpp"
 #include <SFML/Network.hpp>
 #include <vector>
 #include <iostream>
@@ -34,42 +35,10 @@ namespace nlp {
         std::list<player> players;
         void run() {
             std::cout << "NoLifePony server." << std::endl;
-            player::init();
-            sf::TcpListener listener;
-            listener.listen(273);
-            listener.setBlocking(false);
-            auto next_socket = std::make_unique<sf::TcpSocket>();
-            auto last_update = std::chrono::steady_clock::now();
+            manager manage;
+            manage.listen<player>(273);
             for (;;) {
-                while (listener.accept(*next_socket) == sf::Socket::Done) {
-                    players.emplace_back(std::move(next_socket));
-                    next_socket = std::make_unique<sf::TcpSocket>();
-                }
-                for (auto && p : players)
-                    p.update();
-                players.remove_if([](player & p) {
-                    if (p.is_disconnected()) {
-                        return true;
-                    }
-                    return false;
-                });
-                auto now = std::chrono::steady_clock::now();
-                if (now - last_update > std::chrono::minutes(5)) {
-                    last_update = now;
-                    auto t = time(nullptr);
-                    auto tl = std::localtime(&t);
-                    std::cout << std::put_time(tl, "================%H:%M================") << std::endl;
-                    std::cout << "Total: " << players.size() << std::endl;
-                    std::map<std::string, size_t> counts;
-                    for (auto & p : players) {
-                        ++counts[p.get_address()];
-                    }
-                    for (auto & c : counts) {
-                        std::cout << c.first << ": " << c.second << std::endl;
-                    }
-                    connection::print_counts();
-                }
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                manage.update();
             }
         }
     }

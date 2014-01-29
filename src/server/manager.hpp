@@ -17,28 +17,31 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include <utility/ptr.hpp>
+#include <SFML/Network/Packet.hpp>
 #include <memory>
 #include <functional>
 #include <cstdint>
 
 namespace nlp {
     class packet_handler;
-    using packet_handler_creator = std::function<std::unique_ptr<packet_handler>()>;
+    using recv_handler_creator = std::function<std::unique_ptr<packet_handler>(ptr<packet_handler>)>;
     class manager final {
     public:
         manager();
         manager(manager const &) = delete;
+        ~manager();
         manager & operator=(manager const &) = delete;
         template <typename T>
         void listen(uint16_t port) {
-            add_listener(port, [] {
-                return std::make_unique<T>();
+            add_listener(port, [](ptr<packet_handler> p) {
+                return std::make_unique<T>(p);
             });
         }
         void update();
     private:
         class impl;
-        void add_listener(uint16_t, packet_handler_creator &&);
+        void add_listener(uint16_t, recv_handler_creator &&);
         std::unique_ptr<impl> m_data;
     };
 }

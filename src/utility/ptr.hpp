@@ -48,6 +48,9 @@ namespace nlp {
         bool operator==(ptr const & o) const {
             return m_ptr == o.m_ptr;
         }
+        bool operator!=(ptr const & o) const {
+            return m_ptr != o.m_ptr;
+        }
     private:
         T * m_ptr = nullptr;
     };

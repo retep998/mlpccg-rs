@@ -17,21 +17,17 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <utility/connection.hpp>
-#include <SFML/Network.hpp>
-#include <memory>
+#include "packet_handler.hpp"
+#include <utility/ptr.hpp>
 
 namespace nlp {
-    class player : public connection {
+    class player final : public packet_handler {
     public:
-        player(std::unique_ptr<sf::TcpSocket> && ptr) : connection(std::move(ptr)) {
-        }
-        void update() {
-            connection::update();
-        }
-        static void init() {
-            connection::init();
-        }
+        player(ptr<packet_handler> send) : send(send) {}
     private:
+        void handle(sf::Packet &) override {
+
+        }
+        ptr<packet_handler> send;
     };
 }
