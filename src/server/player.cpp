@@ -18,11 +18,21 @@
 
 #include "player.hpp"
 #include "send_handler.hpp"
+#include <utility/format.hpp>
 #include <utility/rng.hpp>
 #include <iostream>
 
 namespace nlp {
-    player::player(ptr<send_handler> send) : send{send} {}
+    player::player(ptr<send_handler> send) : send{send} {
+        std::uniform_int<uint64_t> dist(std::numeric_limits<uint64_t>::min(), std::numeric_limits<uint64_t>::max());
+        id = dist(rng);
+        packet.clear();
+        packet << uint16_t{0x0004} << id;
+        send->send(packet);
+    }
+    player::~player() {
+
+    }
     void player::recv(sf::Packet & p) {
         uint16_t opcode{};
         p >> opcode;
@@ -43,7 +53,7 @@ namespace nlp {
             }
         } break;
         case 0x0003: {
-            std::cout << nickname << " has renamed themselves to ";
+            std::cout << time() << nickname << " has renamed themselves to ";
             p >> nickname;
             std::cout << nickname << std::endl;
         } break;

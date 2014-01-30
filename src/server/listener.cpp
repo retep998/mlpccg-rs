@@ -18,6 +18,7 @@
 
 #include "listener.hpp"
 #include "connection.hpp"
+#include <utility/format.hpp>
 #include <SFML/Network/IpAddress.hpp>
 #include <iostream>
 
@@ -45,10 +46,10 @@ namespace nlp {
         auto listen = std::make_unique<sf::TcpListener>();
         auto err = listen->listen(port);
         if (err != sf::Socket::Status::Done) {
-            std::cerr << "Failed to listen to port " << port << std::endl;
+            std::cout << time() << "Failed to listen to port " << port << std::endl;
             return nullptr;
         }
-        std::cout << "Listening on port " << port << std::endl;
+        std::cout << time() << "Listening on port " << port << std::endl;
         listen->setBlocking(false);
         return std::make_unique<listener>(std::move(listen), std::move(func));
     }
@@ -69,7 +70,7 @@ namespace nlp {
         if (err != sf::Socket::Status::Done) {
             return nullptr;
         }
-        std::cout << "Accepted connection from " << socket->getRemoteAddress() << std::endl;
+        std::cout << time() << *socket << "Connected." << std::endl;
         auto next = std::make_unique<connection>(func, std::move(socket));
         return next;
     }

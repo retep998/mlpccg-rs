@@ -17,6 +17,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\src\server\connection.hpp" />
+    <ClInclude Include="..\src\server\game.hpp" />
     <ClInclude Include="..\src\server\listener.hpp" />
     <ClInclude Include="..\src\server\manager.hpp" />
     <ClInclude Include="..\src\server\recv_handler.hpp" />

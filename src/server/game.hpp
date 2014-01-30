@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // NoLifePony - Pony Card Game                                              //
-// Copyright Â© 2014 Peter Atashian                                          //
+// Copyright © 2014 Peter Atashian                                          //
 //                                                                          //
 // This program is free software: you can redistribute it and/or modify     //
 // it under the terms of the GNU Affero General Public License as           //
@@ -17,25 +17,18 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "recv_handler.hpp"
 #include <utility/ptr.hpp>
-#include <SFML/Network/Packet.hpp>
-#include <chrono>
+#include <vector>
+#include <string>
 
 namespace nlp {
-    class send_handler;
-    class player final : public recv_handler {
+    class player;
+    class game {
     public:
-        player(ptr<send_handler> send);
-        ~player();
+        game();
     private:
-        void recv(sf::Packet &);
-        void update();
-        ptr<send_handler> send;
-        std::chrono::steady_clock::time_point last_ping{std::chrono::steady_clock::now()};
-        uint32_t last_ping_id{};
-        sf::Packet packet;
-        std::string nickname;
-        uint32_t id;
+        std::vector<ptr<player>> players;
+        ptr<player> player_one, player_two;
+        std::string name;
     };
 }

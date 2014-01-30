@@ -16,51 +16,18 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "connection.hpp"
-#include "recv_handler.hpp"
-#include <utility/format.hpp>
+#include "format.hpp"
+#include <SFML/Network/TcpSocket.hpp>
 #include <SFML/Network/IpAddress.hpp>
-#include <iostream>
 
 namespace nlp {
-    connection::connection(recv_handler_creator const & func, std::unique_ptr<sf::TcpSocket> && sock) : socket{std::move(sock)} {
-        recv = func(this);
-        socket->setBlocking(false);
+    decltype(std::put_time<char>(nullptr, nullptr)) time() {
+        auto t = std::time(nullptr);
+        auto l = std::localtime(&t);
+        return std::put_time<char>(l, "[%H:%M:%S] ");
     }
-    connection::~connection() {}
-    sf::Socket & connection::get_socket() const {
-        return *socket;
-    }
-    void connection::update() {
-        if (disconnected) {
-            return;
-        }
-        for (;;) {
-            auto err = socket->receive(packet);
-            if (err == sf::Socket::Status::Error || err == sf::Socket::Status::Disconnected) {
-                disconnect();
-                return;
-            } else if (err == sf::Socket::Status::Done) {
-                recv->recv(packet);
-            } else {
-                return;
-            }
-        }
-    }
-    void connection::recv_update() {
-        if (disconnected) {
-            return;
-        }
-        recv->update();
-    }
-    void connection::send(sf::Packet & p) {
-        socket->send(p);
-    }
-    void connection::disconnect() {
-        std::cout << time() << *socket << "Disconnected." << std::endl;
-        disconnected = true;
-    }
-    bool connection::is_disconnected() const {
-        return disconnected;
+    std::ostream & operator<<(std::ostream & o, sf::TcpSocket & s) {
+        o << "[" << s.getRemoteAddress() << ":" << s.getRemotePort() << "] ";
+        return o;
     }
 }
