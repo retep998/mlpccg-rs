@@ -27,6 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\server\connection.cpp" />
+    <ClCompile Include="..\src\server\game.cpp" />
     <ClCompile Include="..\src\server\listener.cpp" />
     <ClCompile Include="..\src\server\main.cpp" />
     <ClCompile Include="..\src\server\manager.cpp" />

@@ -57,7 +57,6 @@ namespace nlp {
         socket->send(p);
     }
     void connection::disconnect() {
-        std::cout << time() << *socket << "Disconnected." << std::endl;
         disconnected = true;
     }
     bool connection::is_disconnected() const {

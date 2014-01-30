@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // NoLifePony - Pony Card Game                                              //
-// Copyright © 2014 Peter Atashian                                          //
+// Copyright Â© 2014 Peter Atashian                                          //
 //                                                                          //
 // This program is free software: you can redistribute it and/or modify     //
 // it under the terms of the GNU Affero General Public License as           //
@@ -18,17 +18,28 @@
 
 #pragma once
 #include <utility/ptr.hpp>
-#include <vector>
+#include <set>
 #include <string>
+#include <functional>
+#include <memory>
+#include <map>
 
 namespace nlp {
     class player;
-    class game {
+    class game final : public std::enable_shared_from_this<game> {
     public:
-        game();
+        game(std::string name);
+        ~game();
+        uint32_t get_id() const;
+        static std::shared_ptr<game> create(std::string name);
+        static std::shared_ptr<game> get(uint32_t id);
+        static std::map<uint32_t, ptr<game>> games;
+        std::string const & get_name() const;
     private:
-        std::vector<ptr<player>> players;
+        std::shared_ptr<game> make_shared();
+        std::set<ptr<player>> players;
         ptr<player> player_one, player_two;
         std::string name;
+        uint32_t id;
     };
 }

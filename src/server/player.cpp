@@ -17,21 +17,60 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "player.hpp"
+#include "game.hpp"
 #include "send_handler.hpp"
 #include <utility/format.hpp>
 #include <utility/rng.hpp>
 #include <iostream>
+#include <map>
 
 namespace nlp {
+    namespace {
+        std::map<uint32_t, ptr<player>> players;
+    }
     player::player(ptr<send_handler> send) : send{send} {
-        std::uniform_int<uint64_t> dist(std::numeric_limits<uint64_t>::min(), std::numeric_limits<uint64_t>::max());
-        id = dist(rng);
+        std::uniform_int_distribution<uint32_t> dist{std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint32_t>::max()};
+        do {
+            id = dist(rng);
+        } while (players.find(id) != players.end());
+        players.emplace(id, this);
+        nickname = "Pony" + to_hex_string(id);
+        std::cout << time() << nickname << " connected." << std::endl;
+        //ID packet
         packet.clear();
         packet << uint16_t{0x0004} << id;
         send->send(packet);
+        //Player update packet
+        packet.clear();
+        packet << uint16_t{0x000B} << static_cast<uint32_t>(players.size());
+        for (auto const & it : players) {
+            packet << it.first << it.second->nickname;
+        }
+        send->send(packet);
+        //Game create packet
+        packet.clear();
+        packet << uint16_t{0x0006} << static_cast<uint32_t>(game::games.size());
+        for (auto const & it : game::games) {
+            packet << it.first << it.second->get_name();
+        }
+        send->send(packet);
     }
     player::~player() {
-
+        std::cout << time() << nickname << " disconnected." << std::endl;
+        players.erase(id);
+    }
+    uint32_t player::get_id() const {
+        return id;
+    }
+    std::string const & player::get_name() const {
+        return nickname;
+    }
+    ptr<player> player::get(uint32_t id) {
+        auto it = players.find(id);
+        if (it != players.end()) {
+            return it->second;
+        }
+        return{};
     }
     void player::recv(sf::Packet & p) {
         uint16_t opcode{};
@@ -53,8 +92,14 @@ namespace nlp {
             }
         } break;
         case 0x0003: {
-            std::cout << time() << nickname << " has renamed themselves to ";
+            std::cout << time() << nickname <<  " has renamed themselves to ";
             p >> nickname;
+            if (nickname.empty()) {
+                nickname = "Pony" + to_hex_string(id);
+            }
+            if (nickname.length() > 20) {
+                nickname.resize(20);
+            }
             std::cout << nickname << std::endl;
         } break;
         }

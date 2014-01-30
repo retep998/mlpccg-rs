@@ -23,11 +23,15 @@
 #include <chrono>
 
 namespace nlp {
+    class game;
     class send_handler;
     class player final : public recv_handler {
     public:
         player(ptr<send_handler> send);
         ~player();
+        uint32_t get_id() const;
+        static ptr<player> get(uint32_t);
+        std::string const & get_name() const;
     private:
         void recv(sf::Packet &);
         void update();
@@ -37,5 +41,6 @@ namespace nlp {
         sf::Packet packet;
         std::string nickname;
         uint32_t id;
+        std::shared_ptr<game> current_game;
     };
 }

@@ -16,40 +16,40 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-#include <memory>
+#include "game.hpp"
+#include "player.hpp"
+#include <utility/rng.hpp>
+#include <map>
 
 namespace nlp {
-    //Non-owning pointer with null pointer checking
-    template <typename T>
-    class ptr {
-    public:
-        ptr() = default;
-        ptr(ptr const &) = default;
-        ptr(std::unique_ptr<T> const & o) : m_ptr{o.get()} {}
-        ptr(T & o) : m_ptr{&o} {}
-        ptr(nullptr_t) {}
-        ptr(T * o) : m_ptr{o} {}
-        ptr & operator=(ptr const &) = default;
-        explicit operator bool() const {
-            return m_ptr != nullptr;
+    std::map<uint32_t, ptr<game>> game::games;
+    game::game(std::string name) : name{name} {
+        std::uniform_int_distribution<uint32_t> dist{std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint32_t>::max()};
+        do {
+            id = dist(rng);
+        } while (games.find(id) != games.end());
+        games.emplace(id, this);
+    }
+    game::~game() {
+        games.erase(id);
+    }
+    uint32_t game::get_id() const {
+        return id;
+    }
+    std::shared_ptr<game> game::create(std::string name) {
+        return std::make_shared<game>(name);
+    }
+    std::shared_ptr<game> game::get(uint32_t id) {
+        auto it = games.find(id);
+        if (it != games.end()) {
+            return it->second->make_shared();
         }
-        T * operator->() const {
-            return m_ptr;
-        }
-        T & operator*() const {
-            return *m_ptr;
-        }
-        bool operator==(ptr const & o) const {
-            return m_ptr == o.m_ptr;
-        }
-        bool operator!=(ptr const & o) const {
-            return m_ptr != o.m_ptr;
-        }
-        T * get() const {
-            return m_ptr;
-        }
-    private:
-        T * m_ptr{nullptr};
-    };
+        return{nullptr};
+    }
+    std::shared_ptr<game> game::make_shared() {
+        return std::shared_ptr<game>{this};
+    }
+    std::string const & game::get_name() const {
+        return name;
+    }
 }

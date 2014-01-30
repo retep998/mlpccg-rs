@@ -22,6 +22,7 @@
 #include <iomanip>
 #include <iostream>
 #include <ctime>
+#include <sstream>
 
 namespace sf {
     class TcpSocket;
@@ -29,4 +30,10 @@ namespace sf {
 namespace nlp {
     decltype(std::put_time<char>(nullptr, nullptr)) time();
     std::ostream & operator<<(std::ostream & o, sf::TcpSocket & s);
+    template <typename T>
+    std::string to_hex_string(T && v) {
+        std::ostringstream ss;
+        ss << std::hex << std::uppercase << v;
+        return ss.str();
+    }
 }
