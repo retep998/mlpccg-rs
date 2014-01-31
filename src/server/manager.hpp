@@ -18,38 +18,33 @@
 
 #pragma once
 #include <utility/ptr.hpp>
-#include <SFML/Network/Packet.hpp>
-#include <SFML/Network/SocketSelector.hpp>
 #include <memory>
 #include <functional>
 #include <cstdint>
 #include <list>
 #include <chrono>
+#include <vector>
 
+namespace sf {
+    class SocketSelector;
+}
 namespace nlp {
     class listener;
     class connection;
     class recv_handler;
     class send_handler;
-    using recv_handler_creator = std::function<std::unique_ptr<recv_handler>(ptr<send_handler>)>;
     class manager final {
     public:
         manager();
         manager(manager const &) = delete;
         ~manager();
         manager & operator=(manager const &) = delete;
-        template <typename T>
-        void listen(uint16_t port) {
-            add_listener(port, [](ptr<send_handler> p) {
-                return std::make_unique<T>(p);
-            });
-        }
+        void add_listener(uint16_t, std::function<std::unique_ptr<recv_handler>(ptr<send_handler>)> &&);
         void update();
     private:
-        void add_listener(uint16_t port, recv_handler_creator && func);
-        std::vector<std::unique_ptr<listener>> listeners;
-        std::list<std::unique_ptr<connection>> connections;
-        sf::SocketSelector select;
-        std::chrono::steady_clock::time_point last_update{std::chrono::steady_clock::now()};
+        std::vector<std::unique_ptr<listener>> m_listeners;
+        std::list<std::unique_ptr<connection>> m_connections;
+        std::unique_ptr<sf::SocketSelector> m_select;
+        std::chrono::steady_clock::time_point m_last_update{std::chrono::steady_clock::now()};
     };
 }

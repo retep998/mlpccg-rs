@@ -19,5 +19,5 @@
 #include "server.hpp"
 
 int main() {
-    nlp::server::run();
+    nlp::server{}.run();
 }

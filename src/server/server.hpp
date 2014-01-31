@@ -17,9 +17,43 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include <utility/ptr.hpp>
+#include <map>
+#include <string>
+#include <cstdint>
+#include <random>
 
 namespace nlp {
-    namespace server {
+    class player;
+    class game;
+    class send_handler;
+    class manager;
+    class server {
+    public:
+        server();
+        server(server const &) = delete;
+        ~server();
+        server & operator=(server const &) = delete;
         void run();
-    }
+        ptr<player> create_player(ptr<send_handler>);
+        ptr<game> create_game(std::string);
+        std::mt19937_64 & rng();
+        template <typename Func>
+        void for_game(Func && p_func) {
+            for (auto & g : m_games) {
+                p_func(g.second);
+            }
+        }
+        template <typename Func>
+        void for_player(Func && p_func) {
+            for (auto & p : m_players) {
+                p_func(p.second);
+            }
+        }
+    private:
+        std::map<uint32_t, std::unique_ptr<game>> m_games;
+        std::map<uint32_t, std::unique_ptr<player>> m_players;
+        std::unique_ptr<manager> m_manager;
+        std::mt19937_64 m_rng;
+    };
 }

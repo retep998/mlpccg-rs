@@ -26,42 +26,43 @@
 #include <chrono>
 
 namespace nlp {
-    manager::manager() {}
+    manager::manager() :
+        m_select{std::make_unique<sf::SocketSelector>()} {}
     manager::~manager() {}
-    void manager::add_listener(uint16_t port, recv_handler_creator && func) {
-        if (auto listen = listener::create(port, std::move(func))) {
-            select.add(listen->get_socket());
-            listeners.emplace_back(std::move(listen));
+    void manager::add_listener(uint16_t p_port, std::function<std::unique_ptr<recv_handler>(ptr<send_handler>)> && p_func) {
+        if (auto listen = listener::create(p_port, std::move(p_func))) {
+            m_select->add(listen->get_socket());
+            m_listeners.emplace_back(std::move(listen));
         }
     }
     void manager::update() {
-        if (select.wait(sf::seconds(1))) {
-            for (auto & listen : listeners) {
-                if (select.isReady(listen->get_socket())) {
+        if (m_select->wait(sf::seconds(1))) {
+            for (auto & listen : m_listeners) {
+                if (m_select->isReady(listen->get_socket())) {
                     for (auto && next : *listen) {
-                        select.add(next->get_socket());
-                        connections.emplace_back(std::move(next));
+                        m_select->add(next->get_socket());
+                        m_connections.emplace_back(std::move(next));
                     }
                 }
             }
-            for (auto & c : connections) {
-                if (select.isReady(c->get_socket())) {
+            for (auto & c : m_connections) {
+                if (m_select->isReady(c->get_socket())) {
                     c->update();
                 }
             }
         }
         auto now = std::chrono::steady_clock::now();
-        if (now - last_update > std::chrono::seconds{5}) {
-            last_update = now;
-            for (auto & c : connections) {
+        if (now - m_last_update > std::chrono::seconds{5}) {
+            m_last_update = now;
+            for (auto & c : m_connections) {
                 c->recv_update();
             }
-            for (auto & c : connections) {
+            for (auto & c : m_connections) {
                 if (c->is_disconnected()) {
-                    select.remove(c->get_socket());
+                    m_select->remove(c->get_socket());
                 }
             }
-            connections.remove_if([](std::unique_ptr<connection> const & c) {
+            m_connections.remove_if([](std::unique_ptr<connection> const & c) {
                 return c->is_disconnected();
             });
         }
