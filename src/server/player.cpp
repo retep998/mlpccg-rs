@@ -29,6 +29,7 @@
 namespace nlp {
     player::player(ptr<packet_handler> p_send, uint32_t p_id, ptr<server> p_server) :
         m_send{p_send},
+        m_packet{std::make_unique<sf::Packet>()},
         m_id{p_id},
         m_server{p_server} {
         m_name = default_name();
@@ -59,6 +60,7 @@ namespace nlp {
         auto now = std::chrono::steady_clock::now();
         if (m_ping_id) {
             if (now - m_ping > std::chrono::seconds{20}) {
+                std::cout << time() << get_name() << " timed out." << std::endl;
                 disconnect();
             }
         } else if (now - m_ping > std::chrono::seconds{15}) {
@@ -75,8 +77,8 @@ namespace nlp {
     }
     void player::disconnect() {
         if (!is_disconnected()) {
-            m_send->disconnect();
             m_disconnected = true;
+            m_send->disconnect();
         }
     }
     void player::handle(sf::Packet & p) {

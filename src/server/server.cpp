@@ -22,6 +22,7 @@
 #include "game.hpp"
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 
 namespace nlp {
     server::server() :
@@ -39,8 +40,15 @@ namespace nlp {
     void server::run() {
         for (;;) {
             m_manager->update();
+            for (auto it = m_players.begin(); it != m_players.end();) {
+                if (it->second->is_disconnected()) {
+                    it = m_players.erase(it);
+                } else {
+                    ++it;
+                }
+            }
             for (auto & p : m_players) {
-                p.second;
+                p.second->update();
             }
         }
     }

@@ -54,11 +54,6 @@ namespace nlp {
         if (now - last_ping > std::chrono::seconds(10)) {
             send_ping();
         }
-        if (now - last_pong > std::chrono::seconds(20)) {
-            ++counts[get_address()].timeouts;
-            disconnected = true;
-            return;
-        }
         auto err = socket->receive(p);
         switch (err) {
         case sf::Socket::Status::Disconnected:

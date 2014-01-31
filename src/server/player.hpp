@@ -38,8 +38,8 @@ namespace nlp {
         bool is_disconnected() const;
     private:
         std::string default_name() const;
-        void handle(sf::Packet &);
-        void disconnect();
+        void handle(sf::Packet &) override;
+        void disconnect() override;
         void start();
         void send();
         void send_pong(uint32_t);

@@ -22,6 +22,7 @@
 #include <SFML/Network/IpAddress.hpp>
 #include <SFML/Network/TcpSocket.hpp>
 #include <SFML/Network/Packet.hpp>
+#include <iostream>
 
 namespace nlp {
     connection::connection(std::function<ptr<packet_handler>(ptr<packet_handler>)> p_func, std::unique_ptr<sf::TcpSocket> p_socket, ptr<manager> p_manager) :
@@ -59,9 +60,9 @@ namespace nlp {
     }
     void connection::disconnect() {
         if (!is_disconnected()) {
+            m_disconnected = true;
             m_receive->disconnect();
             m_manager->disconnect(this);
-            m_disconnected = true;
         }
     }
 }
