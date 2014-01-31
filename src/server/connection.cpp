@@ -47,12 +47,6 @@ namespace nlp {
             }
         }
     }
-    void connection::recv_update() {
-        if (disconnected) {
-            return;
-        }
-        recv->update();
-    }
     void connection::send(sf::Packet & p) {
         socket->send(p);
     }

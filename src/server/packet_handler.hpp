@@ -17,13 +17,14 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <SFML/Network/Packet.hpp>
 
+namespace sf {
+    class Packet;
+}
 namespace nlp {
-    class recv_handler {
+    class packet_handler {
     public:
-        virtual ~recv_handler() {}
-        virtual void recv(sf::Packet &) = 0;
-        virtual void update() = 0;
+        virtual void handle(sf::Packet &) = 0;
+        virtual void disconnect() = 0;
     };
 }

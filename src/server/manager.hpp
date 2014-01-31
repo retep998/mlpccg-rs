@@ -31,15 +31,14 @@ namespace sf {
 namespace nlp {
     class listener;
     class connection;
-    class recv_handler;
-    class send_handler;
+    class packet_handler;
     class manager final {
     public:
         manager();
         manager(manager const &) = delete;
         ~manager();
         manager & operator=(manager const &) = delete;
-        void add_listener(uint16_t, std::function<std::unique_ptr<recv_handler>(ptr<send_handler>)> &&);
+        void add_listener(uint16_t, std::function<ptr<packet_handler>(ptr<packet_handler>)>);
         void update();
     private:
         std::vector<std::unique_ptr<listener>> m_listeners;

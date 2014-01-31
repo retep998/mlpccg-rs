@@ -19,33 +19,34 @@
 #include "server.hpp"
 #include "player.hpp"
 #include "manager.hpp"
-#include "recv_handler.hpp"
+#include "game.hpp"
 
 namespace nlp {
     server::server() :
         m_manager{std::make_unique<manager>()} {
-        m_manager->add_listener(273, [this](ptr<send_handler> p_send) {
+        m_manager->add_listener(273, [this](auto p_send) {
             return create_player(p_send);
         });
     }
     server::~server() {}
-    void server::run() {
+    auto server::run()->void {
         for (;;) {
             m_manager->update();
         }
     }
-    ptr<player> server::create_player(ptr<send_handler> p_send) {
-        auto p = std::make_unique<player>(p_send);
+    auto server::create_player(ptr<packet_handler> p_send)->ptr<player> {
+        auto dist = std::uniform_int_distribution<uint32_t>{1, std::numeric_limits<uint32_t>::max()};
+        uint32_t id;
+        do {
+            id = dist(m_rng);
+        } while (m_players.find(id) != m_players.end());
+        auto p = player::create(p_send, id, this);
         if (!p) {
             return{};
         }
-        auto ret = ptr<player>{p};
-        auto dist = std::uniform_int_distribution<uint32_t>{1, std::numeric_limits<uint32_t>::max()};
-        for (;;) {
-            m_players.emplace()
-        }
+        return m_players.emplace(id, std::move(p)).first->second;
     }
-    ptr<game> server::create_game(std::string p_name) {
-
+    auto server::create_game(std::string p_name)->ptr<game> {
+        return{};
     }
 }

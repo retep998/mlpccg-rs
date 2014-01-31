@@ -29,7 +29,7 @@ namespace nlp {
     manager::manager() :
         m_select{std::make_unique<sf::SocketSelector>()} {}
     manager::~manager() {}
-    void manager::add_listener(uint16_t p_port, std::function<std::unique_ptr<recv_handler>(ptr<send_handler>)> && p_func) {
+    void manager::add_listener(uint16_t p_port, std::function<ptr<recv_handler>(ptr<send_handler>)> p_func) {
         if (auto listen = listener::create(p_port, std::move(p_func))) {
             m_select->add(listen->get_socket());
             m_listeners.emplace_back(std::move(listen));
@@ -54,9 +54,6 @@ namespace nlp {
         auto now = std::chrono::steady_clock::now();
         if (now - m_last_update > std::chrono::seconds{5}) {
             m_last_update = now;
-            for (auto & c : m_connections) {
-                c->recv_update();
-            }
             for (auto & c : m_connections) {
                 if (c->is_disconnected()) {
                     m_select->remove(c->get_socket());

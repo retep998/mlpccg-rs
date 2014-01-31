@@ -26,24 +26,14 @@
 #include <set>
 
 namespace nlp {
-    std::map<uint32_t, ptr<player>> player::players;
-    ptr<player> player::get(uint32_t id) {
-        auto it = players.find(id);
-        if (it != players.end()) {
-            return it->second;
-        }
-        return{};
+    std::unique_ptr<player> create(ptr<send_handler> p_send, uint32_t p_id, ptr<server> p_server) {
+        return std::make_unique<player>(p_send, p_id, p_server);
     }
-    uint32_t player::total() {
-        return static_cast<uint32_t>(players.size());
-    }
-    player::player(ptr<send_handler> p_send) : m_send{p_send} {
-        std::uniform_int_distribution<uint32_t> dist{std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint32_t>::max()};
-        do {
-            id = dist(rng);
-        } while (players.find(id) != players.end());
-        players.emplace(id, this);
-        nickname = "Pony" + to_hex_string(id);
+    player::player(ptr<send_handler> p_send, uint32_t p_id, ptr<server> p_server) :
+        m_send{p_send},
+        m_id{p_id},
+        m_server{p_server} {
+        nickname = "Pony" + to_hex_string(m_id);
         std::cout << time() << nickname << " connected." << std::endl;
         send_id();
         send_player_joined();
@@ -57,10 +47,9 @@ namespace nlp {
             p.send_player_left(this);
         );
         std::cout << time() << nickname << " disconnected." << std::endl;
-        players.erase(id);
     }
     uint32_t player::get_id() const {
-        return id;
+        return m_id;
     }
     std::string const & player::get_name() const {
         return nickname;
@@ -105,7 +94,7 @@ namespace nlp {
             std::cout << time() << nickname << " has renamed themselves to ";
             p >> nickname;
             if (nickname.empty()) {
-                nickname = "Pony" + to_hex_string(id);
+                nickname = "Pony" + to_hex_string(m_id);
             }
             if (nickname.length() > 20) {
                 nickname.resize(20);
@@ -124,7 +113,7 @@ namespace nlp {
     }
     void player::send_id() {
         start();
-        m_packet << uint16_t{0x0004} << id;
+        m_packet << uint16_t{0x0004} << m_id;
         send();
     }
     void player::send_ping() {

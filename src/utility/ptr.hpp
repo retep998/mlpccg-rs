@@ -30,6 +30,8 @@ namespace nlp {
         ptr(T & o) : m_ptr{&o} {}
         ptr(nullptr_t) {}
         ptr(T * o) : m_ptr{o} {}
+        template <typename U>
+        ptr(ptr<U> const & o) : m_ptr(o.get()) {}
         ptr & operator=(ptr const &) = default;
         explicit operator bool() const {
             return m_ptr != nullptr;

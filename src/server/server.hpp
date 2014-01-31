@@ -26,26 +26,26 @@
 namespace nlp {
     class player;
     class game;
-    class send_handler;
+    class packet_handler;
     class manager;
-    class server {
+    class server final {
     public:
         server();
         server(server const &) = delete;
         ~server();
-        server & operator=(server const &) = delete;
-        void run();
-        ptr<player> create_player(ptr<send_handler>);
-        ptr<game> create_game(std::string);
-        std::mt19937_64 & rng();
+        auto operator=(server const &)->server & = delete;
+        auto run()->void;
+        auto create_player(ptr<packet_handler>)->ptr<player>;
+        auto create_game(std::string)->ptr<game>;
+        auto rng()->std::mt19937_64 &;
         template <typename Func>
-        void for_game(Func && p_func) {
+        auto for_game(Func && p_func) {
             for (auto & g : m_games) {
                 p_func(g.second);
             }
         }
         template <typename Func>
-        void for_player(Func && p_func) {
+        auto for_player(Func && p_func) {
             for (auto & p : m_players) {
                 p_func(p.second);
             }

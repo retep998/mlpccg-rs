@@ -19,27 +19,20 @@
 #pragma once
 #include "recv_handler.hpp"
 #include <utility/ptr.hpp>
-#include <SFML/Network/Packet.hpp>
 #include <chrono>
 #include <map>
 
+namespace sf {
+    class Packet;
+}
 namespace nlp {
     class game;
     class send_handler;
+    class server;
     class player final : public recv_handler {
     public:
-        static ptr<player> get(uint32_t);
-        static uint32_t total();
-        template <typename T>
-        static void for_each(T func) {
-            for (auto const & p : players) {
-                func(*p.second);
-            }
-        }
-#define for_each_player(lambda) player::for_each([this](player & p){lambda})
-        static std::map<uint32_t, ptr<player>> players;
-    public:
-        player(ptr<send_handler>);
+        static std::unique_ptr<player> create(ptr<send_handler>, uint32_t, ptr<server>);
+        player(ptr<send_handler>, uint32_t, ptr<server>);
         ~player();
         uint32_t get_id() const;
         std::string const & get_name() const;
@@ -60,7 +53,8 @@ namespace nlp {
         uint32_t last_ping_id{};
         sf::Packet m_packet;
         std::string nickname;
-        uint32_t id;
-        std::shared_ptr<game> current_game;
+        uint32_t m_id;
+        ptr<game> current_game;
+        ptr<server> m_server;
     };
 }
