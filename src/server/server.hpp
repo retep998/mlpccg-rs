@@ -33,21 +33,23 @@ namespace nlp {
         server();
         server(server const &) = delete;
         ~server();
-        auto operator=(server const &)->server & = delete;
-        auto run()->void;
-        auto create_player(ptr<packet_handler>)->ptr<player>;
-        auto create_game(std::string)->ptr<game>;
-        auto rng()->std::mt19937_64 &;
+        server & operator=(server const &) = delete;
+        void run();
+        ptr<player> create_player(ptr<packet_handler>);
+        ptr<game> create_game(std::string);
+        uint32_t total_players() const;
+        uint32_t total_games() const;
+        std::mt19937_64 & rng();
         template <typename Func>
-        auto for_game(Func && p_func) {
+        void for_game(Func && p_func) {
             for (auto & g : m_games) {
-                p_func(g.second);
+                p_func(*g.second);
             }
         }
         template <typename Func>
-        auto for_player(Func && p_func) {
+        void for_player(Func && p_func) {
             for (auto & p : m_players) {
-                p_func(p.second);
+                p_func(*p.second);
             }
         }
     private:

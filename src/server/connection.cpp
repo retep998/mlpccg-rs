@@ -17,43 +17,51 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "connection.hpp"
-#include "recv_handler.hpp"
-#include <utility/format.hpp>
+#include "packet_handler.hpp"
+#include "manager.hpp"
 #include <SFML/Network/IpAddress.hpp>
-#include <iostream>
+#include <SFML/Network/TcpSocket.hpp>
+#include <SFML/Network/Packet.hpp>
 
 namespace nlp {
-    connection::connection(recv_handler_creator const & func, std::unique_ptr<sf::TcpSocket> && sock) : socket{std::move(sock)} {
-        recv = func(this);
-        socket->setBlocking(false);
+    connection::connection(std::function<ptr<packet_handler>(ptr<packet_handler>)> p_func, std::unique_ptr<sf::TcpSocket> p_socket, ptr<manager> p_manager) :
+        m_socket{std::move(p_socket)},
+        m_packet{std::make_unique<sf::Packet>()},
+        m_manager{p_manager} {
+        m_receive = p_func(this);
+        m_socket->setBlocking(false);
     }
     connection::~connection() {}
     sf::Socket & connection::get_socket() const {
-        return *socket;
+        return *m_socket;
     }
     void connection::update() {
-        if (disconnected) {
+        if (is_disconnected()) {
             return;
         }
         for (;;) {
-            auto err = socket->receive(packet);
+            auto err = m_socket->receive(*m_packet);
             if (err == sf::Socket::Status::Error || err == sf::Socket::Status::Disconnected) {
                 disconnect();
                 return;
             } else if (err == sf::Socket::Status::Done) {
-                recv->recv(packet);
+                m_receive->handle(*m_packet);
             } else {
                 return;
             }
         }
     }
-    void connection::send(sf::Packet & p) {
-        socket->send(p);
+    bool connection::is_disconnected() const {
+        return m_disconnected;
+    }
+    void connection::handle(sf::Packet & p) {
+        m_socket->send(p);
     }
     void connection::disconnect() {
-        disconnected = true;
-    }
-    bool connection::is_disconnected() const {
-        return disconnected;
+        if (!is_disconnected()) {
+            m_receive->disconnect();
+            m_manager->disconnect(this);
+            m_disconnected = true;
+        }
     }
 }

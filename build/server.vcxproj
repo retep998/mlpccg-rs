@@ -20,9 +20,8 @@
     <ClInclude Include="..\src\server\game.hpp" />
     <ClInclude Include="..\src\server\listener.hpp" />
     <ClInclude Include="..\src\server\manager.hpp" />
-    <ClInclude Include="..\src\server\recv_handler.hpp" />
+    <ClInclude Include="..\src\server\packet_handler.hpp" />
     <ClInclude Include="..\src\server\player.hpp" />
-    <ClInclude Include="..\src\server\send_handler.hpp" />
     <ClInclude Include="..\src\server\server.hpp" />
   </ItemGroup>
   <ItemGroup>

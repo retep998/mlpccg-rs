@@ -17,48 +17,32 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <SFML/Network/TcpListener.hpp>
-#include <SFML/Network/TcpSocket.hpp>
 #include <utility/ptr.hpp>
 #include <memory>
 #include <functional>
 
+namespace sf {
+    class TcpListener;
+    class TcpSocket;
+    class Socket;
+}
 namespace nlp {
     class connection;
-    class recv_handler;
-    class send_handler;
-    using recv_handler_creator = std::function<std::unique_ptr<recv_handler>(ptr<send_handler>)>;
+    class packet_handler;
+    class manager;
     class listener final {
     public:
-        class iterator final {
-        public:
-            iterator() = delete;
-            iterator(iterator const &) = delete;
-            iterator(iterator && o);
-            iterator(ptr<listener> listen, bool pop);
-            ~iterator();
-            iterator & operator=(iterator const &) = delete;
-            bool operator!=(iterator const & o) const;
-            iterator & operator++();
-            std::unique_ptr<connection> operator*();
-        private:
-            ptr<listener> listen;
-            std::unique_ptr<connection> next;
-        };
         listener() = delete;
         listener(listener const &) = delete;
-        listener(std::unique_ptr<sf::TcpListener> && listen, recv_handler_creator && func);
+        listener(uint16_t, std::function<ptr<packet_handler>(ptr<packet_handler>)>, ptr<manager>);
         ~listener();
         listener & operator=(listener const &) = delete;
-        static std::unique_ptr<listener> create(uint16_t port, recv_handler_creator && func);
-        iterator begin();
-        iterator end();
         sf::Socket & get_socket() const;
-    protected:
         std::unique_ptr<connection> get_next();
     private:
-        std::unique_ptr<sf::TcpListener> listen;
-        std::unique_ptr<sf::TcpSocket> socket;
-        recv_handler_creator func;
+        std::unique_ptr<sf::TcpListener> m_listen;
+        std::unique_ptr<sf::TcpSocket> m_socket;
+        std::function<ptr<packet_handler>(ptr<packet_handler>)> m_func;
+        ptr<manager> m_manager;
     };
 }

@@ -17,7 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "recv_handler.hpp"
+#include "packet_handler.hpp"
 #include <utility/ptr.hpp>
 #include <chrono>
 #include <map>
@@ -27,34 +27,35 @@ namespace sf {
 }
 namespace nlp {
     class game;
-    class send_handler;
     class server;
-    class player final : public recv_handler {
+    class player final : public packet_handler {
     public:
-        static std::unique_ptr<player> create(ptr<send_handler>, uint32_t, ptr<server>);
-        player(ptr<send_handler>, uint32_t, ptr<server>);
+        player(ptr<packet_handler>, uint32_t, ptr<server>);
         ~player();
         uint32_t get_id() const;
         std::string const & get_name() const;
-    private:
         void update();
+        bool is_disconnected() const;
+    private:
+        std::string default_name() const;
+        void handle(sf::Packet &);
         void disconnect();
         void start();
         void send();
-        void recv(sf::Packet &);
         void send_pong(uint32_t);
         void send_id();
         void send_player_joined(ptr<player> = ptr<player>{});
         void send_ping();
         void send_game_created(ptr<game> = ptr<game>{});
         void send_player_left(ptr<player>);
-        ptr<send_handler> m_send;
-        std::chrono::steady_clock::time_point last_ping{std::chrono::steady_clock::now()};
-        uint32_t last_ping_id{};
-        sf::Packet m_packet;
-        std::string nickname;
+        ptr<packet_handler> m_send;
+        std::chrono::steady_clock::time_point m_ping{std::chrono::steady_clock::now()};
+        uint32_t m_ping_id{};
+        std::unique_ptr<sf::Packet> m_packet;
+        std::string m_name;
         uint32_t m_id;
-        ptr<game> current_game;
+        ptr<game> m_game;
         ptr<server> m_server;
+        bool m_disconnected = false;
     };
 }

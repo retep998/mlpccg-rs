@@ -40,10 +40,10 @@ namespace nlp {
         manager & operator=(manager const &) = delete;
         void add_listener(uint16_t, std::function<ptr<packet_handler>(ptr<packet_handler>)>);
         void update();
+        void disconnect(ptr<connection>);
     private:
         std::vector<std::unique_ptr<listener>> m_listeners;
         std::list<std::unique_ptr<connection>> m_connections;
         std::unique_ptr<sf::SocketSelector> m_select;
-        std::chrono::steady_clock::time_point m_last_update{std::chrono::steady_clock::now()};
     };
 }

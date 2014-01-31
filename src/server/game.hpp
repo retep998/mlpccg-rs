@@ -26,29 +26,16 @@
 
 namespace nlp {
     class player;
-    class game final : public std::enable_shared_from_this<game> {
+    class game final {
     public:
-        static std::shared_ptr<game> create(std::string name);
-        static std::shared_ptr<game> get(uint32_t id);
-        static uint32_t total();
-        template <typename T>
-        static void for_each(T func) {
-            for (auto const & g : games) {
-                func(*g.second);
-            }
-        }
-#define for_each_game(lambda) game::for_each([this](game & g){lambda})
-        static std::map<uint32_t, ptr<game>> games;
-    public:
-        game(std::string name);
+        game(std::string, uint32_t);
         ~game();
         uint32_t get_id() const;
         std::string const & get_name() const;
     private:
-        std::shared_ptr<game> make_shared();
-        std::set<ptr<player>> players;
-        ptr<player> player_one, player_two;
-        std::string name;
-        uint32_t id;
+        std::set<ptr<player>> m_players;
+        ptr<player> m_player_one, m_player_two;
+        std::string m_name;
+        uint32_t m_id;
     };
 }

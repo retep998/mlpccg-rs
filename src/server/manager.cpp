@@ -20,26 +20,32 @@
 #include "connection.hpp"
 #include "listener.hpp"
 #include <utility/ptr.hpp>
+#include <utility/format.hpp>
 #include <SFML/Network/SocketSelector.hpp>
-#include <list>
 #include <iostream>
-#include <chrono>
 
 namespace nlp {
     manager::manager() :
         m_select{std::make_unique<sf::SocketSelector>()} {}
     manager::~manager() {}
-    void manager::add_listener(uint16_t p_port, std::function<ptr<recv_handler>(ptr<send_handler>)> p_func) {
-        if (auto listen = listener::create(p_port, std::move(p_func))) {
+    void manager::add_listener(uint16_t p_port, std::function<ptr<packet_handler>(ptr<packet_handler>)> p_func) {
+        try {
+            auto listen = std::make_unique<listener>(p_port, std::move(p_func), this);
             m_select->add(listen->get_socket());
             m_listeners.emplace_back(std::move(listen));
+        } catch (std::exception const & e) {
+            std::cerr << time() << e.what() << std::endl;
         }
     }
     void manager::update() {
         if (m_select->wait(sf::seconds(1))) {
             for (auto & listen : m_listeners) {
                 if (m_select->isReady(listen->get_socket())) {
-                    for (auto && next : *listen) {
+                    for (;;) {
+                        auto next = listen->get_next();
+                        if (!next) {
+                            break;
+                        }
                         m_select->add(next->get_socket());
                         m_connections.emplace_back(std::move(next));
                     }
@@ -51,17 +57,15 @@ namespace nlp {
                 }
             }
         }
-        auto now = std::chrono::steady_clock::now();
-        if (now - m_last_update > std::chrono::seconds{5}) {
-            m_last_update = now;
-            for (auto & c : m_connections) {
-                if (c->is_disconnected()) {
-                    m_select->remove(c->get_socket());
-                }
+        for (auto it = m_connections.begin(); it != m_connections.end();) {
+            if ((*it)->is_disconnected()) {
+                it = m_connections.erase(it);
+            } else {
+                ++it;
             }
-            m_connections.remove_if([](std::unique_ptr<connection> const & c) {
-                return c->is_disconnected();
-            });
         }
+    }
+    void manager::disconnect(ptr<connection> p_conn) {
+        m_select->remove(p_conn->get_socket());
     }
 }

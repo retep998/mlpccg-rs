@@ -20,33 +20,55 @@
 #include "player.hpp"
 #include "manager.hpp"
 #include "game.hpp"
+#include <fstream>
+#include <iostream>
 
 namespace nlp {
     server::server() :
         m_manager{std::make_unique<manager>()} {
+        auto file = std::ifstream("assets/motd.txt");
+        std::string line;
+        while (std::getline(file, line)) {
+            std::cout << line << '\n';
+        }
         m_manager->add_listener(273, [this](auto p_send) {
             return create_player(p_send);
         });
     }
     server::~server() {}
-    auto server::run()->void {
+    void server::run() {
         for (;;) {
             m_manager->update();
+            for (auto & p : m_players) {
+                p.second;
+            }
         }
     }
-    auto server::create_player(ptr<packet_handler> p_send)->ptr<player> {
+    ptr<player> server::create_player(ptr<packet_handler> p_send) {
         auto dist = std::uniform_int_distribution<uint32_t>{1, std::numeric_limits<uint32_t>::max()};
         uint32_t id;
         do {
             id = dist(m_rng);
         } while (m_players.find(id) != m_players.end());
-        auto p = player::create(p_send, id, this);
-        if (!p) {
-            return{};
-        }
+        auto p = std::make_unique<player>(p_send, id, this);
         return m_players.emplace(id, std::move(p)).first->second;
     }
-    auto server::create_game(std::string p_name)->ptr<game> {
-        return{};
+    ptr<game> server::create_game(std::string p_name) {
+        auto dist = std::uniform_int_distribution<uint32_t>{1, std::numeric_limits<uint32_t>::max()};
+        uint32_t id;
+        do {
+            id = dist(m_rng);
+        } while (m_games.find(id) != m_games.end());
+        auto g = std::make_unique<game>(p_name, id);
+        return m_games.emplace(id, std::move(g)).first->second;
+    }
+    uint32_t server::total_players() const {
+        return static_cast<uint32_t>(m_players.size());
+    }
+    uint32_t server::total_games() const {
+        return static_cast<uint32_t>(m_games.size());
+    }
+    std::mt19937_64 & server::rng() {
+        return m_rng;
     }
 }

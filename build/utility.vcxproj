@@ -13,12 +13,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\utility\algorithm.hpp" />
     <ClInclude Include="..\src\utility\ptr.hpp" />
-    <ClInclude Include="..\src\utility\rng.hpp" />
     <ClInclude Include="..\src\utility\format.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\src\utility\format.cpp" />
   </ItemGroup>
 </Project>

@@ -18,41 +18,17 @@
 
 #include "game.hpp"
 #include "player.hpp"
-#include <utility/rng.hpp>
 #include <map>
 
 namespace nlp {
-    std::map<uint32_t, ptr<game>> game::games;
-    std::shared_ptr<game> game::create(std::string name) {
-        return std::make_shared<game>(name);
-    }
-    std::shared_ptr<game> game::get(uint32_t id) {
-        auto it = games.find(id);
-        if (it != games.end()) {
-            return it->second->make_shared();
-        }
-        return{nullptr};
-    }
-    uint32_t game::total() {
-        return static_cast<uint32_t>(games.size());
-    }
-    game::game(std::string name) : name{name} {
-        std::uniform_int_distribution<uint32_t> dist{std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint32_t>::max()};
-        do {
-            id = dist(rng);
-        } while (games.find(id) != games.end());
-        games.emplace(id, this);
-    }
-    game::~game() {
-        games.erase(id);
-    }
+    game::game(std::string p_name, uint32_t p_id) :
+        m_name{p_name},
+        m_id{p_id} {}
+    game::~game() {}
     uint32_t game::get_id() const {
-        return id;
-    }
-    std::shared_ptr<game> game::make_shared() {
-        return std::shared_ptr<game>{this};
+        return m_id;
     }
     std::string const & game::get_name() const {
-        return name;
+        return m_name;
     }
 }

@@ -17,34 +17,36 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "send_handler.hpp"
+#include "packet_handler.hpp"
 #include <utility/ptr.hpp>
-#include <SFML/Network/TcpSocket.hpp>
 #include <memory>
 #include <functional>
 
+namespace sf {
+    class TcpSocket;
+    class Packet;
+    class Socket;
+}
 namespace nlp {
-    class recv_handler;
-    class send_handler;
-    using recv_handler_creator = std::function<std::unique_ptr<recv_handler>(ptr<send_handler>)>;
-    class connection final : private send_handler {
+    class manager;
+    class connection final : private packet_handler {
     public:
         connection() = delete;
         connection(connection const &) = delete;
-        connection(recv_handler_creator const & func, std::unique_ptr<sf::TcpSocket> && sock);
+        connection(std::function<ptr<packet_handler>(ptr<packet_handler>)>, std::unique_ptr<sf::TcpSocket>, ptr<manager>);
         ~connection();
         connection & operator=(connection const &) = delete;
         sf::Socket & get_socket() const;
         void update();
-        void recv_update();
         bool is_disconnected() const;
     private:
-        void send(sf::Packet &) override;
+        void handle(sf::Packet &) override;
         void disconnect() override;
-        std::unique_ptr<recv_handler> recv;
-        std::unique_ptr<sf::TcpSocket> socket;
-        sf::Packet packet;
-        bool disconnected{false};
+        ptr<packet_handler> m_receive;
+        std::unique_ptr<sf::TcpSocket> m_socket;
+        ptr<sf::Packet> m_packet;
+        ptr<manager> m_manager;
+        bool m_disconnected = false;
     };
 
 }

@@ -18,62 +18,68 @@
 
 #include "player.hpp"
 #include "game.hpp"
-#include "send_handler.hpp"
+#include "server.hpp"
+#include "packet_handler.hpp"
 #include <utility/format.hpp>
-#include <utility/rng.hpp>
+#include <SFML/Network/Packet.hpp>
 #include <iostream>
 #include <map>
 #include <set>
 
 namespace nlp {
-    std::unique_ptr<player> create(ptr<send_handler> p_send, uint32_t p_id, ptr<server> p_server) {
-        return std::make_unique<player>(p_send, p_id, p_server);
-    }
-    player::player(ptr<send_handler> p_send, uint32_t p_id, ptr<server> p_server) :
+    player::player(ptr<packet_handler> p_send, uint32_t p_id, ptr<server> p_server) :
         m_send{p_send},
         m_id{p_id},
         m_server{p_server} {
-        nickname = "Pony" + to_hex_string(m_id);
-        std::cout << time() << nickname << " connected." << std::endl;
+        m_name = default_name();
+        std::cout << time() << get_name() << " connected." << std::endl;
         send_id();
         send_player_joined();
         send_game_created();
-        for_each_player(
+        m_server->for_player([this](auto & p) {
             p.send_player_joined(this);
-        );
+        });
     }
     player::~player() {
-        for_each_player(
+        m_server->for_player([this](auto & p) {
             p.send_player_left(this);
-        );
-        std::cout << time() << nickname << " disconnected." << std::endl;
+        });
+        std::cout << time() << get_name() << " disconnected." << std::endl;
     }
     uint32_t player::get_id() const {
         return m_id;
     }
     std::string const & player::get_name() const {
-        return nickname;
+        return m_name;
     }
     void player::update() {
+        if (is_disconnected()) {
+            return;
+        }
         auto now = std::chrono::steady_clock::now();
-        if (last_ping_id) {
-            if (now - last_ping > std::chrono::seconds{20}) {
+        if (m_ping_id) {
+            if (now - m_ping > std::chrono::seconds{20}) {
                 disconnect();
             }
-        } else if (now - last_ping > std::chrono::seconds{15}) {
+        } else if (now - m_ping > std::chrono::seconds{15}) {
             send_ping();
         }
     }
+    bool player::is_disconnected() const {
+        return m_disconnected;
+    }
+    std::string player::default_name() const {
+        std::ostringstream ss;
+        ss << std::hex << std::uppercase << m_id;
+        return "Pony" + ss.str();
+    }
     void player::disconnect() {
-        m_send->disconnect();
+        if (!is_disconnected()) {
+            m_send->disconnect();
+            m_disconnected = true;
+        }
     }
-    void player::start() {
-        m_packet.clear();
-    }
-    void player::send() {
-        m_send->send(m_packet);
-    }
-    void player::recv(sf::Packet & p) {
+    void player::handle(sf::Packet & p) {
         uint16_t opcode{};
         p >> opcode;
         switch (opcode) {
@@ -85,83 +91,89 @@ namespace nlp {
         case 0x0002: {
             uint32_t id{};
             p >> id;
-            if (last_ping_id && id == last_ping_id) {
-                last_ping = std::chrono::steady_clock::now();
-                last_ping_id = 0;
+            if (m_ping_id && id == m_ping_id) {
+                m_ping = std::chrono::steady_clock::now();
+                m_ping_id = 0;
             }
         } break;
         case 0x0003: {
-            std::cout << time() << nickname << " has renamed themselves to ";
-            p >> nickname;
-            if (nickname.empty()) {
-                nickname = "Pony" + to_hex_string(m_id);
+            std::cout << time() << get_name() << " has renamed themselves to ";
+            p >> m_name;
+            if (m_name.length() > 20) {
+                m_name.resize(20);
             }
-            if (nickname.length() > 20) {
-                nickname.resize(20);
+            if (m_name.empty()) {
+                m_name = default_name();
             }
-            std::cout << nickname << std::endl;
-            for_each_player(
+            std::cout << get_name() << std::endl;
+            m_server->for_player([this](auto & p) {
                 p.send_player_joined(this);
-            );
+            });
         } break;
         }
     }
+    void player::start() {
+        m_packet->clear();
+    }
+    void player::send() {
+        m_send->handle(*m_packet);
+    }
     void player::send_pong(uint32_t p_id) {
         start();
-        m_packet << uint16_t{0x0002} << p_id;
+        *m_packet << uint16_t{0x0002} << p_id;
         send();
     }
     void player::send_id() {
         start();
-        m_packet << uint16_t{0x0004} << m_id;
+        *m_packet << uint16_t{0x0004} << m_id;
         send();
     }
     void player::send_ping() {
         start();
         std::uniform_int_distribution<uint32_t> dist{1, std::numeric_limits<uint32_t>::max()};
-        last_ping_id = dist(rng);
-        m_packet << uint16_t{0x0001} << last_ping_id;
+        m_ping_id = dist(m_server->rng());
+        *m_packet << uint16_t{0x0001} << m_ping_id;
         send();
     }
     void player::send_player_joined(ptr<player> p_player) {
         start();
-        m_packet << uint16_t{0x000B};
+        *m_packet << uint16_t{0x000B};
         if (p_player) {
-            m_packet << uint32_t{1};
-            m_packet << p_player->get_id() << p_player->get_name();
+            *m_packet << uint32_t{1};
+            *m_packet << p_player->get_id() << p_player->get_name();
         } else {
-            m_packet << total();
-            for_each_player(
-                m_packet << p.get_id() << p.get_name();
-            );
+            *m_packet << m_server->total_players();
+            m_server->for_player([this](auto & p) {
+                *m_packet << p.get_id() << p.get_name();
+            });
         }
         send();
     }
     void player::send_game_created(ptr<game> p_game) {
         start();
-        m_packet << uint16_t{0x0006};
+        *m_packet << uint16_t{0x0006};
         if (p_game) {
-            m_packet << uint32_t{1};
-            m_packet << p_game->get_id() << p_game->get_name();
+            *m_packet << uint32_t{1};
+            *m_packet << p_game->get_id() << p_game->get_name();
         } else {
-            m_packet << game::total();
-            for_each_game(
-                m_packet << g.get_id() << g.get_name();
-            );
+            *m_packet << m_server->total_players();
+            m_server->for_game([this](auto & g) {
+                *m_packet << g.get_id() << g.get_name();
+            });
         }
         send();
     }
     void player::send_player_left(ptr<player> p_player) {
         start();
-        m_packet << uint16_t{0x000F};
+        *m_packet << uint16_t{0x000F};
         if (p_player) {
-            m_packet << uint32_t{1};
-            m_packet << p_player->get_id();
+            *m_packet << uint32_t{1};
+            *m_packet << p_player->get_id();
         } else {
-            m_packet << total();
-            for_each_player(
-                m_packet << p.get_id();
-            );
+            *m_packet << m_server->total_players();
+            m_server->for_player([this](auto & p) {
+                *m_packet << p.get_id();
+            });
         }
         send();
     }

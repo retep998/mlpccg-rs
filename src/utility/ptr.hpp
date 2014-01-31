@@ -22,10 +22,11 @@
 namespace nlp {
     //Non-owning pointer with null pointer checking
     template <typename T>
-    class ptr {
+    class ptr final {
     public:
         ptr() = default;
         ptr(ptr const &) = default;
+        ptr(ptr &&) = default;
         ptr(std::unique_ptr<T> const & o) : m_ptr{o.get()} {}
         ptr(T & o) : m_ptr{&o} {}
         ptr(nullptr_t) {}
@@ -33,6 +34,25 @@ namespace nlp {
         template <typename U>
         ptr(ptr<U> const & o) : m_ptr(o.get()) {}
         ptr & operator=(ptr const &) = default;
+        ptr & operator=(ptr &&) = default;
+        bool operator==(ptr const & o) const {
+            return m_ptr == o.m_ptr;
+        }
+        bool operator!=(ptr const & o) const {
+            return m_ptr != o.m_ptr;
+        }
+        bool operator<(ptr const & o) const {
+            return m_ptr < o.m_ptr;
+        }
+        bool operator>(ptr const & o) const {
+            return m_ptr > o.m_ptr;
+        }
+        bool operator<=(ptr const & o) const {
+            return m_ptr <= o.m_ptr;
+        }
+        bool operator>=(ptr const & o) const {
+            return m_ptr >= o.m_ptr;
+        }
         explicit operator bool() const {
             return m_ptr != nullptr;
         }
@@ -41,12 +61,6 @@ namespace nlp {
         }
         T & operator*() const {
             return *m_ptr;
-        }
-        bool operator==(ptr const & o) const {
-            return m_ptr == o.m_ptr;
-        }
-        bool operator!=(ptr const & o) const {
-            return m_ptr != o.m_ptr;
         }
         T * get() const {
             return m_ptr;

@@ -20,57 +20,35 @@
 #include "connection.hpp"
 #include <utility/format.hpp>
 #include <SFML/Network/IpAddress.hpp>
+#include <SFML/Network/TcpListener.hpp>
+#include <SFML/Network/TcpSocket.hpp>
 #include <iostream>
 
 namespace nlp {
-    listener::iterator::iterator(iterator && o) : listen{o.listen}, next{std::move(o.next)} {}
-    listener::iterator::iterator(ptr<listener> listen, bool pop) : listen{listen} {
-        if (pop) {
-            next = listen->get_next();
-        }
-    }
-    listener::iterator::~iterator() {}
-    bool listener::iterator::operator!=(iterator const & o) const {
-        return next != o.next;
-    }
-    listener::iterator & listener::iterator::operator++() {
-        next = listen->get_next();
-        return *this;
-    }
-    std::unique_ptr<connection> listener::iterator::operator*() {
-        return std::move(next);
-    }
-    listener::listener(std::unique_ptr<sf::TcpListener> && listen, recv_handler_creator && func) : listen{std::move(listen)}, func{std::move(func)} {}
-    listener::~listener() {}
-    std::unique_ptr<listener> listener::create(uint16_t port, recv_handler_creator && func) {
-        auto listen = std::make_unique<sf::TcpListener>();
-        auto err = listen->listen(port);
+    listener::listener(uint16_t p_port, std::function<ptr<packet_handler>(ptr<packet_handler>)> p_func, ptr<manager> p_manager) :
+        m_listen{std::make_unique<sf::TcpListener>()},
+        m_func{std::move(p_func)},
+        m_manager{p_manager} {
+        auto err = m_listen->listen(p_port);
         if (err != sf::Socket::Status::Done) {
-            std::cout << time() << "Failed to listen to port " << port << "." << std::endl;
-            return nullptr;
+            throw std::runtime_error{"Failed to listen to port " + std::to_string(p_port)};
         }
-        std::cout << time() << "Listening on port " << port << "." << std::endl;
-        listen->setBlocking(false);
-        return std::make_unique<listener>(std::move(listen), std::move(func));
+        std::cout << time() << "Listening on port " << p_port << "." << std::endl;
+        m_listen->setBlocking(false);
     }
-    listener::iterator listener::begin() {
-        return{this, true};
-    }
-    listener::iterator listener::end() {
-        return{this, false};
-    }
+    listener::~listener() {}
     sf::Socket & listener::get_socket() const {
-        return *listen;
+        return *m_listen;
     }
     std::unique_ptr<connection> listener::get_next() {
-        if (!socket) {
-            socket = std::make_unique<sf::TcpSocket>();
+        if (!m_socket) {
+            m_socket = std::make_unique<sf::TcpSocket>();
         }
-        auto err = listen->accept(*socket);
+        auto err = m_listen->accept(*m_socket);
         if (err != sf::Socket::Status::Done) {
             return nullptr;
         }
-        auto next = std::make_unique<connection>(func, std::move(socket));
+        auto next = std::make_unique<connection>(m_func, std::move(m_socket), m_manager);
         return next;
     }
 }
