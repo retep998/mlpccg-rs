@@ -23,12 +23,21 @@
 #include <utility/rng.hpp>
 #include <iostream>
 #include <map>
+#include <set>
 
 namespace nlp {
-    namespace {
-        std::map<uint32_t, ptr<player>> players;
+    std::map<uint32_t, ptr<player>> player::players;
+    ptr<player> player::get(uint32_t id) {
+        auto it = players.find(id);
+        if (it != players.end()) {
+            return it->second;
+        }
+        return{};
     }
-    player::player(ptr<send_handler> send) : send{send} {
+    uint32_t player::total() {
+        return static_cast<uint32_t>(players.size());
+    }
+    player::player(ptr<send_handler> p_send) : m_send{p_send} {
         std::uniform_int_distribution<uint32_t> dist{std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint32_t>::max()};
         do {
             id = dist(rng);
@@ -36,26 +45,17 @@ namespace nlp {
         players.emplace(id, this);
         nickname = "Pony" + to_hex_string(id);
         std::cout << time() << nickname << " connected." << std::endl;
-        //ID packet
-        packet.clear();
-        packet << uint16_t{0x0004} << id;
-        send->send(packet);
-        //Player update packet
-        packet.clear();
-        packet << uint16_t{0x000B} << static_cast<uint32_t>(players.size());
-        for (auto const & it : players) {
-            packet << it.first << it.second->nickname;
-        }
-        send->send(packet);
-        //Game create packet
-        packet.clear();
-        packet << uint16_t{0x0006} << static_cast<uint32_t>(game::games.size());
-        for (auto const & it : game::games) {
-            packet << it.first << it.second->get_name();
-        }
-        send->send(packet);
+        send_id();
+        send_player_joined();
+        send_game_created();
+        for_each_player(
+            p.send_player_joined(this);
+        );
     }
     player::~player() {
+        for_each_player(
+            p.send_player_left(this);
+        );
         std::cout << time() << nickname << " disconnected." << std::endl;
         players.erase(id);
     }
@@ -65,12 +65,24 @@ namespace nlp {
     std::string const & player::get_name() const {
         return nickname;
     }
-    ptr<player> player::get(uint32_t id) {
-        auto it = players.find(id);
-        if (it != players.end()) {
-            return it->second;
+    void player::update() {
+        auto now = std::chrono::steady_clock::now();
+        if (last_ping_id) {
+            if (now - last_ping > std::chrono::seconds{20}) {
+                disconnect();
+            }
+        } else if (now - last_ping > std::chrono::seconds{15}) {
+            send_ping();
         }
-        return{};
+    }
+    void player::disconnect() {
+        m_send->disconnect();
+    }
+    void player::start() {
+        m_packet.clear();
+    }
+    void player::send() {
+        m_send->send(m_packet);
     }
     void player::recv(sf::Packet & p) {
         uint16_t opcode{};
@@ -79,9 +91,7 @@ namespace nlp {
         case 0x0001: {
             uint32_t id{};
             p >> id;
-            packet.clear();
-            packet << uint16_t{0x0002} << id;
-            send->send(packet);
+            send_pong(id);
         } break;
         case 0x0002: {
             uint32_t id{};
@@ -92,7 +102,7 @@ namespace nlp {
             }
         } break;
         case 0x0003: {
-            std::cout << time() << nickname <<  " has renamed themselves to ";
+            std::cout << time() << nickname << " has renamed themselves to ";
             p >> nickname;
             if (nickname.empty()) {
                 nickname = "Pony" + to_hex_string(id);
@@ -101,21 +111,69 @@ namespace nlp {
                 nickname.resize(20);
             }
             std::cout << nickname << std::endl;
+            for_each_player(
+                p.send_player_joined(this);
+            );
         } break;
         }
     }
-    void player::update() {
-        auto now = std::chrono::steady_clock::now();
-        if (last_ping_id) {
-            if (now - last_ping > std::chrono::seconds{20}) {
-                send->disconnect();
-            }
-        } else if (now - last_ping > std::chrono::seconds{15}) {
-            std::uniform_int_distribution<uint32_t> dist{1, std::numeric_limits<uint32_t>::max()};
-            packet.clear();
-            last_ping_id = dist(rng);
-            packet << uint16_t{0x0001} << last_ping_id;
-            send->send(packet);
+    void player::send_pong(uint32_t p_id) {
+        start();
+        m_packet << uint16_t{0x0002} << p_id;
+        send();
+    }
+    void player::send_id() {
+        start();
+        m_packet << uint16_t{0x0004} << id;
+        send();
+    }
+    void player::send_ping() {
+        start();
+        std::uniform_int_distribution<uint32_t> dist{1, std::numeric_limits<uint32_t>::max()};
+        last_ping_id = dist(rng);
+        m_packet << uint16_t{0x0001} << last_ping_id;
+        send();
+    }
+    void player::send_player_joined(ptr<player> p_player) {
+        start();
+        m_packet << uint16_t{0x000B};
+        if (p_player) {
+            m_packet << uint32_t{1};
+            m_packet << p_player->get_id() << p_player->get_name();
+        } else {
+            m_packet << total();
+            for_each_player(
+                m_packet << p.get_id() << p.get_name();
+            );
         }
+        send();
+    }
+    void player::send_game_created(ptr<game> p_game) {
+        start();
+        m_packet << uint16_t{0x0006};
+        if (p_game) {
+            m_packet << uint32_t{1};
+            m_packet << p_game->get_id() << p_game->get_name();
+        } else {
+            m_packet << game::total();
+            for_each_game(
+                m_packet << g.get_id() << g.get_name();
+            );
+        }
+        send();
+    }
+    void player::send_player_left(ptr<player> p_player) {
+        start();
+        m_packet << uint16_t{0x000F};
+        if (p_player) {
+            m_packet << uint32_t{1};
+            m_packet << p_player->get_id();
+        } else {
+            m_packet << total();
+            for_each_player(
+                m_packet << p.get_id();
+            );
+        }
+        send();
     }
 }
