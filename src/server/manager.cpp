@@ -34,7 +34,7 @@ namespace nlp {
             m_select->add(listen->get_socket());
             m_listeners.emplace_back(std::move(listen));
         } catch (std::exception const & e) {
-            std::cerr << time() << e.what() << std::endl;
+            std::cerr << time() << "|" << e.what() << std::endl;
         }
     }
     void manager::update() {

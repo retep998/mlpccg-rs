@@ -44,7 +44,6 @@ namespace nlp {
         void disconnect() override;
         ptr<packet_handler> m_receive;
         std::unique_ptr<sf::TcpSocket> m_socket;
-        std::unique_ptr<sf::Packet> m_packet;
         ptr<manager> m_manager;
         bool m_disconnected = false;
     };

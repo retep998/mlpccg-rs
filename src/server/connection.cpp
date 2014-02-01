@@ -28,7 +28,6 @@
 namespace nlp {
     connection::connection(std::function<ptr<packet_handler>(ptr<packet_handler>)> p_func, std::unique_ptr<sf::TcpSocket> p_socket, ptr<manager> p_manager) :
         m_socket{std::move(p_socket)},
-        m_packet{std::make_unique<sf::Packet>()},
         m_manager{p_manager} {
         m_receive = p_func(this);
         m_socket->setBlocking(false);
@@ -41,20 +40,14 @@ namespace nlp {
         if (is_disconnected()) {
             return;
         }
+        sf::Packet packet;
         for (;;) {
-            auto err = m_socket->receive(*m_packet);
+            auto err = m_socket->receive(packet);
             if (err == sf::Socket::Status::Error || err == sf::Socket::Status::Disconnected) {
                 disconnect();
                 return;
             } else if (err == sf::Socket::Status::Done) {
-                auto a = reinterpret_cast<unsigned char const *>(m_packet->getData());
-                auto b = a + m_packet->getDataSize();
-                std::cout << m_socket->getRemoteAddress() << ":" << m_socket->getRemotePort() << " receive ";
-                for (auto i = a; i != b; ++i) {
-                    std::cout << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(*i) << ' ';
-                }
-                std::cout << std::endl;
-                m_receive->handle(*m_packet);
+                m_receive->handle(packet);
             } else {
                 return;
             }
@@ -64,17 +57,10 @@ namespace nlp {
         return m_disconnected;
     }
     void connection::handle(sf::Packet & p) {
-        auto a = reinterpret_cast<unsigned char const *>(p.getData());
-        auto b = a + p.getDataSize();
-        std::cout << m_socket->getRemoteAddress() << ":" << m_socket->getRemotePort() << " send ";
-        for (auto i = a; i != b; ++i) {
-            std::cout << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(*i) << ' ';
+        if (is_disconnected()) {
+            return;
         }
-        std::cout << std::endl;
-        auto err = m_socket->send(p);
-        if (err != sf::Socket::Status::Done) {
-            std::cout << m_socket->getRemoteAddress() << ":" << m_socket->getRemotePort() << " SEND FAILURE" << std::endl;;
-        }
+        m_socket->send(p);
     }
     void connection::disconnect() {
         if (!is_disconnected()) {

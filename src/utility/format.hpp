@@ -26,6 +26,6 @@ namespace nlp {
     inline decltype(std::put_time(nullptr, "")) time() {
         auto t = std::time(nullptr);
         auto l = std::localtime(&t);
-        return std::put_time(l, "[%H:%M:%S] ");
+        return std::put_time(l, "%H:%M:%S");
     }
 }

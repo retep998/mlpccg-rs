@@ -39,10 +39,10 @@ namespace nlp {
         void send_game_created(ptr<game> = ptr<game>{});
     private:
         std::string default_name() const;
+        std::ostream & log() const;
         void handle(sf::Packet &) override;
         void disconnect() override;
-        void start();
-        void send();
+        void send(sf::Packet &);
         void send_pong(uint32_t);
         void send_id();
         void send_player_joined(ptr<player> = ptr<player>{});
@@ -51,7 +51,6 @@ namespace nlp {
         ptr<packet_handler> m_send;
         std::chrono::steady_clock::time_point m_ping{std::chrono::steady_clock::now()};
         uint32_t m_ping_id{};
-        std::unique_ptr<sf::Packet> m_packet;
         std::string m_name;
         uint32_t m_id;
         ptr<game> m_game;

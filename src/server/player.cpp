@@ -29,11 +29,10 @@
 namespace nlp {
     player::player(ptr<packet_handler> p_send, uint32_t p_id, ptr<server> p_server) :
         m_send{p_send},
-        m_packet{std::make_unique<sf::Packet>()},
         m_id{p_id},
         m_server{p_server} {
         m_name = default_name();
-        std::cout << time() << get_name() << " connected." << std::endl;
+        log() << "Connected." << std::endl;
         send_id();
         send_player_joined();
         send_player_joined(this);
@@ -42,8 +41,7 @@ namespace nlp {
             p.send_player_joined(this);
         });
     }
-    player::~player() {
-    }
+    player::~player() {}
     uint32_t player::get_id() const {
         return m_id;
     }
@@ -57,7 +55,7 @@ namespace nlp {
         auto now = std::chrono::steady_clock::now();
         if (m_ping_id) {
             if (now - m_ping > std::chrono::seconds{20}) {
-                std::cout << time() << get_name() << " timed out." << std::endl;
+                log() << "Timed out." << std::endl;
                 disconnect();
             }
         } else if (now - m_ping > std::chrono::seconds{15}) {
@@ -72,10 +70,14 @@ namespace nlp {
         ss << std::hex << std::uppercase << m_id;
         return "Pony" + ss.str();
     }
+    std::ostream & player::log() const {
+        std::cout << time() << '|' << get_name() << '|';
+        return std::cout;
+    }
     void player::disconnect() {
         if (!is_disconnected()) {
             m_disconnected = true;
-            std::cout << time() << get_name() << " disconnected." << std::endl;
+            log() << "Disconnected." << std::endl;
             m_server->for_player([this](auto & p) {
                 p.send_player_left(this);
             });
@@ -100,84 +102,81 @@ namespace nlp {
             }
         } break;
         case 0x0003: {
-            std::cout << time() << get_name() << " has renamed themselves to ";
-            p >> m_name;
-            if (m_name.length() > 20) {
-                m_name.resize(20);
+            auto new_name = std::string{};
+            p >> new_name;
+            if (new_name.length() > 20) {
+                new_name.resize(20);
+            } else if (new_name.empty()) {
+                new_name = default_name();
             }
-            if (m_name.empty()) {
-                m_name = default_name();
-            }
-            std::cout << get_name() << std::endl;
+            log() << "Renamed to " << new_name << std::endl;
+            m_name = new_name;
             m_server->for_player([this](auto & p) {
                 p.send_player_joined(this);
             });
         } break;
         }
     }
-    void player::start() {
-        m_packet->clear();
-    }
-    void player::send() {
-        m_send->handle(*m_packet);
+    void player::send(sf::Packet & p_packet) {
+        m_send->handle(p_packet);
     }
     void player::send_pong(uint32_t p_id) {
-        start();
-        *m_packet << uint16_t{0x0002} << p_id;
-        send();
+        auto packet = sf::Packet{};
+        packet << uint16_t{0x0002} << p_id;
+        send(packet);
     }
     void player::send_id() {
-        start();
-        *m_packet << uint16_t{0x0004} << m_id;
-        send();
+        auto packet = sf::Packet{};
+        packet << uint16_t{0x0004} << m_id;
+        send(packet);
     }
     void player::send_ping() {
-        start();
+        auto packet = sf::Packet{};
         std::uniform_int_distribution<uint32_t> dist{1, std::numeric_limits<uint32_t>::max()};
         m_ping_id = dist(m_server->rng());
-        *m_packet << uint16_t{0x0001} << m_ping_id;
-        send();
+        packet << uint16_t{0x0001} << m_ping_id;
+        send(packet);
     }
     void player::send_player_joined(ptr<player> p_player) {
-        start();
-        *m_packet << uint16_t{0x000B};
+        auto packet = sf::Packet{};
+        packet << uint16_t{0x000B};
         if (p_player) {
-            *m_packet << uint32_t{1};
-            *m_packet << p_player->get_id() << p_player->get_name();
+            packet << uint32_t{1};
+            packet << p_player->get_id() << p_player->get_name();
         } else {
-            *m_packet << m_server->total_players();
-            m_server->for_player([this](auto & p) {
-                *m_packet << p.get_id() << p.get_name();
+            packet << m_server->total_players();
+            m_server->for_player([this, &packet](auto & p) {
+                packet << p.get_id() << p.get_name();
             });
         }
-        send();
+        send(packet);
     }
     void player::send_game_created(ptr<game> p_game) {
-        start();
-        *m_packet << uint16_t{0x0006};
+        auto packet = sf::Packet{};
+        packet << uint16_t{0x0006};
         if (p_game) {
-            *m_packet << uint32_t{1};
-            *m_packet << p_game->get_id() << p_game->get_name();
+            packet << uint32_t{1};
+            packet << p_game->get_id() << p_game->get_name();
         } else {
-            *m_packet << m_server->total_games();
-            m_server->for_game([this](auto & g) {
-                *m_packet << g.get_id() << g.get_name();
+            packet << m_server->total_games();
+            m_server->for_game([this, &packet](auto & g) {
+                packet << g.get_id() << g.get_name();
             });
         }
-        send();
+        send(packet);
     }
     void player::send_player_left(ptr<player> p_player) {
-        start();
-        *m_packet << uint16_t{0x000F};
+        auto packet = sf::Packet{};
+        packet << uint16_t{0x000F};
         if (p_player) {
-            *m_packet << uint32_t{1};
-            *m_packet << p_player->get_id();
+            packet << uint32_t{1};
+            packet << p_player->get_id();
         } else {
-            *m_packet << m_server->total_players();
-            m_server->for_player([this](auto & p) {
-                *m_packet << p.get_id();
+            packet << m_server->total_players();
+            m_server->for_player([this, &packet](auto & p) {
+                packet << p.get_id();
             });
         }
-        send();
+        send(packet);
     }
 }
