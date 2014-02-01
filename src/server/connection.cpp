@@ -23,6 +23,7 @@
 #include <SFML/Network/TcpSocket.hpp>
 #include <SFML/Network/Packet.hpp>
 #include <iostream>
+#include <iomanip>
 
 namespace nlp {
     connection::connection(std::function<ptr<packet_handler>(ptr<packet_handler>)> p_func, std::unique_ptr<sf::TcpSocket> p_socket, ptr<manager> p_manager) :
@@ -46,6 +47,13 @@ namespace nlp {
                 disconnect();
                 return;
             } else if (err == sf::Socket::Status::Done) {
+                auto a = reinterpret_cast<unsigned char const *>(m_packet->getData());
+                auto b = a + m_packet->getDataSize();
+                std::cout << m_socket->getRemoteAddress() << ":" << m_socket->getRemotePort() << " receive ";
+                for (auto i = a; i != b; ++i) {
+                    std::cout << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(*i) << ' ';
+                }
+                std::cout << std::endl;
                 m_receive->handle(*m_packet);
             } else {
                 return;
@@ -56,7 +64,17 @@ namespace nlp {
         return m_disconnected;
     }
     void connection::handle(sf::Packet & p) {
-        m_socket->send(p);
+        auto a = reinterpret_cast<unsigned char const *>(p.getData());
+        auto b = a + p.getDataSize();
+        std::cout << m_socket->getRemoteAddress() << ":" << m_socket->getRemotePort() << " send ";
+        for (auto i = a; i != b; ++i) {
+            std::cout << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(*i) << ' ';
+        }
+        std::cout << std::endl;
+        auto err = m_socket->send(p);
+        if (err != sf::Socket::Status::Done) {
+            std::cout << m_socket->getRemoteAddress() << ":" << m_socket->getRemotePort() << " SEND FAILURE" << std::endl;;
+        }
     }
     void connection::disconnect() {
         if (!is_disconnected()) {

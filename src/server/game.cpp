@@ -18,12 +18,18 @@
 
 #include "game.hpp"
 #include "player.hpp"
+#include "server.hpp"
 #include <map>
 
 namespace nlp {
-    game::game(std::string p_name, uint32_t p_id) :
+    game::game(std::string p_name, uint32_t p_id, ptr<server> p_server) :
         m_name{p_name},
-        m_id{p_id} {}
+        m_id{p_id},
+        m_server{p_server} {
+        m_server->for_player([this](auto & p) {
+            p.send_game_created(this);
+        });
+    }
     game::~game() {}
     uint32_t game::get_id() const {
         return m_id;

@@ -40,6 +40,7 @@ namespace nlp {
         manager & operator=(manager const &) = delete;
         void add_listener(uint16_t, std::function<ptr<packet_handler>(ptr<packet_handler>)>);
         void update();
+        void collect();
         void disconnect(ptr<connection>);
     private:
         std::vector<std::unique_ptr<listener>> m_listeners;

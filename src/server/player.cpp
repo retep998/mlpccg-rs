@@ -36,16 +36,13 @@ namespace nlp {
         std::cout << time() << get_name() << " connected." << std::endl;
         send_id();
         send_player_joined();
+        send_player_joined(this);
         send_game_created();
         m_server->for_player([this](auto & p) {
             p.send_player_joined(this);
         });
     }
     player::~player() {
-        m_server->for_player([this](auto & p) {
-            p.send_player_left(this);
-        });
-        std::cout << time() << get_name() << " disconnected." << std::endl;
     }
     uint32_t player::get_id() const {
         return m_id;
@@ -78,6 +75,10 @@ namespace nlp {
     void player::disconnect() {
         if (!is_disconnected()) {
             m_disconnected = true;
+            std::cout << time() << get_name() << " disconnected." << std::endl;
+            m_server->for_player([this](auto & p) {
+                p.send_player_left(this);
+            });
             m_send->disconnect();
         }
     }
@@ -158,7 +159,7 @@ namespace nlp {
             *m_packet << uint32_t{1};
             *m_packet << p_game->get_id() << p_game->get_name();
         } else {
-            *m_packet << m_server->total_players();
+            *m_packet << m_server->total_games();
             m_server->for_game([this](auto & g) {
                 *m_packet << g.get_id() << g.get_name();
             });

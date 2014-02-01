@@ -42,7 +42,7 @@ namespace nlp {
         void handle_ping(sf::Packet &);
         void handle_pong(sf::Packet &);
         void send_ping();
-        void send_pong();
+        void send_pong(uint32_t);
         std::unique_ptr<sf::TcpSocket> socket;
         std::chrono::steady_clock::time_point last_ping = std::chrono::steady_clock::now();
         std::chrono::steady_clock::time_point last_pong = std::chrono::steady_clock::now();

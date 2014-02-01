@@ -38,9 +38,6 @@ namespace nlp {
         }
     }
     void manager::update() {
-        m_connections.remove_if([](auto & conn) {
-            return conn->is_disconnected();
-        });
         if (m_select->wait(sf::seconds(1))) {
             for (auto & listen : m_listeners) {
                 if (m_select->isReady(listen->get_socket())) {
@@ -60,6 +57,11 @@ namespace nlp {
                 }
             }
         }
+    }
+    void manager::collect() {
+        m_connections.remove_if([](auto & conn) {
+            return conn->is_disconnected();
+        });
     }
     void manager::disconnect(ptr<connection> p_conn) {
         m_select->remove(p_conn->get_socket());

@@ -53,6 +53,8 @@ namespace nlp {
             }
         }
     private:
+        void update();
+        void collect();
         std::map<uint32_t, std::unique_ptr<game>> m_games;
         std::map<uint32_t, std::unique_ptr<player>> m_players;
         std::unique_ptr<manager> m_manager;

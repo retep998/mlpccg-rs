@@ -36,6 +36,7 @@ namespace nlp {
         std::string const & get_name() const;
         void update();
         bool is_disconnected() const;
+        void send_game_created(ptr<game> = ptr<game>{});
     private:
         std::string default_name() const;
         void handle(sf::Packet &) override;
@@ -46,7 +47,6 @@ namespace nlp {
         void send_id();
         void send_player_joined(ptr<player> = ptr<player>{});
         void send_ping();
-        void send_game_created(ptr<game> = ptr<game>{});
         void send_player_left(ptr<player>);
         ptr<packet_handler> m_send;
         std::chrono::steady_clock::time_point m_ping{std::chrono::steady_clock::now()};

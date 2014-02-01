@@ -40,16 +40,9 @@ namespace nlp {
     void server::run() {
         for (;;) {
             m_manager->update();
-            for (auto it = m_players.begin(); it != m_players.end();) {
-                if (it->second->is_disconnected()) {
-                    it = m_players.erase(it);
-                } else {
-                    ++it;
-                }
-            }
-            for (auto & p : m_players) {
-                p.second->update();
-            }
+            update();
+            m_manager->collect();
+            collect();
         }
     }
     ptr<player> server::create_player(ptr<packet_handler> p_send) {
@@ -67,7 +60,7 @@ namespace nlp {
         do {
             id = dist(m_rng);
         } while (m_games.find(id) != m_games.end());
-        auto g = std::make_unique<game>(p_name, id);
+        auto g = std::make_unique<game>(p_name, id, this);
         return m_games.emplace(id, std::move(g)).first->second;
     }
     uint32_t server::total_players() const {
@@ -78,5 +71,19 @@ namespace nlp {
     }
     std::mt19937_64 & server::rng() {
         return m_rng;
+    }
+    void server::update() {
+        for (auto & p : m_players) {
+            p.second->update();
+        }
+    }
+    void server::collect() {
+        for (auto it = m_players.begin(); it != m_players.end();) {
+            if (it->second->is_disconnected()) {
+                it = m_players.erase(it);
+            } else {
+                ++it;
+            }
+        }
     }
 }

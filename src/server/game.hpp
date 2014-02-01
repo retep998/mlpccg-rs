@@ -26,9 +26,10 @@
 
 namespace nlp {
     class player;
+    class server;
     class game final {
     public:
-        game(std::string, uint32_t);
+        game(std::string, uint32_t, ptr<server>);
         ~game();
         uint32_t get_id() const;
         std::string const & get_name() const;
@@ -37,5 +38,6 @@ namespace nlp {
         ptr<player> m_player_one, m_player_two;
         std::string m_name;
         uint32_t m_id;
+        ptr<server> m_server;
     };
 }

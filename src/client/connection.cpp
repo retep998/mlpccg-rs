@@ -54,6 +54,11 @@ namespace nlp {
         if (now - last_ping > std::chrono::seconds(10)) {
             send_ping();
         }
+        if (now - last_pong > std::chrono::seconds(20)) {
+            ++counts[get_address()].timeouts;
+            disconnected = true;
+            return;
+        }
         auto err = socket->receive(p);
         switch (err) {
         case sf::Socket::Status::Disconnected:
@@ -65,13 +70,11 @@ namespace nlp {
             p >> opcode;
             if (opcode >= handlers.size()) {
                 ++counts[get_address()].invalidopcodes;
-                disconnected = true;
                 break;
             }
             auto & f = handlers[opcode];
             if (!f) {
                 ++counts[get_address()].invalidopcodes;
-                disconnected = true;
                 break;
             }
             (this->*f)(p);
@@ -97,8 +100,10 @@ namespace nlp {
         add_handler(0x0001, &connection::handle_ping);
         add_handler(0x0002, &connection::handle_pong);
     }
-    void connection::handle_ping(sf::Packet &) {
-        send_pong();
+    void connection::handle_ping(sf::Packet & p) {
+        uint32_t id;
+        p >> id;
+        send_pong(id);
     }
     void connection::handle_pong(sf::Packet &) {
         last_pong = std::chrono::steady_clock::now();
@@ -110,9 +115,9 @@ namespace nlp {
         p << uint16_t(0x0001);
         socket->send(p);
     }
-    void connection::send_pong() {
+    void connection::send_pong(uint32_t id) {
         p.clear();
-        p << uint16_t(0x0002);
+        p << uint16_t(0x0002) << id;
         socket->send(p);
     }
 }
