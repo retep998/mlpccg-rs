@@ -115,6 +115,12 @@ namespace nlp {
                 p.send_player_joined(this);
             });
         } break;
+        case 0x0007: {
+
+        } break;
+        case 0x0008: {
+
+        } break;
         }
     }
     void player::send(sf::Packet & p_packet) {
