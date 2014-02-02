@@ -77,11 +77,14 @@ namespace nlp {
     void player::kill() {
         if (!is_dead()) {
             m_dead = true;
-            log() << "Disconnected." << std::endl;
+            if (m_game) {
+                m_game->remove_player(this);
+            }
             m_server->for_player([this](auto & p) {
                 p.send_player_left(this);
             });
             m_send->kill();
+            log() << "Disconnected." << std::endl;
         }
     }
     void player::handle(sf::Packet & p) {
