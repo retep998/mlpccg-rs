@@ -124,8 +124,9 @@ namespace nlp {
             }
             auto game_name = std::string{};
             p >> game_name;
-            auto g = m_server->create_game(game_name);
-            g->add_player(this);
+            if (auto g = m_server->create_game(game_name)) {
+                g->add_player(this);
+            }
         } break;
         case 0x0008: {
             if (m_game) {
@@ -133,8 +134,9 @@ namespace nlp {
             }
             auto id = uint32_t{};
             p >> id;
-            auto g = m_server->get_game(id);
-            g->add_player(this);
+            if (auto g = m_server->get_game(id)) {
+                g->add_player(this);
+            }
         } break;
         }
     }
