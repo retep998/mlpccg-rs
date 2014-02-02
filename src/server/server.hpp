@@ -37,17 +37,19 @@ namespace nlp {
         void run();
         ptr<player> create_player(ptr<packet_handler>);
         ptr<game> create_game(std::string);
+        ptr<player> get_player(uint32_t) const;
+        ptr<game> get_game(uint32_t) const;
         uint32_t total_players() const;
         uint32_t total_games() const;
         std::mt19937_64 & rng();
         template <typename Func>
-        void for_game(Func && p_func) {
+        void for_game(Func && p_func) const {
             for (auto & g : m_games) {
                 p_func(*g.second);
             }
         }
         template <typename Func>
-        void for_player(Func && p_func) {
+        void for_player(Func && p_func) const {
             for (auto & p : m_players) {
                 p_func(*p.second);
             }

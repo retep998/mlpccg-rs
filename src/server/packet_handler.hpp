@@ -25,6 +25,6 @@ namespace nlp {
     class packet_handler {
     public:
         virtual void handle(sf::Packet &) = 0;
-        virtual void disconnect() = 0;
+        virtual void kill() = 0;
     };
 }

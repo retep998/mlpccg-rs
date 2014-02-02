@@ -20,6 +20,7 @@
 #include "player.hpp"
 #include "manager.hpp"
 #include "game.hpp"
+#include <utility/algorithm.hpp>
 #include <fstream>
 #include <iostream>
 #include <algorithm>
@@ -63,6 +64,20 @@ namespace nlp {
         auto g = std::make_unique<game>(p_name, id, this);
         return m_games.emplace(id, std::move(g)).first->second;
     }
+    ptr<player> server::get_player(uint32_t p_id) const {
+        auto it = m_players.find(p_id);
+        if (it == m_players.end()) {
+            return{};
+        }
+        return it->second;
+    }
+    ptr<game> server::get_game(uint32_t p_id) const {
+        auto it = m_games.find(p_id);
+        if (it == m_games.end()) {
+            return{};
+        }
+        return it->second;
+    }
     uint32_t server::total_players() const {
         return static_cast<uint32_t>(m_players.size());
     }
@@ -76,14 +91,16 @@ namespace nlp {
         for (auto & p : m_players) {
             p.second->update();
         }
+        for (auto & g : m_games) {
+            g.second->update();
+        }
     }
     void server::collect() {
-        for (auto it = m_players.begin(); it != m_players.end();) {
-            if (it->second->is_disconnected()) {
-                it = m_players.erase(it);
-            } else {
-                ++it;
-            }
-        }
+        remove_if(m_players, [](auto & p) {
+            return p.second->is_dead();
+        });
+        remove_if(m_games, [](auto & g) {
+            return g.second->is_dead();
+        });
     }
 }

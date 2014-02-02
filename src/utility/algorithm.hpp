@@ -16,56 +16,20 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "game.hpp"
-#include "player.hpp"
-#include "server.hpp"
+#pragma once
 #include <map>
 
 namespace nlp {
-    game::game(std::string p_name, uint32_t p_id, ptr<server> p_server) :
-        m_name{p_name},
-        m_id{p_id},
-        m_server{p_server} {
-        m_server->for_player([this](auto & p) {
-            p.send_game_created(this);
-        });
-    }
-    game::~game() {
-        for (auto & p : m_players) {
-            remove_player(p);
+    template <typename T, typename U, typename Func>
+    void remove_if(std::map<T, U> & p_map, Func && p_func) {
+        auto const begin = p_map.cbegin();
+        auto const end = p_map.cend();
+        for (auto it = begin; it != end;) {
+            if (p_func(*it)) {
+                it = p_map.erase(it);
+            } else {
+                ++it;
+            }
         }
-        m_server->for_player([this](auto & p) {
-            p.send_game_deleted(this);
-        });
-    }
-    uint32_t game::get_id() const {
-        return m_id;
-    }
-    std::string const & game::get_name() const {
-        return m_name;
-    }
-    void game::add_player(ptr<player> p_player) {
-        auto it = m_players.insert(p_player);
-        if (it.second) {
-            p_player->send_game_joined(this);
-        }
-        for (auto & p : m_players) {
-            p->send_player_joined_game(p_player);
-        }
-    }
-    void game::remove_player(ptr<player> p_player) {
-        auto it = m_players.erase(p_player);
-        if (it) {
-            p_player->send_game_joined({});
-        }
-        for (auto & p : m_players) {
-            p->send_player_left_game(p_player);
-        }
-    }
-    bool game::is_dead() const {
-        return m_players.empty();
-    }
-    void game::update() {
-
     }
 }

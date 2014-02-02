@@ -41,7 +41,7 @@ namespace nlp {
         void add_listener(uint16_t, std::function<ptr<packet_handler>(ptr<packet_handler>)>);
         void update();
         void collect();
-        void disconnect(ptr<connection>);
+        void kill(ptr<connection>);
     private:
         std::vector<std::unique_ptr<listener>> m_listeners;
         std::list<std::unique_ptr<connection>> m_connections;

@@ -37,14 +37,14 @@ namespace nlp {
         return *m_socket;
     }
     void connection::update() {
-        if (is_disconnected()) {
+        if (is_dead()) {
             return;
         }
         sf::Packet packet;
         for (;;) {
             auto err = m_socket->receive(packet);
             if (err == sf::Socket::Status::Error || err == sf::Socket::Status::Disconnected) {
-                disconnect();
+                kill();
                 return;
             } else if (err == sf::Socket::Status::Done) {
                 m_receive->handle(packet);
@@ -53,20 +53,20 @@ namespace nlp {
             }
         }
     }
-    bool connection::is_disconnected() const {
-        return m_disconnected;
+    bool connection::is_dead() const {
+        return m_dead;
     }
     void connection::handle(sf::Packet & p) {
-        if (is_disconnected()) {
+        if (is_dead()) {
             return;
         }
         m_socket->send(p);
     }
-    void connection::disconnect() {
-        if (!is_disconnected()) {
-            m_disconnected = true;
-            m_receive->disconnect();
-            m_manager->disconnect(this);
+    void connection::kill() {
+        if (!is_dead()) {
+            m_dead = true;
+            m_receive->kill();
+            m_manager->kill(this);
         }
     }
 }

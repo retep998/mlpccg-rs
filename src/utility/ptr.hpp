@@ -27,31 +27,31 @@ namespace nlp {
         ptr() = default;
         ptr(ptr const &) = default;
         ptr(ptr &&) = default;
-        ptr(std::unique_ptr<T> const & o) : m_ptr{o.get()} {}
-        ptr(T & o) : m_ptr{&o} {}
+        ptr(std::unique_ptr<T> const & p_o) : m_ptr{p_o.get()} {}
+        ptr(T & p_o) : m_ptr{&p_o} {}
         ptr(nullptr_t) {}
-        ptr(T * o) : m_ptr{o} {}
+        ptr(T * p_o) : m_ptr{p_o} {}
         template <typename U>
-        ptr(ptr<U> const & o) : m_ptr(o.get()) {}
+        ptr(ptr<U> const & p_o) : m_ptr(p_o.get()) {}
         ptr & operator=(ptr const &) = default;
         ptr & operator=(ptr &&) = default;
-        bool operator==(ptr const & o) const {
-            return m_ptr == o.m_ptr;
+        bool operator==(ptr const & p_o) const {
+            return m_ptr == p_o.m_ptr;
         }
-        bool operator!=(ptr const & o) const {
-            return m_ptr != o.m_ptr;
+        bool operator!=(ptr const & p_o) const {
+            return m_ptr != p_o.m_ptr;
         }
-        bool operator<(ptr const & o) const {
-            return m_ptr < o.m_ptr;
+        bool operator<(ptr const & p_o) const {
+            return m_ptr < p_o.m_ptr;
         }
-        bool operator>(ptr const & o) const {
-            return m_ptr > o.m_ptr;
+        bool operator>(ptr const & p_o) const {
+            return m_ptr > p_o.m_ptr;
         }
-        bool operator<=(ptr const & o) const {
-            return m_ptr <= o.m_ptr;
+        bool operator<=(ptr const & p_o) const {
+            return m_ptr <= p_o.m_ptr;
         }
-        bool operator>=(ptr const & o) const {
-            return m_ptr >= o.m_ptr;
+        bool operator>=(ptr const & p_o) const {
+            return m_ptr >= p_o.m_ptr;
         }
         explicit operator bool() const {
             return m_ptr != nullptr;

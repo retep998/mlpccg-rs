@@ -33,6 +33,10 @@ namespace nlp {
         ~game();
         uint32_t get_id() const;
         std::string const & get_name() const;
+        void add_player(ptr<player>);
+        void remove_player(ptr<player>);
+        bool is_dead() const;
+        void update();
     private:
         std::set<ptr<player>> m_players;
         ptr<player> m_player_one, m_player_two;

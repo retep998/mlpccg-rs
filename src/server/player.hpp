@@ -35,17 +35,21 @@ namespace nlp {
         uint32_t get_id() const;
         std::string const & get_name() const;
         void update();
-        bool is_disconnected() const;
-        void send_game_created(ptr<game> = ptr<game>{});
+        bool is_dead() const;
+        void send_game_created(ptr<game>);
+        void send_game_joined(ptr<game>);
+        void send_game_deleted(ptr<game>);
+        void send_player_left_game(ptr<player>);
+        void send_player_joined_game(ptr<player>);
     private:
         std::string default_name() const;
         std::ostream & log() const;
         void handle(sf::Packet &) override;
-        void disconnect() override;
+        void kill() override;
         void send(sf::Packet &);
         void send_pong(uint32_t);
         void send_id();
-        void send_player_joined(ptr<player> = ptr<player>{});
+        void send_player_joined(ptr<player>);
         void send_ping();
         void send_player_left(ptr<player>);
         ptr<packet_handler> m_send;
@@ -55,6 +59,6 @@ namespace nlp {
         uint32_t m_id;
         ptr<game> m_game;
         ptr<server> m_server;
-        bool m_disconnected = false;
+        bool m_dead = false;
     };
 }

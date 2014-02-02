@@ -60,10 +60,10 @@ namespace nlp {
     }
     void manager::collect() {
         m_connections.remove_if([](auto & conn) {
-            return conn->is_disconnected();
+            return conn->is_dead();
         });
     }
-    void manager::disconnect(ptr<connection> p_conn) {
+    void manager::kill(ptr<connection> p_conn) {
         m_select->remove(p_conn->get_socket());
     }
 }

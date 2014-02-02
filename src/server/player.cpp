@@ -34,9 +34,9 @@ namespace nlp {
         m_name = default_name();
         log() << "Connected." << std::endl;
         send_id();
-        send_player_joined();
+        send_player_joined({});
         send_player_joined(this);
-        send_game_created();
+        send_game_created({});
         m_server->for_player([this](auto & p) {
             p.send_player_joined(this);
         });
@@ -49,21 +49,21 @@ namespace nlp {
         return m_name;
     }
     void player::update() {
-        if (is_disconnected()) {
+        if (is_dead()) {
             return;
         }
         auto now = std::chrono::steady_clock::now();
         if (m_ping_id) {
             if (now - m_ping > std::chrono::seconds{20}) {
                 log() << "Timed out." << std::endl;
-                disconnect();
+                kill();
             }
         } else if (now - m_ping > std::chrono::seconds{15}) {
             send_ping();
         }
     }
-    bool player::is_disconnected() const {
-        return m_disconnected;
+    bool player::is_dead() const {
+        return m_dead;
     }
     std::string player::default_name() const {
         std::ostringstream ss;
@@ -74,18 +74,18 @@ namespace nlp {
         std::cout << time() << '|' << get_name() << '|';
         return std::cout;
     }
-    void player::disconnect() {
-        if (!is_disconnected()) {
-            m_disconnected = true;
+    void player::kill() {
+        if (!is_dead()) {
+            m_dead = true;
             log() << "Disconnected." << std::endl;
             m_server->for_player([this](auto & p) {
                 p.send_player_left(this);
             });
-            m_send->disconnect();
+            m_send->kill();
         }
     }
     void player::handle(sf::Packet & p) {
-        uint16_t opcode{};
+        auto opcode = uint16_t{};
         p >> opcode;
         switch (opcode) {
         case 0x0001: {
@@ -94,7 +94,7 @@ namespace nlp {
             send_pong(id);
         } break;
         case 0x0002: {
-            uint32_t id{};
+            auto id = uint32_t{};
             p >> id;
             if (m_ping_id && id == m_ping_id) {
                 m_ping = std::chrono::steady_clock::now();
@@ -116,15 +116,34 @@ namespace nlp {
             });
         } break;
         case 0x0007: {
-
+            if (m_game) {
+                m_game->remove_player(this);
+            }
+            auto game_name = std::string{};
+            p >> game_name;
+            auto g = m_server->create_game(game_name);
+            g->add_player(this);
         } break;
         case 0x0008: {
-
+            if (m_game) {
+                m_game->remove_player(this);
+            }
+            auto id = uint32_t{};
+            p >> id;
+            auto g = m_server->get_game(id);
+            g->add_player(this);
         } break;
         }
     }
     void player::send(sf::Packet & p_packet) {
         m_send->handle(p_packet);
+    }
+    void player::send_ping() {
+        auto packet = sf::Packet{};
+        auto dist = std::uniform_int_distribution<uint32_t>{1, std::numeric_limits<uint32_t>::max()};
+        m_ping_id = dist(m_server->rng());
+        packet << uint16_t{0x0001} << m_ping_id;
+        send(packet);
     }
     void player::send_pong(uint32_t p_id) {
         auto packet = sf::Packet{};
@@ -136,11 +155,42 @@ namespace nlp {
         packet << uint16_t{0x0004} << m_id;
         send(packet);
     }
-    void player::send_ping() {
+    void player::send_game_deleted(ptr<game> p_game) {
         auto packet = sf::Packet{};
-        std::uniform_int_distribution<uint32_t> dist{1, std::numeric_limits<uint32_t>::max()};
-        m_ping_id = dist(m_server->rng());
-        packet << uint16_t{0x0001} << m_ping_id;
+        packet << uint16_t{0x0005};
+        if (p_game) {
+            packet << uint32_t{1};
+            packet << p_game->get_id();
+        } else {
+            packet << uint32_t{0};
+        }
+        send(packet);
+    }
+    void player::send_game_created(ptr<game> p_game) {
+        auto packet = sf::Packet{};
+        packet << uint16_t{0x0006};
+        if (p_game) {
+            packet << uint32_t{1};
+            packet << p_game->get_id() << p_game->get_name();
+        } else {
+            packet << m_server->total_games();
+            m_server->for_game([this, &packet](auto & g) {
+                packet << g.get_id() << g.get_name();
+            });
+        }
+        send(packet);
+    }
+    void player::send_game_joined(ptr<game> p_game) {
+        auto packet = sf::Packet{};
+        packet << uint16_t{0x0009};
+        if (p_game) {
+            log() << "Joined game " << p_game->get_name() << std::endl;
+            packet << p_game->get_id();
+        } else {
+            log() << "Left game" << std::endl;
+            packet << uint32_t{0};
+        }
+        m_game = p_game;
         send(packet);
     }
     void player::send_player_joined(ptr<player> p_player) {
@@ -157,17 +207,25 @@ namespace nlp {
         }
         send(packet);
     }
-    void player::send_game_created(ptr<game> p_game) {
+    void player::send_player_joined_game(ptr<player> p_player) {
         auto packet = sf::Packet{};
-        packet << uint16_t{0x0006};
-        if (p_game) {
+        packet << uint16_t{0x000C};
+        if (p_player) {
             packet << uint32_t{1};
-            packet << p_game->get_id() << p_game->get_name();
+            packet << p_player->get_id();
         } else {
-            packet << m_server->total_games();
-            m_server->for_game([this, &packet](auto & g) {
-                packet << g.get_id() << g.get_name();
-            });
+            packet << uint32_t{0};
+        }
+        send(packet);
+    }
+    void player::send_player_left_game(ptr<player> p_player) {
+        auto packet = sf::Packet{};
+        packet << uint16_t{0x000D};
+        if (p_player) {
+            packet << uint32_t{1};
+            packet << p_player->get_id();
+        } else {
+            packet << uint32_t{0};
         }
         send(packet);
     }

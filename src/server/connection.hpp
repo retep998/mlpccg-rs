@@ -38,14 +38,14 @@ namespace nlp {
         connection & operator=(connection const &) = delete;
         sf::Socket & get_socket() const;
         void update();
-        bool is_disconnected() const;
+        bool is_dead() const;
     private:
         void handle(sf::Packet &) override;
-        void disconnect() override;
+        void kill() override;
         ptr<packet_handler> m_receive;
         std::unique_ptr<sf::TcpSocket> m_socket;
         ptr<manager> m_manager;
-        bool m_disconnected = false;
+        bool m_dead = false;
     };
 
 }
