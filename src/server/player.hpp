@@ -52,6 +52,9 @@ namespace nlp {
         void send_player_joined(ptr<player>);
         void send_ping();
         void send_player_left(ptr<player>);
+        void send_global_chat(ptr<player>, std::string const &);
+        void send_game_chat(ptr<player>, std::string const &);
+        void send_private_chat(ptr<player>, std::string const &);
         ptr<packet_handler> m_send;
         std::chrono::steady_clock::time_point m_ping{std::chrono::steady_clock::now()};
         uint32_t m_ping_id{};

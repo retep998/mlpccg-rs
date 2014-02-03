@@ -37,6 +37,12 @@ namespace nlp {
         void remove_player(ptr<player>);
         bool is_dead() const;
         void update();
+        template <typename Func>
+        void for_player(Func && p_func) const {
+            for (auto & p : m_players) {
+                p_func(*p);
+            }
+        }
     private:
         std::set<ptr<player>> m_players;
         ptr<player> m_player_one, m_player_two;

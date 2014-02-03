@@ -138,6 +138,32 @@ namespace nlp {
                 g->add_player(this);
             }
         } break;
+        case 0x000A: {
+            auto message = std::string{};
+            p >> message;
+            m_server->for_player([this, &message](auto & p) {
+                p.send_global_chat(this, message);
+            });
+        } break;
+        case 0x0010: {
+            auto message = std::string{};
+            p >> message;
+            if (m_game) {
+                m_game->for_player([this, &message](auto & p) {
+                    p.send_game_chat(this, message);
+                });
+            }
+        } break;
+        case 0x0012: {
+            auto message = std::string{};
+            auto id = uint32_t{};
+            p >> id;
+            p >> message;
+            auto target = m_server->get_player(id);
+            if (target) {
+                target->send_private_chat(this, message);
+            }
+        } break;
         }
     }
     void player::send(sf::Packet & p_packet) {
@@ -164,8 +190,7 @@ namespace nlp {
         auto packet = sf::Packet{};
         packet << uint16_t{0x0005};
         if (p_game) {
-            packet << uint32_t{1};
-            packet << p_game->get_id();
+            packet << uint32_t{1} << p_game->get_id();
         } else {
             packet << uint32_t{0};
         }
@@ -175,8 +200,7 @@ namespace nlp {
         auto packet = sf::Packet{};
         packet << uint16_t{0x0006};
         if (p_game) {
-            packet << uint32_t{1};
-            packet << p_game->get_id() << p_game->get_name();
+            packet << uint32_t{1} << p_game->get_id() << p_game->get_name();
         } else {
             packet << m_server->total_games();
             m_server->for_game([this, &packet](auto & g) {
@@ -202,8 +226,7 @@ namespace nlp {
         auto packet = sf::Packet{};
         packet << uint16_t{0x000B};
         if (p_player) {
-            packet << uint32_t{1};
-            packet << p_player->get_id() << p_player->get_name();
+            packet << uint32_t{1} << p_player->get_id() << p_player->get_name();
         } else {
             packet << m_server->total_players();
             m_server->for_player([this, &packet](auto & p) {
@@ -216,8 +239,7 @@ namespace nlp {
         auto packet = sf::Packet{};
         packet << uint16_t{0x000C};
         if (p_player) {
-            packet << uint32_t{1};
-            packet << p_player->get_id();
+            packet << uint32_t{1} << p_player->get_id();
         } else {
             packet << uint32_t{0};
         }
@@ -227,8 +249,17 @@ namespace nlp {
         auto packet = sf::Packet{};
         packet << uint16_t{0x000D};
         if (p_player) {
-            packet << uint32_t{1};
-            packet << p_player->get_id();
+            packet << uint32_t{1} << p_player->get_id();
+        } else {
+            packet << uint32_t{0};
+        }
+        send(packet);
+    }
+    void player::send_global_chat(ptr<player> p_player, std::string const & p_message) {
+        auto packet = sf::Packet{};
+        packet << uint16_t{0x000E};
+        if (p_player) {
+            packet << uint32_t{1} << p_player->get_id() << p_message;
         } else {
             packet << uint32_t{0};
         }
@@ -238,13 +269,32 @@ namespace nlp {
         auto packet = sf::Packet{};
         packet << uint16_t{0x000F};
         if (p_player) {
-            packet << uint32_t{1};
-            packet << p_player->get_id();
+            packet << uint32_t{1} << p_player->get_id();
         } else {
             packet << m_server->total_players();
             m_server->for_player([this, &packet](auto & p) {
                 packet << p.get_id();
             });
+        }
+        send(packet);
+    }
+    void player::send_game_chat(ptr<player> p_player, std::string const & p_message) {
+        auto packet = sf::Packet{};
+        packet << uint16_t{0x0011};
+        if (p_player) {
+            packet << uint32_t{1} << p_player->get_id() << p_message;
+        } else {
+            packet << uint32_t{0};
+        }
+        send(packet);
+    }
+    void player::send_private_chat(ptr<player> p_player, std::string const & p_message) {
+        auto packet = sf::Packet{};
+        packet << uint16_t{0x0013};
+        if (p_player) {
+            packet << uint32_t{1} << p_player->get_id() << p_message;
+        } else {
+            packet << uint32_t{0};
         }
         send(packet);
     }
