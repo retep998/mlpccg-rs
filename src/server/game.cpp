@@ -49,6 +49,7 @@ namespace nlp {
         if (it.second) {
             p_player->send_game_joined(this);
         }
+        p_player->send_player_joined_game({});
         for (auto & p : m_players) {
             p->send_player_joined_game(p_player);
         }
@@ -67,5 +68,8 @@ namespace nlp {
     }
     void game::update() {
 
+    }
+    uint32_t game::total_players() const {
+        return static_cast<uint32_t>(m_players.size());
     }
 }

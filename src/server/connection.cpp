@@ -19,6 +19,7 @@
 #include "connection.hpp"
 #include "packet_handler.hpp"
 #include "manager.hpp"
+#include <utility/log.hpp>
 #include <SFML/Network/IpAddress.hpp>
 #include <SFML/Network/TcpSocket.hpp>
 #include <SFML/Network/Packet.hpp>
@@ -43,7 +44,11 @@ namespace nlp {
         sf::Packet packet;
         for (;;) {
             auto err = m_socket->receive(packet);
-            if (err == sf::Socket::Status::Error || err == sf::Socket::Status::Disconnected) {
+            if (err == sf::Socket::Status::Disconnected) {
+                kill();
+                return;
+            } else if (err == sf::Socket::Status::Error) {
+                log{} << "Socket error!";
                 kill();
                 return;
             } else if (err == sf::Socket::Status::Done) {

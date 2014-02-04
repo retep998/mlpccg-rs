@@ -20,6 +20,7 @@
       <Filter>game</Filter>
     </ClCompile>
     <ClCompile Include="..\src\server\main.cpp" />
+    <ClCompile Include="..\src\server\experiment.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\server\connection.hpp">
@@ -43,6 +44,7 @@
     <ClInclude Include="..\src\server\player.hpp">
       <Filter>game</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\server\experiment.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="networking">

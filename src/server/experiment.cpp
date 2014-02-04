@@ -16,16 +16,33 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-#include <iomanip>
+#include "experiment.hpp"
+#include <utility/loop.hpp>
+#include <utility/tty.hpp>
 #include <iostream>
-#include <ctime>
-#include <sstream>
+#include <cstdint>
+#include <vector>
 
 namespace nlp {
-    inline decltype(std::put_time(nullptr, "")) time() {
-        auto t = std::time(nullptr);
-        auto l = std::localtime(&t);
-        return std::put_time(l, "%H:%M:%S");
+    void experiment() {
+        auto && my_loop = loop{};
+        auto && my_tty = tty{my_loop};
+        my_tty << tty::fgdark << tty::bgdark;
+        for (auto x = 30; x < 38; ++x) {
+            my_tty << static_cast<tty::style>(x);
+            for (auto y = 40; y < 48; ++y) {
+                my_tty << static_cast<tty::style>(y);
+                my_tty << tty::bgdark;
+                my_tty << "0";
+                my_tty << tty::fgbright;
+                my_tty << "0";
+                my_tty << tty::bgbright;
+                my_tty << "0";
+                my_tty << tty::fgdark;
+                my_tty << "0";
+            }
+            my_tty << "\n";
+        }
+        my_tty << tty::clear;
     }
 }

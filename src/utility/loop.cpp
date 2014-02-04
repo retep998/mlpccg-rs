@@ -16,10 +16,30 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "server.hpp"
-#include "experiment.hpp"
+#include "loop.hpp"
+#include <uv.h>
+#include <memory>
+#include <stdexcept>
 
-int main() {
-    //nlp::server{}.run();
-    nlp::experiment();
+namespace nlp {
+    loop::loop() : m_loop{uv_loop_new()} {}
+    loop::loop(loop && p_loop) {
+        std::swap(m_loop, p_loop.m_loop);
+    }
+    loop::~loop() {
+        if (m_loop) {
+            uv_loop_delete(m_loop);
+        }
+    }
+    uv_loop_s * loop::get() const {
+        return m_loop;
+    }
+    void loop::update() const {
+        if (!m_loop) {
+            throw std::runtime_error{"Null pointer exception!"};
+        }
+        if (uv_run(m_loop, UV_RUN_NOWAIT)) {
+            throw std::runtime_error{"Error running loop!"};
+        }
+    }
 }

@@ -16,10 +16,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "server.hpp"
-#include "experiment.hpp"
+#pragma once
 
-int main() {
-    //nlp::server{}.run();
-    nlp::experiment();
+namespace nlp {
+    void experiment();
 }

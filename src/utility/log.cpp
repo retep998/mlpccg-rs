@@ -16,10 +16,42 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "server.hpp"
-#include "experiment.hpp"
+#include "log.hpp"
+#ifdef _WIN32
+#  include <Windows.h>
+#endif
+#include <sstream>
+#include <ctime>
+#include <iomanip>
 
-int main() {
-    //nlp::server{}.run();
-    nlp::experiment();
+namespace nlp {
+    block::block(std::string p_str) : m_str{std::move(p_str)} {}
+    std::string & block::value() {
+        return m_str;
+    }
+    std::string const & block::value() const {
+        return m_str;
+    }
+    log::log() {
+        auto handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+        ::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN);
+        auto t = std::time(nullptr);
+        auto l = std::localtime(&t);
+        std::cout << std::put_time(l, "[%H:%M:%S] ");
+        ::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+    }
+    log::log(log && p_other) {
+        p_other.m_owned = false;
+    }
+    log::~log() {
+        std::cout << std::endl;
+    }
+    log && log::operator<<(block && p_block) && {
+        auto handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+        ::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_GREEN);
+        std::cout << '[' << p_block.value() << ']';
+        ::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+
+        return std::move(*this);
+    }
 }

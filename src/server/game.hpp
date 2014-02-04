@@ -37,6 +37,7 @@ namespace nlp {
         void remove_player(ptr<player>);
         bool is_dead() const;
         void update();
+        uint32_t total_players() const;
         template <typename Func>
         void for_player(Func && p_func) const {
             for (auto & p : m_players) {

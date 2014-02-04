@@ -16,10 +16,49 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "server.hpp"
-#include "experiment.hpp"
+#pragma once
+#include <string>
+#include <cstdint>
+#include <memory>
 
-int main() {
-    //nlp::server{}.run();
-    nlp::experiment();
+struct uv_tty_s;
+namespace nlp {
+    class loop;
+    class tty {
+    public:
+        enum style {
+            clear = 0,
+            fgbright = 1,
+            bgbright = 5,
+            fgdark = 21,
+            bgdark = 25,
+            fgblack = 30,
+            fgred = 31,
+            fggreen = 32,
+            fgyellow = 33,
+            fgblue = 34,
+            fgmagenta = 35,
+            fgcyan = 36,
+            fgwhite = 37,
+            bgblack = 40,
+            bgred = 41,
+            bggreen = 42,
+            bgyellow = 43,
+            bgblue = 44,
+            bgmagenta = 45,
+            bgcyan = 46,
+            bgwhite = 47,
+        };
+        tty() = delete;
+        tty(tty const &) = delete;
+        tty(tty &&) = delete;
+        tty(loop const &);
+        ~tty() noexcept(false);
+        tty & operator=(tty const &) = delete;
+        tty & operator=(tty &&) = delete;
+        tty & operator<<(std::string const &);
+        tty & operator<<(style const &);
+    private:
+        std::unique_ptr<uv_tty_s> m_tty;
+    };
 }

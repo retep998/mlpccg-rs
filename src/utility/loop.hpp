@@ -16,10 +16,21 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "server.hpp"
-#include "experiment.hpp"
+#pragma once
 
-int main() {
-    //nlp::server{}.run();
-    nlp::experiment();
+struct uv_loop_s;
+namespace nlp {
+    class loop {
+    public:
+        loop();
+        loop(loop const &) = delete;
+        loop(loop &&);
+        ~loop();
+        loop & operator=(loop const &) = delete;
+        loop & operator=(loop &&) = delete;
+        uv_loop_s * get() const;
+        void update() const;
+    private:
+        uv_loop_s * m_loop = nullptr;
+    };
 }

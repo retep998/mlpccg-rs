@@ -12,11 +12,12 @@
       <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>sfml.lib;Winmm.lib;jpeg.lib;Ws2_32.lib;utility.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sfml.lib;Winmm.lib;jpeg.lib;Ws2_32.lib;utility.lib;libuv.lib;psapi.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\src\server\connection.hpp" />
+    <ClInclude Include="..\src\server\experiment.hpp" />
     <ClInclude Include="..\src\server\game.hpp" />
     <ClInclude Include="..\src\server\listener.hpp" />
     <ClInclude Include="..\src\server\manager.hpp" />
@@ -26,6 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\server\connection.cpp" />
+    <ClCompile Include="..\src\server\experiment.cpp" />
     <ClCompile Include="..\src\server\game.cpp" />
     <ClCompile Include="..\src\server\listener.cpp" />
     <ClCompile Include="..\src\server\main.cpp" />

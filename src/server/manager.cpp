@@ -20,7 +20,7 @@
 #include "connection.hpp"
 #include "listener.hpp"
 #include <utility/ptr.hpp>
-#include <utility/format.hpp>
+#include <utility/log.hpp>
 #include <SFML/Network/SocketSelector.hpp>
 #include <iostream>
 
@@ -34,7 +34,7 @@ namespace nlp {
             m_select->add(listen->get_socket());
             m_listeners.emplace_back(std::move(listen));
         } catch (std::exception const & e) {
-            std::cerr << time() << "|" << e.what() << std::endl;
+            log{} << "ERROR: " << e.what();
         }
     }
     void manager::update() {

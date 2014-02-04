@@ -43,7 +43,6 @@ namespace nlp {
         void send_player_joined_game(ptr<player>);
     private:
         std::string default_name() const;
-        std::ostream & log() const;
         void handle(sf::Packet &) override;
         void kill() override;
         void send(sf::Packet &);
