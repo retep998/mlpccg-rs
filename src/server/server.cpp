@@ -28,11 +28,6 @@
 namespace nlp {
     server::server() :
         m_manager{std::make_unique<manager>()} {
-        auto file = std::ifstream("assets/motd.txt");
-        std::string line;
-        while (std::getline(file, line)) {
-            std::cout << line << '\n';
-        }
         m_manager->add_listener(273, [this](auto p_send) {
             return create_player(p_send);
         });

@@ -16,3 +16,4 @@
 !build/*.vcxproj.filters
 !build/*.props
 !build/assets/
+!build/assets/motd.bin

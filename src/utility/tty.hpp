@@ -58,6 +58,8 @@ namespace nlp {
         tty & operator=(tty &&) = delete;
         tty & operator<<(std::string const &);
         tty & operator<<(style const &);
+        tty & operator<<(char const &);
+        tty & set(std::initializer_list<style> const &);
     private:
         std::unique_ptr<uv_tty_s> m_tty;
     };

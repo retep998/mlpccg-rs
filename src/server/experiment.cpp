@@ -22,26 +22,24 @@
 #include <iostream>
 #include <cstdint>
 #include <vector>
+#include <fstream>
 
 namespace nlp {
     void experiment() {
         auto && my_loop = loop{};
         auto && my_tty = tty{my_loop};
-        my_tty << tty::fgdark << tty::bgdark;
-        for (auto x = 30; x < 38; ++x) {
-            my_tty << static_cast<tty::style>(x);
-            for (auto y = 40; y < 48; ++y) {
-                my_tty << static_cast<tty::style>(y);
-                my_tty << tty::bgdark;
-                my_tty << "0";
-                my_tty << tty::fgbright;
-                my_tty << "0";
-                my_tty << tty::bgbright;
-                my_tty << "0";
-                my_tty << tty::fgdark;
-                my_tty << "0";
+        auto in = std::ifstream("assets/motd.bin", std::ios::binary);
+        int width, height;
+        in >> width >> height;
+        in.get();
+        for (auto y = 0; y < height; ++y) {
+            for (auto x = 0; x < width; ++x) {
+                auto code = static_cast<uint8_t>(in.get());
+                auto character = static_cast<char>(in.get());
+                my_tty.set({static_cast<tty::style>(code & 0x80 ? tty::bgbright : tty::bgdark), static_cast<tty::style>(code & 0x08 ? tty::fgbright : tty::fgdark), static_cast<tty::style>(((code & 0x70) >> 4) + 40), static_cast<tty::style>((code & 0x07) + 30)});
+                my_tty << character;
             }
-            my_tty << "\n";
+            my_tty << '\n';
         }
         my_tty << tty::clear;
     }

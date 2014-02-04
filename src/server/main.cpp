@@ -20,6 +20,6 @@
 #include "experiment.hpp"
 
 int main() {
-    //nlp::server{}.run();
     nlp::experiment();
+    nlp::server{}.run();
 }

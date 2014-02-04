@@ -41,9 +41,32 @@ namespace nlp {
         std::cout << p_str;
         return *this;
     }
+    tty & tty::operator<<(char const & p_char) {
+        std::cout << p_char;
+        return *this;
+    }
     tty & tty::operator<<(style const & p_style) {
         std::cout << std::flush;
         auto str = "\x1b[" + std::to_string(static_cast<int>(p_style)) + "m";
+        auto write = uv_write_t{};
+        auto buf = uv_buf_t{};
+        buf.base = const_cast<char *>(str.c_str());
+        buf.len = static_cast<decltype(buf.len)>(str.size());
+        if (uv_write(&write, reinterpret_cast<uv_stream_t *>(m_tty.get()), &buf, 1, nullptr)) {
+            throw std::runtime_error{"Failed to write data!"};
+        }
+        return *this;
+    }
+    tty & tty::set(std::initializer_list<style> const & p_styles) {
+        std::cout << std::flush;
+        auto str = std::string{"\x1b["};
+        for (auto it = p_styles.begin(); it != p_styles.end(); ++it) {
+            if (it != p_styles.begin()) {
+                str.push_back(';');
+            }
+            str.append(std::to_string(static_cast<int>(*it)));
+        }
+        str.push_back('m');
         auto write = uv_write_t{};
         auto buf = uv_buf_t{};
         buf.base = const_cast<char *>(str.c_str());
