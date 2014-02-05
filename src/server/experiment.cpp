@@ -28,19 +28,10 @@ namespace nlp {
     void experiment() {
         auto && my_loop = loop{};
         auto && my_tty = tty{my_loop};
-        auto in = std::ifstream("assets/motd.bin", std::ios::binary);
-        int width, height;
-        in >> width >> height;
-        in.get();
-        for (auto y = 0; y < height; ++y) {
-            for (auto x = 0; x < width; ++x) {
-                auto code = static_cast<uint8_t>(in.get());
-                auto character = static_cast<char>(in.get());
-                my_tty.set({static_cast<tty::style>(code & 0x80 ? tty::bgbright : tty::bgdark), static_cast<tty::style>(code & 0x08 ? tty::fgbright : tty::fgdark), static_cast<tty::style>(((code & 0x70) >> 4) + 40), static_cast<tty::style>((code & 0x07) + 30)});
-                my_tty << character;
-            }
-            my_tty << '\n';
-        }
+        auto && in = std::ifstream("assets/motd.txt", std::ios::binary);
+        auto && line = std::string{};
+        std::getline(in, line, '\0');
+        my_tty.write(line);
         my_tty << tty::clear;
     }
 }

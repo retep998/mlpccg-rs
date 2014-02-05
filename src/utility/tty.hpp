@@ -60,6 +60,7 @@ namespace nlp {
         tty & operator<<(style const &);
         tty & operator<<(char const &);
         tty & set(std::initializer_list<style> const &);
+        tty & write(std::string const &);
     private:
         std::unique_ptr<uv_tty_s> m_tty;
     };
