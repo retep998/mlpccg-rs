@@ -37,7 +37,7 @@ namespace nlp {
     log::~log() {
         std::cout << std::endl;
     }
-    log && log::operator<<(block && p_block) && {
+    log && log::operator<<(block &&) && {
         throw;
     }
 }
