@@ -33,5 +33,6 @@ namespace nlp {
         std::getline(in, line, '\0');
         my_tty.write(line);
         my_tty << tty::clear;
+        std::cin.get();
     }
 }

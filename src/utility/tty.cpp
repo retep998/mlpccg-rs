@@ -38,11 +38,25 @@ namespace nlp {
         }
     }
     tty & tty::operator<<(std::string const & p_str) {
-        std::cout << p_str;
+        std::cout << std::flush;
+        auto write = uv_write_t{};
+        auto buf = uv_buf_t{};
+        buf.base = const_cast<char *>(p_str.c_str());
+        buf.len = static_cast<decltype(buf.len)>(p_str.size());
+        if (uv_write(&write, reinterpret_cast<uv_stream_t *>(m_tty.get()), &buf, 1, nullptr)) {
+            throw std::runtime_error{"Failed to write data!"};
+        }
         return *this;
     }
     tty & tty::operator<<(char const & p_char) {
-        std::cout << p_char;
+        std::cout << std::flush;
+        auto write = uv_write_t{};
+        auto buf = uv_buf_t{};
+        buf.base = const_cast<char *>(&p_char);
+        buf.len = static_cast<decltype(buf.len)>(sizeof(p_char));
+        if (uv_write(&write, reinterpret_cast<uv_stream_t *>(m_tty.get()), &buf, 1, nullptr)) {
+            throw std::runtime_error{"Failed to write data!"};
+        }
         return *this;
     }
     tty & tty::operator<<(style const & p_style) {

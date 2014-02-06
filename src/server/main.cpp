@@ -21,5 +21,5 @@
 
 int main() {
     nlp::experiment();
-    nlp::server{}.run();
+    //nlp::server{}.run();
 }
