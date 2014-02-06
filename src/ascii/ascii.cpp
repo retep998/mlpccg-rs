@@ -234,10 +234,11 @@ namespace nlp {
 int main(int argc, char ** argv) {
     auto args = std::vector<std::string>{argv, argv + argc};
     nlp::ascii::prep();
-    nlp::ascii::debug();
     if (args.size() > 1) {
         std::cin >> nlp::ascii::conwidth;
         nlp::ascii::convert(args[1]);
+    } else {
+        nlp::ascii::print();
     }
     std::cout << "Press enter to continue" << std::endl;
     std::cin.get();
