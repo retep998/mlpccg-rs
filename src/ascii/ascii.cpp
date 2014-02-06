@@ -28,6 +28,7 @@
 #include <codecvt>
 #include <map>
 #include <set>
+#include <cmath>
 
 namespace nlp {
     namespace ascii {
