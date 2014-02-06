@@ -24,12 +24,20 @@
 #include <thread>
 #include <atomic>
 #include <list>
-#include <filesystem>
+#ifdef NLP_CLANG
+    #include <boost/filesystem.hpp>
+#else
+    #include <filesystem>
+#endif
 #include <vector>
 #include <algorithm>
 #include <random>
 
+#ifdef NLP_CLANG
+namespace sys = boost::filesystem;
+#else
 namespace sys = std::tr2::sys;
+#endif
 
 namespace nlp {
     namespace client {
