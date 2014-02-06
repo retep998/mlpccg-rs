@@ -134,15 +134,15 @@ namespace nlp {
             clear_grid();
             calc_combos();
         }
-        entry & get_grid(color const & c) {
-            auto & r = grid[c.r][c.g][c.b];
+        entry & get_grid(color const & p_color) {
+            auto & r = grid[p_color.r][p_color.g][p_color.b];
             if (r == std::numeric_limits<uint16_t>::max()) {
                 auto bestd = std::numeric_limits<int>::max();
                 auto besti = uint16_t{};
                 for (auto i = uint16_t{0}; i < entries.size(); ++i) {
                     auto & e = entries[i];
                     auto & opp = e.col;
-                    auto diff = std::abs(c.r - opp.r) + std::abs(c.g - opp.g) + std::abs(c.b - opp.b);
+                    auto diff = std::abs(p_color.r - opp.r) + std::abs(p_color.g - opp.g) + std::abs(p_color.b - opp.b);
                     if (diff < bestd) {
                         bestd = diff;
                         besti = i;
@@ -159,9 +159,9 @@ namespace nlp {
             auto && my_tty = tty{my_loop};
             my_tty << u8chars << '\n';
         }
-        void convert(std::string name) {
+        void convert(std::string p_name) {
             auto && in = sf::Image{};
-            if (!in.loadFromFile(name)) {
+            if (!in.loadFromFile(p_name)) {
                 return;
             }
             auto && out = std::ofstream("assets/motd.txt", std::ios::binary);
@@ -234,8 +234,8 @@ namespace nlp {
 
 int main(int argc, char ** argv) {
     auto args = std::vector<std::string>{argv, argv + argc};
-    nlp::ascii::prep();
     if (args.size() > 1) {
+        nlp::ascii::prep();
         std::cin >> nlp::ascii::conwidth;
         nlp::ascii::convert(args[1]);
     } else {

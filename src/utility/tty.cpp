@@ -23,7 +23,6 @@
 #include <iostream>
 
 namespace nlp {
-    uv_loop_t;
     tty::tty(loop const & p_loop) : m_tty{std::make_unique<uv_tty_t>()} {
         if (uv_tty_init(p_loop.get(), m_tty.get(), 1, false)) {
             throw std::runtime_error{"Failed to initialize TTY!"};
