@@ -29,7 +29,7 @@ namespace nlp {
         ptr(ptr &&) = default;
         ptr(std::unique_ptr<T> const & p_o) : m_ptr{p_o.get()} {}
         ptr(T & p_o) : m_ptr{&p_o} {}
-        ptr(nullptr_t) {}
+        ptr(std::nullptr_t) {}
         ptr(T * p_o) : m_ptr{p_o} {}
         template <typename U>
         ptr(ptr<U> const & p_o) : m_ptr(p_o.get()) {}
