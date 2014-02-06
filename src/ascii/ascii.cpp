@@ -54,7 +54,7 @@ namespace nlp {
             unsigned cover;
             char16_t ch;
         };
-        unsigned const conwidth{100};
+        unsigned conwidth{};
         unsigned const cwidth{6};
         unsigned const cheight{8};
         std::string const chars_name{"assets/chars" + std::to_string(cwidth) + "x" + std::to_string(cheight) + ".png"};
@@ -64,6 +64,7 @@ namespace nlp {
         std::array<std::array<std::array<uint16_t, 0x100>, 0x100>, 0x100> grid{};
         std::vector<entry> entries{};
         std::set<color> taken_colors{};
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> codecvt{};
         void calc_coverage() {
             auto && in = sf::Image{};
             in.loadFromFile(chars_name);
@@ -89,10 +90,10 @@ namespace nlp {
             }
         }
         double gamma_decode(uint8_t x) {
-            return std::pow(x * (1. / 255.), 1.);
+            return std::pow(x * (1. / 255.), 2.2);
         }
         uint8_t gamma_encode(double x) {
-            return static_cast<uint8_t>(std::pow(x, 1.) * 255.);
+            return static_cast<uint8_t>(std::pow(x, 1. / 2.2) * 255.);
         }
         void calc_combos() {
             auto all_colors = std::initializer_list<uint8_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
@@ -138,8 +139,7 @@ namespace nlp {
         }
         void print() {
             auto && wstr = std::u16string{wchars.cbegin(), wchars.cend()};
-            auto && convert = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{};
-            auto && u8chars = convert.to_bytes(wstr);
+            auto && u8chars = codecvt.to_bytes(wstr);
             auto && my_loop = loop{};
             auto && my_tty = tty{my_loop};
             my_tty << u8chars << '\n';
@@ -150,7 +150,6 @@ namespace nlp {
                 return;
             }
             auto && out = std::ofstream("assets/motd.txt", std::ios::binary);
-            auto && convert = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{};
             auto imgwidth = in.getSize().x;
             auto imgheight = in.getSize().y;
             auto xratio = static_cast<double>(imgwidth) / conwidth;
@@ -172,11 +171,11 @@ namespace nlp {
                     auto mult = 1. / ((xb - xt) * (yb - yt) * 255);
                     auto && combine = color{gamma_encode(r * mult), gamma_encode(g * mult), gamma_encode(b * mult)};
                     auto & e = get_grid(combine);
-                    out << "\x1b[" << (e.fg & 0x8 ? "5" : "25");
-                    out << ";" << (e.bg & 0x8 ? "1" : "21");
-                    out << ";" << static_cast<int>((e.bg & 0x7) + 40);
+                    out << "\x1b[" << (e.fg & 0x8 ? "1" : "21");
+                    out << ";" << (e.bg & 0x8 ? "5" : "25");
                     out << ";" << static_cast<int>((e.fg & 0x7) + 30);
-                    out << "m" << convert.to_bytes(e.ch);
+                    out << ";" << static_cast<int>((e.bg & 0x7) + 40);
+                    out << "m" << codecvt.to_bytes(e.ch);
                 }
                 out << '\n';
             }
@@ -187,11 +186,11 @@ namespace nlp {
             for (auto i = unsigned{0}; i < 0x100; ++i) {
                 auto && combine = color{static_cast<uint8_t>(i), static_cast<uint8_t>(i), static_cast<uint8_t>(i)};
                 auto & e = get_grid(combine);
-                out << "\x1b[" << (e.fg & 0x8 ? "5" : "25");
-                out << ";" << (e.bg & 0x8 ? "1" : "21");
-                out << ";" << static_cast<int>((e.bg & 0x7) + 40);
+                out << "\x1b[" << (e.fg & 0x8 ? "1" : "21");
+                out << ";" << (e.bg & 0x8 ? "5" : "25");
                 out << ";" << static_cast<int>((e.fg & 0x7) + 30);
-                out << "m" << convert.to_bytes(e.ch);
+                out << ";" << static_cast<int>((e.bg & 0x7) + 40);
+                out << "m" << codecvt.to_bytes(e.ch);
             }
         }
     }
@@ -200,10 +199,10 @@ namespace nlp {
 int main(int argc, char ** argv) {
     auto args = std::vector<std::string>{argv, argv + argc};
     nlp::ascii::prep();
+    nlp::ascii::debug();
     if (args.size() > 1) {
+        std::cin >> nlp::ascii::conwidth;
         nlp::ascii::convert(args[1]);
-    } else {
-        nlp::ascii::debug();
     }
     std::cout << "Press enter to continue" << std::endl;
     std::cin.get();
