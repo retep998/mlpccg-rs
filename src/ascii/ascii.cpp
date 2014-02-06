@@ -33,12 +33,26 @@ namespace nlp {
     namespace ascii {
         using char8_t = unsigned char;
         using u8string = std::basic_string<char8_t>;
+        struct color_diff {
+            int r;
+            int g;
+            int b;
+            color_diff operator*(double const & p_mult) const {
+                return{static_cast<int>(r * p_mult), static_cast<int>(g * p_mult), static_cast<int>(b * p_mult)};
+            }
+        };
         struct color {
             uint8_t r;
             uint8_t g;
             uint8_t b;
-            bool operator==(color const & p_other) const {
-                return r == p_other.r && g == p_other.g && b == p_other.b;
+            color_diff operator-(color const & p_other) const {
+                return{r - p_other.r, g - p_other.g, b - p_other.b};
+            }
+            color & operator+=(color_diff const & p_other) {
+                r = static_cast<uint8_t>(std::max(0, std::min(255, r + p_other.r)));
+                b = static_cast<uint8_t>(std::max(0, std::min(255, b + p_other.b)));
+                g = static_cast<uint8_t>(std::max(0, std::min(255, g + p_other.g)));
+                return *this;
             }
             bool operator<(color const & p_other) const {
                 return r == p_other.r ? g == p_other.g ? b < p_other.b : g < p_other.g : r < p_other.r;
@@ -155,6 +169,8 @@ namespace nlp {
             auto xratio = static_cast<double>(imgwidth) / conwidth;
             auto yratio = xratio * cheight / cwidth;
             auto conheight = static_cast<unsigned>(imgheight / yratio);
+            auto shrunk = std::vector<color>{};
+            shrunk.resize(conwidth * conheight);
             for (auto y = unsigned{0}; y < conheight; ++y) {
                 auto yt = static_cast<unsigned>(y * yratio), yb = static_cast<unsigned>((y + 1) * yratio);
                 for (auto x = unsigned{0}; x < conwidth; ++x) {
@@ -170,7 +186,26 @@ namespace nlp {
                     }
                     auto mult = 1. / ((xb - xt) * (yb - yt) * 255);
                     auto && combine = color{gamma_encode(r * mult), gamma_encode(g * mult), gamma_encode(b * mult)};
-                    auto & e = get_grid(combine);
+                    shrunk[y * conwidth + x] = combine;
+                }
+            }
+            for (auto y = unsigned{0}; y < conheight; ++y) {
+                for (auto x = unsigned{0}; x < conwidth; ++x) {
+                    auto & c = shrunk[y * conwidth + x];
+                    auto & e = get_grid(c);
+                    auto && err = c - e.col;
+                    if (x > 0 && y + 1 < conheight) {
+                        shrunk[(y + 1) * conwidth + (x - 1)] += err * (3. / 16.);
+                    }
+                    if (y + 1 < conheight) {
+                        shrunk[(y + 1) * conwidth + x] += err * (5. / 16.);
+                    }
+                    if (x + 1 < conwidth && y + 1 < conheight) {
+                        shrunk[(y + 1) * conwidth + (x + 1)] += err * (1. / 16.);
+                    }
+                    if (x + 1 < conwidth) {
+                        shrunk[y * conwidth + (x + 1)] += err * (7. / 16.);
+                    }
                     out << "\x1b[" << (e.fg & 0x8 ? "1" : "21");
                     out << ";" << (e.bg & 0x8 ? "5" : "25");
                     out << ";" << static_cast<int>((e.fg & 0x7) + 30);
