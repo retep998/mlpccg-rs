@@ -21,6 +21,7 @@
 #include <utility/ptr.hpp>
 #include <chrono>
 #include <map>
+#include <string>
 
 namespace sf {
     class Packet;
