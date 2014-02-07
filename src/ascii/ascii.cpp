@@ -128,14 +128,13 @@ namespace nlp {
             return{gamma_decode(p_color.r * mult), gamma_decode(p_color.g * mult), gamma_decode(p_color.b * mult)};
         }
         void calc_combos() {
-            auto all_colors = std::initializer_list<uint8_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
             auto total_mult = 1. / (cwidth * cheight);
             for (auto & c : coverages) {
                 auto ratio = c.cover * total_mult;
                 auto iratio = 1. - ratio;
-                for (auto & x : all_colors) {
+                for (auto x = uint8_t{0}; x < colors.size(); ++x) {
                     auto & fg = colors[x];
-                    for (auto & y : all_colors) {
+                    for (auto y = uint8_t{0}; y < colors.size(); ++y) {
                         auto & bg = colors[y];
                         auto && combine = gamma(fg) * ratio + gamma(bg) * iratio;
                         if (taken_colors.find(combine) == taken_colors.end()) {
