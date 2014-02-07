@@ -108,15 +108,26 @@ namespace nlp {
                 }
             }
         }
-        double const gamma_val = 2.2;
-        double const gamma_val_inv = 1. / gamma_val;
+        double const gamma_val = 2.4;
         double const gamma_mult = 255.;
-        double const gamma_mult_inv = 1. / gamma_mult;
+        double const gamma_a = 0.055;
+        double const gamma_factor = 12.92;
+        double const gamma_decode_threshhold = 0.04045;
+        double const gamma_encode_threshhold = 0.0031308;
+
         double gamma_decode(double p_val) {
-            return std::pow(p_val * gamma_mult_inv, gamma_val);
+            if (p_val <= gamma_decode_threshhold) {
+                return p_val / gamma_mult / gamma_factor;
+            } else {
+                return std::pow((p_val / gamma_mult + gamma_a) / (1 + gamma_a), gamma_val);
+            }
         }
         double gamma_encode(double p_val) {
-            return std::pow(p_val, gamma_val_inv) * gamma_mult;
+            if (p_val <= gamma_encode_threshhold) {
+                return p_val * gamma_factor * gamma_mult;
+            } else {
+                return ((1 + gamma_a) * std::pow(p_val, 1 / gamma_val) - gamma_a) * gamma_mult;
+            }
         }
         color_double gamma(color const & p_color) {
             return{gamma_decode(p_color.r), gamma_decode(p_color.g), gamma_decode(p_color.b)};
@@ -125,7 +136,7 @@ namespace nlp {
             return{static_cast<uint8_t>(gamma_encode(p_color.r)), static_cast<uint8_t>(gamma_encode(p_color.g)), static_cast<uint8_t>(gamma_encode(p_color.b))};
         }
         color_double gamma(sf::Color const & p_color) {
-            auto mult = p_color.a * gamma_mult_inv;
+            auto const mult = p_color.a / gamma_mult;
             return{gamma_decode(p_color.r * mult), gamma_decode(p_color.g * mult), gamma_decode(p_color.b * mult)};
         }
         void calc_combos() {
@@ -228,7 +239,7 @@ namespace nlp {
 #define DITHERING_SIERRA 2
 #define DITHERING_ATKINSON 3
 #define DITHERING_REDUCED 4
-#define DITHERING DITHERING_SIERRA
+#define DITHERING DITHERING_ATKINSON
 #if DITHERING == DITHERING_NONE
 #elif DITHERING == DITHERING_FLOYD_STEINBERG
                     adjust(x + 1, y + 0, err, 7. / 16.);
