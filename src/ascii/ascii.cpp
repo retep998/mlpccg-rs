@@ -34,33 +34,36 @@ namespace nlp {
     namespace ascii {
         using char8_t = unsigned char;
         using u8string = std::basic_string<char8_t>;
-        struct color_diff {
-            int r;
-            int g;
-            int b;
-            color_diff operator*(double const & p_mult) const {
-                return{static_cast<int>(r * p_mult), static_cast<int>(g * p_mult), static_cast<int>(b * p_mult)};
-            }
-        };
         struct color {
             uint8_t r;
             uint8_t g;
             uint8_t b;
-            color_diff operator-(color const & p_other) const {
+        };
+        struct color_double {
+            double r;
+            double g;
+            double b;
+            color_double operator*(double const & p_mult) const {
+                return{r * p_mult, g * p_mult, b * p_mult};
+            }
+            color_double operator+(color_double const & p_other) const {
+                return{r + p_other.r, g + p_other.g, b + p_other.b};
+            }
+            color_double operator-(color_double const & p_other) const {
                 return{r - p_other.r, g - p_other.g, b - p_other.b};
             }
-            color & operator+=(color_diff const & p_other) {
-                r = static_cast<uint8_t>(std::max(0, std::min(255, r + p_other.r)));
-                b = static_cast<uint8_t>(std::max(0, std::min(255, b + p_other.b)));
-                g = static_cast<uint8_t>(std::max(0, std::min(255, g + p_other.g)));
-                return *this;
-            }
-            bool operator<(color const & p_other) const {
+            bool operator<(color_double const & p_other) const {
                 return r == p_other.r ? g == p_other.g ? b < p_other.b : g < p_other.g : r < p_other.r;
+            }
+            color_double & operator+=(color_double const & p_other) {
+                r += p_other.r;
+                g += p_other.g;
+                b += p_other.b;
+                return *this;
             }
         };
         struct entry {
-            color col;
+            color_double col;
             uint8_t fg;
             uint8_t bg;
             char16_t ch;
@@ -78,7 +81,7 @@ namespace nlp {
         std::vector<coverage> coverages{};
         std::array<std::array<std::array<uint16_t, 0x100>, 0x100>, 0x100> grid{};
         std::vector<entry> entries{};
-        std::set<color> taken_colors{};
+        std::set<color_double> taken_colors{};
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> codecvt{};
         void calc_coverage() {
             auto && in = sf::Image{};
@@ -104,11 +107,25 @@ namespace nlp {
                 }
             }
         }
-        double gamma_decode(uint8_t x) {
-            return std::pow(x * (1. / 255.), 2.2);
+        double const gamma_val = 2.2;
+        double const gamma_val_inv = 1. / 2.2;
+        double const gamma_mult = 255.;
+        double const gamma_mult_inv = 1. / 255.;
+        double gamma_decode(double p_val) {
+            return std::pow(p_val * gamma_mult_inv, gamma_val);
         }
-        uint8_t gamma_encode(double x) {
-            return static_cast<uint8_t>(std::pow(x, 1. / 2.2) * 255.);
+        double gamma_encode(double p_val) {
+            return std::pow(p_val, gamma_val_inv) * gamma_mult;
+        }
+        color_double gamma(color const & p_color) {
+            return{gamma_decode(p_color.r), gamma_decode(p_color.g), gamma_decode(p_color.b)};
+        }
+        color gamma(color_double const & p_color) {
+            return{static_cast<uint8_t>(gamma_encode(p_color.r)), static_cast<uint8_t>(gamma_encode(p_color.g)), static_cast<uint8_t>(gamma_encode(p_color.b))};
+        }
+        color_double gamma(sf::Color const & p_color) {
+            auto mult = p_color.a * gamma_mult_inv;
+            return{gamma_decode(p_color.r * mult), gamma_decode(p_color.g * mult), gamma_decode(p_color.b * mult)};
         }
         void calc_combos() {
             auto all_colors = std::initializer_list<uint8_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
@@ -120,7 +137,7 @@ namespace nlp {
                     auto & fg = colors[x];
                     for (auto & y : all_colors) {
                         auto & bg = colors[y];
-                        auto && combine = color{gamma_encode(gamma_decode(fg.r) * ratio + gamma_decode(bg.r) * iratio), gamma_encode(gamma_decode(fg.g) * ratio + gamma_decode(bg.g) * iratio), gamma_encode(gamma_decode(fg.b) * ratio + gamma_decode(bg.b) * iratio)};
+                        auto && combine = gamma(fg) * ratio + gamma(bg) * iratio;
                         if (taken_colors.find(combine) == taken_colors.end()) {
                             entries.push_back({combine, x, y, c.ch});
                             taken_colors.insert(combine);
@@ -134,10 +151,11 @@ namespace nlp {
             clear_grid();
             calc_combos();
         }
-        entry & get_grid(color const & p_color) {
-            auto & r = grid[p_color.r][p_color.g][p_color.b];
+        entry & get_grid(color_double const & p_color) {
+            auto && gc = gamma(p_color);
+            auto & r = grid[gc.r][gc.g][gc.b];
             if (r == std::numeric_limits<uint16_t>::max()) {
-                auto bestd = std::numeric_limits<int>::max();
+                auto bestd = std::numeric_limits<double>::max();
                 auto besti = uint16_t{};
                 for (auto i = uint16_t{0}; i < entries.size(); ++i) {
                     auto & e = entries[i];
@@ -170,24 +188,21 @@ namespace nlp {
             auto xratio = static_cast<double>(imgwidth) / conwidth;
             auto yratio = xratio * cheight / cwidth;
             auto conheight = static_cast<unsigned>(imgheight / yratio);
-            auto shrunk = std::vector<color>{};
+            auto shrunk = std::vector<color_double>{};
             shrunk.resize(conwidth * conheight);
             for (auto y = unsigned{0}; y < conheight; ++y) {
                 auto yt = static_cast<unsigned>(y * yratio), yb = static_cast<unsigned>((y + 1) * yratio);
                 for (auto x = unsigned{0}; x < conwidth; ++x) {
                     auto xt = static_cast<unsigned>(x * xratio), xb = static_cast<unsigned>((x + 1) * xratio);
-                    auto r = 0., g = 0., b = 0.;
+                    auto sum = color_double{};
                     for (auto yy = yt; yy < yb; ++yy) {
                         for (auto xx = xt; xx < xb; ++xx) {
                             auto && c = in.getPixel(xx, yy);
-                            r += gamma_decode(c.r) * c.a;
-                            g += gamma_decode(c.g) * c.a;
-                            b += gamma_decode(c.b) * c.a;
+                            sum += gamma(c);
                         }
                     }
-                    auto mult = 1. / ((xb - xt) * (yb - yt) * 255);
-                    auto && combine = color{gamma_encode(r * mult), gamma_encode(g * mult), gamma_encode(b * mult)};
-                    shrunk[y * conwidth + x] = combine;
+                    auto mult = 1. / ((xb - xt) * (yb - yt));
+                    shrunk[y * conwidth + x] = sum * mult;
                 }
             }
             for (auto y = unsigned{0}; y < conheight; ++y) {
@@ -214,19 +229,6 @@ namespace nlp {
                     out << "m" << codecvt.to_bytes(e.ch);
                 }
                 out << '\n';
-            }
-        }
-        void debug() {
-            auto && out = std::ofstream("assets/motd.txt", std::ios::binary);
-            auto && convert = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{};
-            for (auto i = unsigned{0}; i < 0x100; ++i) {
-                auto && combine = color{static_cast<uint8_t>(i), static_cast<uint8_t>(i), static_cast<uint8_t>(i)};
-                auto & e = get_grid(combine);
-                out << "\x1b[" << (e.fg & 0x8 ? "1" : "21");
-                out << ";" << (e.bg & 0x8 ? "5" : "25");
-                out << ";" << static_cast<int>((e.fg & 0x7) + 30);
-                out << ";" << static_cast<int>((e.bg & 0x7) + 40);
-                out << "m" << codecvt.to_bytes(e.ch);
             }
         }
     }
