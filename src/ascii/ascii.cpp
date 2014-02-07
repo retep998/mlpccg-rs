@@ -83,7 +83,6 @@ namespace nlp {
         std::vector<coverage> coverages{};
         std::array<std::array<std::array<uint16_t, 0x100>, 0x100>, 0x100> grid{};
         std::vector<entry> entries{};
-        std::set<color_double> taken_colors{};
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> codecvt{};
         void calc_coverage() {
             auto && in = sf::Image{};
@@ -98,7 +97,11 @@ namespace nlp {
                         }
                     }
                 }
-                coverages.push_back({sum, c});
+                if (std::none_of(coverages.cbegin(), coverages.cend(), [&sum](coverage const & c) {
+                    return c.cover == sum;
+                })) {
+                    coverages.push_back({sum, c});
+                }
                 index += cwidth;
             }
         }
@@ -157,10 +160,7 @@ namespace nlp {
                         auto const bf = 0.2126 * bgg.r + 0.7152 * bgg.g + 0.0722 * bgg.b;
                         auto const diff = std::abs(lf - bf);
                         auto && combine = gamma(fg) * ratio + gamma(bg) * iratio;
-                        if (taken_colors.find(combine) == taken_colors.end()) {
-                            entries.push_back({combine, diff, c.ch, x, y});
-                            taken_colors.insert(combine);
-                        }
+                        entries.push_back({combine, diff, c.ch, x, y});
                     }
                 }
             }
@@ -179,7 +179,7 @@ namespace nlp {
                 for (auto i = uint16_t{0}; i < entries.size(); ++i) {
                     auto & e = entries[i];
                     auto & opp = e.col;
-                    auto diff = 0.2126 * std::abs(p_color.r - opp.r) + 0.7152 * std::abs(p_color.g - opp.g) + 0.0722 * std::abs(p_color.b - opp.b) + e.diff * 0.1;
+                    auto diff = 0.2126 * std::abs(p_color.r - opp.r) + 0.7152 * std::abs(p_color.g - opp.g) + 0.0722 * std::abs(p_color.b - opp.b) + e.diff * 0.02;
                     if (diff < bestd) {
                         bestd = diff;
                         besti = i;
@@ -240,7 +240,6 @@ namespace nlp {
 #define DITHERING_FLOYD_STEINBERG 1
 #define DITHERING_SIERRA 2
 #define DITHERING_ATKINSON 3
-#define DITHERING_REDUCED 4
 #define DITHERING DITHERING_ATKINSON
 #if DITHERING == DITHERING_NONE
 #elif DITHERING == DITHERING_FLOYD_STEINBERG
@@ -266,13 +265,8 @@ namespace nlp {
                     adjust(x + 0, y + 1, err, 1. / 8.);
                     adjust(x + 1, y + 1, err, 1. / 8.);
                     adjust(x + 0, y + 2, err, 1. / 8.);
-#elif DITHERING == DITHERING_REDUCED
-                    adjust(x + 1, y + 0, err, 2. / 16.);
-                    adjust(x + 2, y + 0, err, 1. / 16.);
-                    adjust(x - 1, y + 1, err, 1. / 16.);
-                    adjust(x + 0, y + 1, err, 2. / 16.);
-                    adjust(x + 1, y + 1, err, 1. / 16.);
-                    adjust(x + 0, y + 2, err, 1. / 16.);
+#else
+#  error "Please select a dithering method"
 #endif
                     out << "\x1b[" << (e.fg & 0x8 ? "1" : "21");
                     out << ";" << (e.bg & 0x8 ? "5" : "25");
