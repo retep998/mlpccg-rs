@@ -28,6 +28,7 @@
 #include <codecvt>
 #include <map>
 #include <set>
+#include <chrono>
 #include <cmath>
 
 namespace nlp {
@@ -108,9 +109,9 @@ namespace nlp {
             }
         }
         double const gamma_val = 2.2;
-        double const gamma_val_inv = 1. / 2.2;
+        double const gamma_val_inv = 1. / gamma_val;
         double const gamma_mult = 255.;
-        double const gamma_mult_inv = 1. / 255.;
+        double const gamma_mult_inv = 1. / gamma_mult;
         double gamma_decode(double p_val) {
             return std::pow(p_val * gamma_mult_inv, gamma_val);
         }
@@ -188,7 +189,8 @@ namespace nlp {
             auto yratio = xratio * cheight / cwidth;
             auto conheight = static_cast<unsigned>(imgheight / yratio);
             auto shrunk = std::vector<color_double>{};
-            shrunk.resize(conwidth * conheight);
+            auto const total_pixels = conwidth * conheight;
+            shrunk.resize(total_pixels);
             for (auto y = unsigned{0}; y < conheight; ++y) {
                 auto yt = static_cast<unsigned>(y * yratio), yb = static_cast<unsigned>((y + 1) * yratio);
                 for (auto x = unsigned{0}; x < conwidth; ++x) {
@@ -204,23 +206,38 @@ namespace nlp {
                     shrunk[y * conwidth + x] = sum * mult;
                 }
             }
+            auto adjust = [&total_pixels, &shrunk](unsigned const & x, unsigned const & y, color_double const & err, double const & mult) {
+                auto const index = y * conwidth + x;
+                if (index < total_pixels) {
+                    shrunk[index] += err * mult;
+                }
+            };
             for (auto y = unsigned{0}; y < conheight; ++y) {
                 for (auto x = unsigned{0}; x < conwidth; ++x) {
                     auto & c = shrunk[y * conwidth + x];
                     auto & e = get_grid(c);
                     auto && err = c - e.col;
-                    if (x > 0 && y + 1 < conheight) {
-                        shrunk[(y + 1) * conwidth + (x - 1)] += err * (3. / 16.);
-                    }
-                    if (y + 1 < conheight) {
-                        shrunk[(y + 1) * conwidth + x] += err * (5. / 16.);
-                    }
-                    if (x + 1 < conwidth && y + 1 < conheight) {
-                        shrunk[(y + 1) * conwidth + (x + 1)] += err * (1. / 16.);
-                    }
-                    if (x + 1 < conwidth) {
-                        shrunk[y * conwidth + (x + 1)] += err * (7. / 16.);
-                    }
+#define DITHERING_NONE 0
+#define DITHERING_FLOYD_STEINBERG 1
+#define DITHERING_SIERRA 2
+#define DITHERING DITHERING_SIERRA
+#if DITHERING == DITHERING_FLOYD_STEINBERG
+                    adjust(x + 1, y + 0, err, 7. / 16.);
+                    adjust(x - 1, y + 1, err, 3. / 16.);
+                    adjust(x + 0, y + 1, err, 5. / 16.);
+                    adjust(x + 1, y + 1, err, 1. / 16.);
+#elif DITHERING == DITHERING_SIERRA
+                    adjust(x + 1, y + 0, err, 5. / 32.);
+                    adjust(x + 2, y + 0, err, 3. / 32.);
+                    adjust(x + 2, y + 1, err, 2. / 32.);
+                    adjust(x - 1, y + 1, err, 4. / 32.);
+                    adjust(x - 0, y + 1, err, 5. / 32.);
+                    adjust(x + 1, y + 1, err, 4. / 32.);
+                    adjust(x + 2, y + 1, err, 2. / 32.);
+                    adjust(x - 1, y + 2, err, 2. / 32.);
+                    adjust(x + 0, y + 2, err, 3. / 32.);
+                    adjust(x + 1, y + 2, err, 2. / 32.);
+#endif
                     out << "\x1b[" << (e.fg & 0x8 ? "1" : "21");
                     out << ";" << (e.bg & 0x8 ? "5" : "25");
                     out << ";" << static_cast<int>((e.fg & 0x7) + 30);
@@ -235,13 +252,15 @@ namespace nlp {
 
 int main(int argc, char ** argv) {
     auto args = std::vector<std::string>{argv, argv + argc};
+    args.push_back("_old__steampunk_octavia_by_episkopi-d5jcq80.png");
     if (args.size() > 1) {
-        nlp::ascii::prep();
         std::cin >> nlp::ascii::conwidth;
+        auto t1 = std::chrono::high_resolution_clock::now();
+        nlp::ascii::prep();
         nlp::ascii::convert(args[1]);
+        auto t2 = std::chrono::high_resolution_clock::now();
+        std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << "ms" << std::endl;
     } else {
         nlp::ascii::print();
     }
-    std::cout << "Press enter to continue" << std::endl;
-    std::cin.get();
 }

@@ -21,6 +21,7 @@
 #include <uv.h>
 #include <memory>
 #include <iostream>
+#include <algorithm>
 
 namespace nlp {
     tty::tty(loop const & p_loop) : m_tty{std::make_unique<uv_tty_t>()} {
@@ -37,7 +38,6 @@ namespace nlp {
         }
     }
     tty & tty::operator<<(std::string const & p_str) {
-        std::cout << std::flush;
         auto write = uv_write_t{};
         auto buf = uv_buf_t{};
         buf.base = const_cast<char *>(p_str.c_str());
@@ -48,7 +48,6 @@ namespace nlp {
         return *this;
     }
     tty & tty::operator<<(char const & p_char) {
-        std::cout << std::flush;
         auto write = uv_write_t{};
         auto buf = uv_buf_t{};
         buf.base = const_cast<char *>(&p_char);
@@ -59,7 +58,6 @@ namespace nlp {
         return *this;
     }
     tty & tty::operator<<(style const & p_style) {
-        std::cout << std::flush;
         auto str = "\x1b[" + std::to_string(static_cast<int>(p_style)) + "m";
         auto write = uv_write_t{};
         auto buf = uv_buf_t{};
@@ -71,7 +69,6 @@ namespace nlp {
         return *this;
     }
     tty & tty::set(std::initializer_list<style> const & p_styles) {
-        std::cout << std::flush;
         auto str = std::string{"\x1b["};
         for (auto it = p_styles.begin(); it != p_styles.end(); ++it) {
             if (it != p_styles.begin()) {
@@ -90,7 +87,6 @@ namespace nlp {
         return *this;
     }
     tty & tty::write(std::string const & p_str) {
-        std::cout << std::flush;
         auto write = uv_write_t{};
         auto buf = uv_buf_t{};
         buf.base = const_cast<char *>(p_str.c_str());
@@ -99,5 +95,13 @@ namespace nlp {
             throw std::runtime_error{"Failed to write data!"};
         }
         return *this;
+    }
+    std::string tty::strip(std::string p_str) {
+        for (auto & c : p_str) {
+            if (c == '\x1b') {
+                c = '\0';
+            }
+        }
+        return p_str;
     }
 }
