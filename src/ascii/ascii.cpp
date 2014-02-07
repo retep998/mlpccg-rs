@@ -220,8 +220,11 @@ namespace nlp {
 #define DITHERING_NONE 0
 #define DITHERING_FLOYD_STEINBERG 1
 #define DITHERING_SIERRA 2
-#define DITHERING DITHERING_SIERRA
-#if DITHERING == DITHERING_FLOYD_STEINBERG
+#define DITHERING_ATKINSON 3
+#define DITHERING_REDUCED 4
+#define DITHERING DITHERING_REDUCED
+#if DITHERING == DITHERING_NONE
+#elif DITHERING == DITHERING_FLOYD_STEINBERG
                     adjust(x + 1, y + 0, err, 7. / 16.);
                     adjust(x - 1, y + 1, err, 3. / 16.);
                     adjust(x + 0, y + 1, err, 5. / 16.);
@@ -237,6 +240,20 @@ namespace nlp {
                     adjust(x - 1, y + 2, err, 2. / 32.);
                     adjust(x + 0, y + 2, err, 3. / 32.);
                     adjust(x + 1, y + 2, err, 2. / 32.);
+#elif DITHERING == DITHERING_ATKINSON
+                    adjust(x + 1, y + 0, err, 1. / 8.);
+                    adjust(x + 2, y + 0, err, 1. / 8.);
+                    adjust(x - 1, y + 1, err, 1. / 8.);
+                    adjust(x + 0, y + 1, err, 1. / 8.);
+                    adjust(x + 1, y + 1, err, 1. / 8.);
+                    adjust(x + 0, y + 2, err, 1. / 8.);
+#elif DITHERING == DITHERING_REDUCED
+                    adjust(x + 1, y + 0, err, 2. / 16.);
+                    adjust(x + 2, y + 0, err, 1. / 16.);
+                    adjust(x - 1, y + 1, err, 1. / 16.);
+                    adjust(x + 0, y + 1, err, 2. / 16.);
+                    adjust(x + 1, y + 1, err, 1. / 16.);
+                    adjust(x + 0, y + 2, err, 1. / 16.);
 #endif
                     out << "\x1b[" << (e.fg & 0x8 ? "1" : "21");
                     out << ";" << (e.bg & 0x8 ? "5" : "25");
