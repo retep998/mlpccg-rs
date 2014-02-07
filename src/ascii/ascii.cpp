@@ -65,9 +65,10 @@ namespace nlp {
         };
         struct entry {
             color_double col;
+            double diff;
+            char16_t ch;
             uint8_t fg;
             uint8_t bg;
-            char16_t ch;
         };
         struct coverage {
             unsigned cover;
@@ -140,25 +141,24 @@ namespace nlp {
             return{gamma_decode(p_color.r * mult), gamma_decode(p_color.g * mult), gamma_decode(p_color.b * mult)};
         }
         void calc_combos() {//std::array<uint8_t, 16>{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
-            auto fg_colors = std::array<uint8_t, 16>{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
-            auto bg_colors = std::array<uint8_t, 16>{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
-            auto total_mult = 1. / (cwidth * cheight);
+            auto const && fg_colors = std::array<uint8_t, 16>{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
+            auto const && bg_colors = std::array<uint8_t, 16>{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
+            auto const total_mult = 1. / (cwidth * cheight);
             for (auto & c : coverages) {
-                auto ratio = c.cover * total_mult;
-                auto iratio = 1. - ratio;
+                auto const ratio = c.cover * total_mult;
+                auto const iratio = 1. - ratio;
                 for (auto x : fg_colors) {
                     auto & fg = colors[x];
+                    auto && fgg = gamma(fg);
+                    auto const lf = 0.2126 * fgg.r + 0.7152 * fgg.g + 0.0722 * fgg.b;
                     for (auto y : bg_colors) {
                         auto & bg = colors[y];
-                        auto && fgg = gamma(fg), bgg = gamma(bg);
-                        auto lf = 0.2126 * fgg.r + 0.7152 * fgg.g + 0.0722 * fgg.b;
-                        auto bf = 0.2126 * bgg.r + 0.7152 * bgg.g + 0.0722 * bgg.b;
-                        if (std::abs(lf - bf) > 0.8) {
-                            continue;
-                        }
+                        auto && bgg = gamma(bg);
+                        auto const bf = 0.2126 * bgg.r + 0.7152 * bgg.g + 0.0722 * bgg.b;
+                        auto const diff = std::abs(lf - bf);
                         auto && combine = gamma(fg) * ratio + gamma(bg) * iratio;
                         if (taken_colors.find(combine) == taken_colors.end()) {
-                            entries.push_back({combine, x, y, c.ch});
+                            entries.push_back({combine, diff, c.ch, x, y});
                             taken_colors.insert(combine);
                         }
                     }
@@ -179,7 +179,7 @@ namespace nlp {
                 for (auto i = uint16_t{0}; i < entries.size(); ++i) {
                     auto & e = entries[i];
                     auto & opp = e.col;
-                    auto diff = 0.2126 * std::abs(p_color.r - opp.r) + 0.7152 * std::abs(p_color.g - opp.g) + 0.0722 * std::abs(p_color.b - opp.b);
+                    auto diff = 0.2126 * std::abs(p_color.r - opp.r) + 0.7152 * std::abs(p_color.g - opp.g) + 0.0722 * std::abs(p_color.b - opp.b) + e.diff * 0.1;
                     if (diff < bestd) {
                         bestd = diff;
                         besti = i;
