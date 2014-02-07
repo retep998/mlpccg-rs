@@ -124,9 +124,9 @@ namespace nlp {
         }
         double gamma_encode(double p_val) {
             if (p_val <= gamma_encode_threshhold) {
-                return p_val * gamma_factor * gamma_mult;
+                return std::min(255., std::max(0., p_val * gamma_factor * gamma_mult));
             } else {
-                return ((1 + gamma_a) * std::pow(p_val, 1 / gamma_val) - gamma_a) * gamma_mult;
+                return std::min(255., std::max(0., ((1 + gamma_a) * std::pow(p_val, 1 / gamma_val) - gamma_a) * gamma_mult));
             }
         }
         color_double gamma(color const & p_color) {
@@ -177,7 +177,7 @@ namespace nlp {
                 for (auto i = uint16_t{0}; i < entries.size(); ++i) {
                     auto & e = entries[i];
                     auto & opp = e.col;
-                    auto diff = std::abs(p_color.r - opp.r) + std::abs(p_color.g - opp.g) + std::abs(p_color.b - opp.b);
+                    auto diff = 0.2126 * std::abs(p_color.r - opp.r) + 0.7152 * std::abs(p_color.g - opp.g) + 0.0722 * std::abs(p_color.b - opp.b);
                     if (diff < bestd) {
                         bestd = diff;
                         besti = i;
