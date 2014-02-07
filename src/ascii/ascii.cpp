@@ -137,6 +137,12 @@ namespace nlp {
                     auto & fg = colors[x];
                     for (auto y = uint8_t{0}; y < colors.size(); ++y) {
                         auto & bg = colors[y];
+                        auto && fgg = gamma(fg), bgg = gamma(bg);
+                        auto lf = 0.2126 * fgg.r + 0.7152 * fgg.g + 0.0722 * fgg.b;
+                        auto bf = 0.2126 * bgg.r + 0.7152 * bgg.g + 0.0722 * bgg.b;
+                        if (std::abs(lf - bf) > 0.7) {
+                            continue;
+                        }
                         auto && combine = gamma(fg) * ratio + gamma(bg) * iratio;
                         if (taken_colors.find(combine) == taken_colors.end()) {
                             entries.push_back({combine, x, y, c.ch});
@@ -222,7 +228,7 @@ namespace nlp {
 #define DITHERING_SIERRA 2
 #define DITHERING_ATKINSON 3
 #define DITHERING_REDUCED 4
-#define DITHERING DITHERING_REDUCED
+#define DITHERING DITHERING_SIERRA
 #if DITHERING == DITHERING_NONE
 #elif DITHERING == DITHERING_FLOYD_STEINBERG
                     adjust(x + 1, y + 0, err, 7. / 16.);
@@ -280,4 +286,6 @@ int main(int argc, char ** argv) {
     } else {
         nlp::ascii::print();
     }
+    std::cin.get();
+    std::cin.get();
 }
