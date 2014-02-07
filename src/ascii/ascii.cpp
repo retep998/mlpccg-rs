@@ -139,14 +139,16 @@ namespace nlp {
             auto const mult = p_color.a / gamma_mult;
             return{gamma_decode(p_color.r * mult), gamma_decode(p_color.g * mult), gamma_decode(p_color.b * mult)};
         }
-        void calc_combos() {
+        void calc_combos() {//std::array<uint8_t, 16>{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
+            auto fg_colors = std::array<uint8_t, 16>{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
+            auto bg_colors = std::array<uint8_t, 16>{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
             auto total_mult = 1. / (cwidth * cheight);
             for (auto & c : coverages) {
                 auto ratio = c.cover * total_mult;
                 auto iratio = 1. - ratio;
-                for (auto x = uint8_t{0}; x < colors.size(); ++x) {
+                for (auto x : fg_colors) {
                     auto & fg = colors[x];
-                    for (auto y = uint8_t{0}; y < colors.size(); ++y) {
+                    for (auto y : bg_colors) {
                         auto & bg = colors[y];
                         auto && fgg = gamma(fg), bgg = gamma(bg);
                         auto lf = 0.2126 * fgg.r + 0.7152 * fgg.g + 0.0722 * fgg.b;
