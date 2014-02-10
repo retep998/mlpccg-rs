@@ -18,7 +18,6 @@
 
 #include "listener.hpp"
 #include "connection.hpp"
-#include <utility/log.hpp>
 #include <SFML/Network/IpAddress.hpp>
 #include <SFML/Network/TcpListener.hpp>
 #include <SFML/Network/TcpSocket.hpp>
@@ -33,7 +32,6 @@ namespace nlp {
         if (err != sf::Socket::Status::Done) {
             throw std::runtime_error{"Failed to listen to port " + std::to_string(p_port)};
         }
-        log{} << "Listening on port " << p_port;
         m_listen->setBlocking(false);
     }
     listener::~listener() {}

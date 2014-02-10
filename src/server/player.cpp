@@ -20,7 +20,6 @@
 #include "game.hpp"
 #include "server.hpp"
 #include "packet_handler.hpp"
-#include <utility/log.hpp>
 #include <SFML/Network/Packet.hpp>
 #include <iostream>
 #include <map>
@@ -33,7 +32,6 @@ namespace nlp {
         m_id{p_id},
         m_server{p_server} {
         m_name = default_name();
-        log{} << block{get_name()} << " Connected.";
         send_id();
         send_player_joined({});
         send_player_joined(this);
@@ -56,7 +54,6 @@ namespace nlp {
         auto now = std::chrono::steady_clock::now();
         if (m_ping_id) {
             if (now - m_ping > std::chrono::seconds{20}) {
-                log{} << block{get_name()} << " Timed out.";
                 kill();
             }
         } else if (now - m_ping > std::chrono::seconds{15}) {
@@ -81,7 +78,6 @@ namespace nlp {
                 p.send_player_left(this);
             });
             m_send->kill();
-            log{} << block{get_name()} << " Disconnected.";
         }
     }
     void player::handle(sf::Packet & p) {
@@ -109,7 +105,6 @@ namespace nlp {
             } else if (new_name.empty()) {
                 new_name = default_name();
             }
-            log{} << "Renamed " << block{m_name} << " -> " << block{new_name};
             m_name = new_name;
             m_server->for_player([this](auto & p) {
                 p.send_player_joined(this);
@@ -122,7 +117,6 @@ namespace nlp {
             auto game_name = std::string{};
             p >> game_name;
             if (auto g = m_server->create_game(game_name)) {
-                log{} << block{get_name()} << " Created " << block{game_name};
                 g->add_player(this);
             }
         } break;
@@ -142,7 +136,6 @@ namespace nlp {
             m_server->for_player([this, &message](auto & p) {
                 p.send_global_chat(this, message);
             });
-            log{} << block{get_name()} << " : " << block{message};
         } break;
         case 0x0010: {
             auto message = std::string{};
@@ -151,7 +144,6 @@ namespace nlp {
                 m_game->for_player([this, &message](auto & p) {
                     p.send_game_chat(this, message);
                 });
-                log{} << block{get_name()} << " -> " << block{m_game->get_name()} << " : " << block{message};
             }
         } break;
         case 0x0012: {
@@ -162,9 +154,7 @@ namespace nlp {
             auto target = m_server->get_player(id);
             if (target) {
                 target->send_private_chat(this, message);
-                log{} << block{get_name()} << " -> " << block{target->get_name()} << " : " << block{message};
             } else {
-                log{} << block{get_name()} << " Failed to send private message";
             }
         } break;
         }
@@ -216,10 +206,8 @@ namespace nlp {
         auto packet = sf::Packet{};
         packet << uint16_t{0x0009};
         if (p_game) {
-            log{} << block{get_name()} << " Joined " << block{p_game->get_name()};
             packet << p_game->get_id();
         } else {
-            log{} << block{get_name()} << " Left game.";
             packet << uint32_t{0};
         }
         m_game = p_game;

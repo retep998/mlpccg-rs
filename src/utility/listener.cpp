@@ -16,39 +16,44 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#pragma once
+#include "listener.hpp"
+#include "loop.hpp"
+#include <uv.h>
+#include <stdexcept>
 #include <iostream>
-#include <string>
+
 
 namespace nlp {
-    class block {
+    class listener::impl {
     public:
-        block() = delete;
-        block(block const &) = delete;
-        block(block &&) = delete;
-        block(std::string);
-        block & operator=(block const &) = delete;
-        block & operator=(block &&) = delete;
-        std::string & value();
-        std::string const & value() const;
+        impl() = delete;
+        impl(impl const &) = delete;
+        impl(impl &&) = delete;
+        ~impl() = default;
+        impl & operator=(impl const &) = delete;
+        impl & operator=(impl &&) = delete;
+        static void close(uv_handle_t *);
     private:
-        std::string m_str;
+        std::shared_ptr<uv_tcp_t> m_tcp;
     };
-    class log {
-    public:
-        log();
-        log(log const &) = delete;
-        log(log &&);
-        ~log();
-        log & operator=(log const &) = delete;
-        log & operator=(log &&) = delete;
-        template <typename T>
-        log && operator<<(T && p_value) && {
-            std::cout << p_value;
-            return std::move(*this);
-        }
-        log && operator<<(block &&) && ;
-    private:
-        bool m_owned = true;
-    };
+    void listener::impl::close(uv_handle_t * p_handle) {
+        auto handle = reinterpret_cast<listener::impl *>(p_handle);
+    }
+    //listener::listener(loop const & p_loop, uint16_t p_port) :
+    //    m_tcp{std::make_unique<stream>()} {
+    //    if (!uv_tcp_init(p_loop.get(), m_tcp.get())) {
+    //        throw std::runtime_error{"Failed to initialize TCP handle"};
+    //    }
+    //    auto addr = sockaddr_in{};
+    //    if (!uv_ip4_addr("0.0.0.0", p_port, &addr)) {
+    //        throw std::runtime_error{"Failed to obtain IP address"};
+    //    }
+    //    if (!uv_tcp_bind(m_tcp.get(), reinterpret_cast<sockaddr *>(&addr), {})) {
+    //        throw std::runtime_error{"Failed to bind TCP handle"};
+    //    }
+    //    if (!uv_listen(reinterpret_cast<uv_stream_t *>(m_tcp.get()), 0x100, callback)) {
+    //        throw std::runtime_error{"Failed to listen"};
+    //    }
+    //}
+    listener::~listener() {}
 }

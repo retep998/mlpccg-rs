@@ -16,28 +16,22 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "log.hpp"
-#include <sstream>
-#include <ctime>
-#include <iomanip>
+#pragma once
+#include <memory>
 
 namespace nlp {
-    block::block(std::string p_str) : m_str{std::move(p_str)} {}
-    std::string & block::value() {
-        return m_str;
-    }
-    std::string const & block::value() const {
-        return m_str;
-    }
-    log::log() {
-    }
-    log::log(log && p_other) {
-        p_other.m_owned = false;
-    }
-    log::~log() {
-        std::cout << std::endl;
-    }
-    log && log::operator<<(block &&) && {
-        throw;
-    }
+    class loop;
+    class listener {
+    public:
+        class impl;
+        listener() = default;
+        listener(listener const &) = default;
+        listener(listener &&) = default;
+        ~listener();
+        listener & operator=(listener const &) = default;
+        listener & operator=(listener &&) = default;
+        void open(loop const &, uint16_t);
+    private:
+        std::shared_ptr<impl> m_impl;
+    };
 }

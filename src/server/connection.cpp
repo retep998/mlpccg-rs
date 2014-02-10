@@ -19,7 +19,6 @@
 #include "connection.hpp"
 #include "packet_handler.hpp"
 #include "manager.hpp"
-#include <utility/log.hpp>
 #include <SFML/Network/IpAddress.hpp>
 #include <SFML/Network/TcpSocket.hpp>
 #include <SFML/Network/Packet.hpp>
@@ -48,7 +47,6 @@ namespace nlp {
                 kill();
                 return;
             } else if (err == sf::Socket::Status::Error) {
-                log{} << "Socket error!";
                 kill();
                 return;
             } else if (err == sf::Socket::Status::Done) {

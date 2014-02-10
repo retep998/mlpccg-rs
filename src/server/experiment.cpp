@@ -31,7 +31,7 @@ namespace nlp {
         auto && in = std::ifstream("assets/motd.txt", std::ios::binary);
         auto && line = std::string{};
         std::getline(in, line, '\0');
-        my_tty.write(line);
+        my_tty << line;
         my_tty << tty::clear;
         std::cin.get();
     }

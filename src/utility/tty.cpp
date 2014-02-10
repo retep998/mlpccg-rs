@@ -86,16 +86,6 @@ namespace nlp {
         }
         return *this;
     }
-    tty & tty::write(std::string const & p_str) {
-        auto write = uv_write_t{};
-        auto buf = uv_buf_t{};
-        buf.base = const_cast<char *>(p_str.c_str());
-        buf.len = static_cast<decltype(buf.len)>(p_str.size());
-        if (uv_write(&write, reinterpret_cast<uv_stream_t *>(m_tty.get()), &buf, 1, nullptr)) {
-            throw std::runtime_error{"Failed to write data!"};
-        }
-        return *this;
-    }
     std::string tty::strip(std::string p_str) {
         for (auto & c : p_str) {
             if (c == '\x1b') {

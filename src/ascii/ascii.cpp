@@ -249,6 +249,7 @@ namespace nlp {
                     shrunk[index] += err * mult;
                 }
             };
+            auto lfg = uint8_t{}, lbg = uint8_t{};
             for (auto y = unsigned{0}; y < conheight; ++y) {
                 for (auto x = unsigned{0}; x < conwidth; ++x) {
                     auto & c = shrunk[y * conwidth + x];
@@ -283,11 +284,15 @@ namespace nlp {
                     } break;
                     default:;
                     }
-                    out << "\x1b[" << (e.fg & 0x8 ? "1" : "21");
-                    out << ";" << (e.bg & 0x8 ? "5" : "25");
-                    out << ";" << static_cast<int>((e.fg & 0x7) + 30);
-                    out << ";" << static_cast<int>((e.bg & 0x7) + 40);
-                    out << "m" << codecvt.to_bytes(e.ch);
+                    if (e.fg != lfg || e.bg != lbg) {
+                        lfg = e.fg;
+                        lbg = e.bg;
+                        out << "\x1b[" << (e.fg & 0x8 ? "1" : "21");
+                        out << ";" << (e.bg & 0x8 ? "5" : "25");
+                        out << ";" << static_cast<int>((e.fg & 0x7) + 30);
+                        out << ";" << static_cast<int>((e.bg & 0x7) + 40) << "m";
+                    }
+                    out << codecvt.to_bytes(e.ch);
                 }
                 out << '\n';
             }
@@ -321,7 +326,7 @@ namespace nlp {
             }
         }
         void do_stuff(std::vector<std::string> p_args) {
-            asset_path = sys::path{p_args.at(0)}.remove_filename() / sys::path{"assets"};
+            asset_path = sys::path{p_args[0]}.remove_filename() / sys::path{"assets"};
             load_config();
             if (p_args.size() > 1) {
                 std::cin >> nlp::ascii::conwidth;
