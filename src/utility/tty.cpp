@@ -18,54 +18,48 @@
 
 #include "tty.hpp"
 #include "loop.hpp"
+#include "check.hpp"
 #include <uv.h>
 #include <memory>
-#include <iostream>
 #include <algorithm>
 
 namespace nlp {
-    tty::tty(loop const & p_loop) : m_tty{std::make_unique<uv_tty_t>()} {
-        if (uv_tty_init(p_loop.get(), m_tty.get(), 1, false)) {
-            throw std::runtime_error{"Failed to initialize TTY!"};
-        }
-        if (uv_guess_handle(1) != UV_TTY) {
-            throw std::runtime_error{"Terminal is not TTY!"};
-        }
+    void callback_close_tty(uv_handle_t * p_handle) {
+        delete p_handle;
     }
-    tty::~tty() noexcept(false) {
-        if (uv_tty_reset_mode()) {
-            throw std::runtime_error{"Failed to reset TTY mode!"};
-        }
+    void callback_write_tty(uv_write_t * p_write, int p_status) {
+        check(p_status);
+        delete p_write;
+    }
+    tty::tty(loop const & p_loop) : m_tty{std::make_unique<uv_tty_t>()} {
+        check(uv_tty_init(p_loop.get(), m_tty.get(), 1, false));
+    }
+    tty::~tty() {
+        uv_close(reinterpret_cast<uv_handle_t *>(m_tty.release()), callback_close_tty);
     }
     tty & tty::operator<<(std::string const & p_str) {
-        auto write = uv_write_t{};
+        auto write = std::make_unique<uv_write_t>();
         auto buf = uv_buf_t{};
         buf.base = const_cast<char *>(p_str.c_str());
         buf.len = static_cast<decltype(buf.len)>(p_str.size());
-        if (uv_write(&write, reinterpret_cast<uv_stream_t *>(m_tty.get()), &buf, 1, nullptr)) {
-            throw std::runtime_error{"Failed to write data!"};
-        }
+        check(uv_write(write.release(), reinterpret_cast<uv_stream_t *>(m_tty.get()), &buf, 1, callback_write_tty));
         return *this;
     }
     tty & tty::operator<<(char const & p_char) {
-        auto write = uv_write_t{};
+        auto write = std::make_unique<uv_write_t>();
         auto buf = uv_buf_t{};
         buf.base = const_cast<char *>(&p_char);
         buf.len = static_cast<decltype(buf.len)>(sizeof(p_char));
-        if (uv_write(&write, reinterpret_cast<uv_stream_t *>(m_tty.get()), &buf, 1, nullptr)) {
-            throw std::runtime_error{"Failed to write data!"};
-        }
+        check(uv_write(write.release(), reinterpret_cast<uv_stream_t *>(m_tty.get()), &buf, 1, callback_write_tty));
         return *this;
     }
     tty & tty::operator<<(style const & p_style) {
         auto str = "\x1b[" + std::to_string(static_cast<int>(p_style)) + "m";
-        auto write = uv_write_t{};
+        auto write = std::make_unique<uv_write_t>();
         auto buf = uv_buf_t{};
         buf.base = const_cast<char *>(str.c_str());
         buf.len = static_cast<decltype(buf.len)>(str.size());
-        if (uv_write(&write, reinterpret_cast<uv_stream_t *>(m_tty.get()), &buf, 1, nullptr)) {
-            throw std::runtime_error{"Failed to write data!"};
-        }
+        check(uv_write(write.release(), reinterpret_cast<uv_stream_t *>(m_tty.get()), &buf, 1, callback_write_tty));
         return *this;
     }
     tty & tty::set(std::initializer_list<style> const & p_styles) {
@@ -77,13 +71,11 @@ namespace nlp {
             str.append(std::to_string(static_cast<int>(*it)));
         }
         str.push_back('m');
-        auto write = uv_write_t{};
+        auto write = std::make_unique<uv_write_t>();
         auto buf = uv_buf_t{};
         buf.base = const_cast<char *>(str.c_str());
         buf.len = static_cast<decltype(buf.len)>(str.size());
-        if (uv_write(&write, reinterpret_cast<uv_stream_t *>(m_tty.get()), &buf, 1, nullptr)) {
-            throw std::runtime_error{"Failed to write data!"};
-        }
+        check(uv_write(write.release(), reinterpret_cast<uv_stream_t *>(m_tty.get()), &buf, 1, callback_write_tty));
         return *this;
     }
     std::string tty::strip(std::string p_str) {

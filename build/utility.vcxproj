@@ -14,12 +14,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\src\utility\algorithm.hpp" />
+    <ClInclude Include="..\src\utility\fwd.hpp" />
     <ClInclude Include="..\src\utility\listener.hpp" />
     <ClInclude Include="..\src\utility\loop.hpp" />
     <ClInclude Include="..\src\utility\ptr.hpp" />
     <ClInclude Include="..\src\utility\tty.hpp" />
+    <ClInclude Include="..\src\utility\check.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\utility\check.cpp">
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
     <ClCompile Include="..\src\utility\listener.cpp">
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
     </ClCompile>

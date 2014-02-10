@@ -22,4 +22,5 @@
 int main() {
     nlp::experiment();
     //nlp::server{}.run();
+    return EXIT_SUCCESS;
 }

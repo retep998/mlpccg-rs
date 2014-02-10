@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // NoLifePony - Pony Card Game                                              //
-// Copyright Â© 2014 Peter Atashian                                          //
+// Copyright © 2014 Peter Atashian                                          //
 //                                                                          //
 // This program is free software: you can redistribute it and/or modify     //
 // it under the terms of the GNU Affero General Public License as           //
@@ -16,25 +16,19 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "experiment.hpp"
-#include <utility/loop.hpp>
-#include <utility/tty.hpp>
-#include <iostream>
-#include <cstdint>
-#include <vector>
-#include <fstream>
+#include "check.hpp"
+#include <uv.h>
+#include <stdexcept>
 
 namespace nlp {
-    void experiment() {
-        {
-            auto && my_tty = tty{loop::get_default()};
-            auto && in = std::ifstream("assets/motd.txt", std::ios::binary);
-            auto && line = std::string{};
-            std::getline(in, line, '\0');
-            my_tty << line;
-            my_tty << tty::clear;
+    void check(int p_err) {
+        if (p_err) {
+            throw std::runtime_error{std::string{"ERROR: "} + uv_err_name(p_err) + ": " + uv_strerror(p_err)};
         }
-        loop::get_default().run_default();
-        std::cin.get();
+    }
+    void check(void const * p_ptr) {
+        if (!p_ptr) {
+            throw std::runtime_error{"ERROR: Null pointer exception"};
+        }
     }
 }

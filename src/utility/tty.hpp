@@ -17,13 +17,12 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "fwd.hpp"
 #include <string>
 #include <cstdint>
 #include <memory>
 
-struct uv_tty_s;
 namespace nlp {
-    class loop;
     class tty {
     public:
         enum style {
@@ -53,7 +52,7 @@ namespace nlp {
         tty(tty const &) = delete;
         tty(tty &&) = delete;
         tty(loop const &);
-        ~tty() noexcept(false);
+        ~tty();
         tty & operator=(tty const &) = delete;
         tty & operator=(tty &&) = delete;
         tty & operator<<(std::string const &);

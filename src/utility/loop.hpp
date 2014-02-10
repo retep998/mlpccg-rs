@@ -17,20 +17,25 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "fwd.hpp"
 
-struct uv_loop_s;
 namespace nlp {
     class loop {
     public:
-        loop();
-        loop(loop const &) = delete;
-        loop(loop &&);
-        ~loop();
-        loop & operator=(loop const &) = delete;
-        loop & operator=(loop &&) = delete;
+        loop() = default;
+        loop(loop const &) = default;
+        loop(loop &&) = default;
+        ~loop() = default;
+        loop & operator=(loop const &) = default;
+        loop & operator=(loop &&) = default;
         uv_loop_s * get() const;
-        void update() const;
+        void run_default() const;
+        void run_once() const;
+        void run_nowait() const;
+        static loop create();
+        static loop get_default();
     private:
+        loop(uv_loop_s *);
         uv_loop_s * m_loop = nullptr;
     };
 }

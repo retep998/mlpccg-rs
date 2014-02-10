@@ -214,6 +214,16 @@ namespace nlp {
             auto && my_tty = tty{my_loop};
             my_tty << u8chars << '\n';
         }
+        void display_results() {
+            auto && my_loop = loop{};
+            auto && my_tty = tty{my_loop};
+            auto && in = std::ifstream{asset_path / sys::path{"motd.txt"}, std::ios::binary};
+            auto && line = std::string{};
+            std::getline(in, line, '\0');
+            my_tty << line;
+            my_tty << tty::clear;
+            std::cin.get();
+        }
         void convert(std::string p_name) {
             auto && in = sf::Image{};
             if (!in.loadFromFile(p_name)) {
@@ -296,6 +306,8 @@ namespace nlp {
                 }
                 out << '\n';
             }
+            out << std::flush;
+            display_results();
         }
         void load_config() {
             auto && file = std::ifstream(asset_path / sys::path{"ascii.cfg"});
@@ -315,6 +327,9 @@ namespace nlp {
             mapping["smoothness"] = [](std::string const & str) {
                 smoothness = std::stod(str);
             };
+            mapping["width"] = [](std::string const & str) {
+                conwidth = static_cast<unsigned>(std::stoul(str));
+            };
             auto && regex = std::regex{"(.*)=(.*)", std::regex_constants::ECMAScript};
             while (std::getline(file, line)) {
                 auto m = std::smatch{};
@@ -329,12 +344,10 @@ namespace nlp {
             asset_path = sys::path{p_args[0]}.remove_filename() / sys::path{"assets"};
             load_config();
             if (p_args.size() > 1) {
-                std::cin >> nlp::ascii::conwidth;
                 auto t1 = std::chrono::high_resolution_clock::now();
                 nlp::ascii::prep();
                 nlp::ascii::convert(p_args[1]);
                 auto t2 = std::chrono::high_resolution_clock::now();
-                std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << "ms" << std::endl;
             } else {
                 nlp::ascii::print();
             }
@@ -344,5 +357,4 @@ namespace nlp {
 
 int main(int p_argc, char ** p_argv) {
     nlp::ascii::do_stuff({p_argv, p_argv + p_argc});
-    std::system("pause");
 }

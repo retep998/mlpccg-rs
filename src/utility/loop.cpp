@@ -17,29 +17,31 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "loop.hpp"
+#include "check.hpp"
 #include <uv.h>
-#include <memory>
-#include <stdexcept>
 
 namespace nlp {
-    loop::loop() : m_loop{uv_loop_new()} {}
-    loop::loop(loop && p_loop) {
-        std::swap(m_loop, p_loop.m_loop);
-    }
-    loop::~loop() {
-        if (m_loop) {
-            uv_loop_delete(m_loop);
-        }
-    }
     uv_loop_s * loop::get() const {
         return m_loop;
     }
-    void loop::update() const {
-        if (!m_loop) {
-            throw std::runtime_error{"Null pointer exception!"};
-        }
-        if (uv_run(m_loop, UV_RUN_NOWAIT)) {
-            throw std::runtime_error{"Error running loop!"};
-        }
+    void loop::run_default() const {
+        check(m_loop);
+        check(uv_run(m_loop, UV_RUN_DEFAULT));
     }
+    void loop::run_once() const {
+        check(m_loop);
+        check(uv_run(m_loop, UV_RUN_ONCE));
+    }
+    void loop::run_nowait() const {
+        check(m_loop);
+        check(uv_run(m_loop, UV_RUN_NOWAIT));
+    }
+    loop loop::create() {
+        return{uv_loop_new()};
+    }
+    loop loop::get_default() {
+        return{uv_default_loop()};
+    }
+    loop::loop(uv_loop_t * p_loop) :
+        m_loop{p_loop} {}
 }

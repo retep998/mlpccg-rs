@@ -16,25 +16,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "experiment.hpp"
-#include <utility/loop.hpp>
-#include <utility/tty.hpp>
-#include <iostream>
-#include <cstdint>
-#include <vector>
-#include <fstream>
+#pragma once
 
 namespace nlp {
-    void experiment() {
-        {
-            auto && my_tty = tty{loop::get_default()};
-            auto && in = std::ifstream("assets/motd.txt", std::ios::binary);
-            auto && line = std::string{};
-            std::getline(in, line, '\0');
-            my_tty << line;
-            my_tty << tty::clear;
-        }
-        loop::get_default().run_default();
-        std::cin.get();
-    }
+    void check(int);
+    void check(void const *);
 }
