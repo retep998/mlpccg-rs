@@ -215,8 +215,7 @@ namespace nlp {
             my_tty << u8chars << '\n';
         }
         void display_results() {
-            auto && my_loop = loop{};
-            auto && my_tty = tty{my_loop};
+            auto && my_tty = tty{loop::get_default()};
             auto && in = std::ifstream{asset_path / sys::path{"motd.txt"}, std::ios::binary};
             auto && line = std::string{};
             std::getline(in, line, '\0');
