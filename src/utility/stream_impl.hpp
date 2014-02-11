@@ -25,6 +25,7 @@ namespace nlp {
     namespace uv {
         class stream::impl : public handle::impl{
         public:
+            uv_handle_t * get_handle() override;
             virtual uv_stream_t * get_stream() = 0;
         protected:
             impl(std::shared_ptr<loop::impl>);

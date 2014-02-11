@@ -19,11 +19,13 @@
 #pragma once
 #include "handle.hpp"
 #include "loop.hpp"
+#include <uv.h>
 
 namespace nlp {
     namespace uv {
         class handle::impl {
         public:
+            virtual uv_handle_t * get_handle() = 0;
         protected:
             impl(std::shared_ptr<loop::impl>);
             std::shared_ptr<loop::impl> m_loop;
