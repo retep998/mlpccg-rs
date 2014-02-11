@@ -19,29 +19,52 @@
 #include "loop.hpp"
 #include "check.hpp"
 #include <uv.h>
+#include <cassert>
 
 namespace nlp {
-    uv_loop_s * loop::get() const {
-        return m_loop;
+    namespace uv {
+        class loop::impl : public std::enable_shared_from_this<impl>{
+        public:
+        private:
+            impl(uv_loop_t * p_loop, bool p_owned) :
+                m_loop{p_loop},
+                m_owned{p_owned} {}
+            uv_loop_t * m_loop;
+            bool m_owned;
+            friend loop;
+        };
+        class loop::deleter {
+        public:
+            void operator()(impl * p_ptr) {
+                if (p_ptr->m_owned) {
+                    uv_loop_delete(p_ptr->m_loop);
+                }
+                delete p_ptr;
+            }
+        };
+        void loop::run_default() const {
+            assert(m_impl);
+            check(uv_run(m_impl->m_loop, UV_RUN_DEFAULT));
+        }
+        void loop::run_once() const {
+            assert(m_impl);
+            check(uv_run(m_impl->m_loop, UV_RUN_ONCE));
+        }
+        void loop::run_nowait() const {
+            assert(m_impl);
+            check(uv_run(m_impl->m_loop, UV_RUN_NOWAIT));
+        }
+        loop loop::create() {
+            auto i = std::shared_ptr<impl>{new impl(uv_loop_new(), true), deleter{}};
+            return{i};
+        }
+        loop loop::get_default() {
+            static auto def = std::shared_ptr<impl>{new impl(uv_default_loop(), false), deleter{}};
+            return{def};
+        }
+        loop::loop(std::shared_ptr<impl> p_impl) :
+            m_impl{p_impl} {
+            assert(m_impl);
+        }
     }
-    void loop::run_default() const {
-        check(m_loop);
-        check(uv_run(m_loop, UV_RUN_DEFAULT));
-    }
-    void loop::run_once() const {
-        check(m_loop);
-        check(uv_run(m_loop, UV_RUN_ONCE));
-    }
-    void loop::run_nowait() const {
-        check(m_loop);
-        check(uv_run(m_loop, UV_RUN_NOWAIT));
-    }
-    loop loop::create() {
-        return{uv_loop_new()};
-    }
-    loop loop::get_default() {
-        return{uv_default_loop()};
-    }
-    loop::loop(uv_loop_t * p_loop) :
-        m_loop{p_loop} {}
 }

@@ -20,5 +20,4 @@
 
 namespace nlp {
     void check(int);
-    void check(void const *);
 }

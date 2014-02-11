@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // NoLifePony - Pony Card Game                                              //
-// Copyright © 2014 Peter Atashian                                          //
+// Copyright Â© 2014 Peter Atashian                                          //
 //                                                                          //
 // This program is free software: you can redistribute it and/or modify     //
 // it under the terms of the GNU Affero General Public License as           //
@@ -24,11 +24,6 @@ namespace nlp {
     void check(int p_err) {
         if (p_err) {
             throw std::runtime_error{std::string{"ERROR: "} + uv_err_name(p_err) + ": " + uv_strerror(p_err)};
-        }
-    }
-    void check(void const * p_ptr) {
-        if (!p_ptr) {
-            throw std::runtime_error{"ERROR: Null pointer exception"};
         }
     }
 }
