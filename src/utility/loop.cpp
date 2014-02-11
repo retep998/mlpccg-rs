@@ -20,9 +20,11 @@
 #include "check.hpp"
 #include <uv.h>
 #include <cassert>
+#include <iostream>
 
 namespace nlp {
     namespace uv {
+        //loop::impl
         uv_loop_t * loop::impl::get() const {
             return m_loop;
         }
@@ -31,15 +33,19 @@ namespace nlp {
             m_owned{p_owned} {
             assert(m_loop);
         }
+        //loop::deleter
         class loop::deleter final {
         public:
-            void operator()(impl * p_ptr) {
-                if (p_ptr->m_owned) {
-                    uv_loop_delete(p_ptr->m_loop);
+            void operator()(impl * p_impl) {
+                uv_run(p_impl->m_loop, UV_RUN_DEFAULT);
+                if (p_impl->m_owned) {
+                    uv_loop_delete(p_impl->m_loop);
                 }
-                delete p_ptr;
+                delete p_impl;
+                std::cerr << "Deleted loop";
             }
         };
+        //loop
         void loop::run_default() const {
             assert(m_impl);
             check(uv_run(m_impl->m_loop, UV_RUN_DEFAULT));

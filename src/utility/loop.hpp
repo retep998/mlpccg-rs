@@ -37,7 +37,7 @@ namespace nlp {
             static loop create();
             static loop get_default();
             std::shared_ptr<impl> get_impl() const;
-        private:
+        protected:
             loop(std::shared_ptr<impl>);
             std::shared_ptr<impl> m_impl;
         };

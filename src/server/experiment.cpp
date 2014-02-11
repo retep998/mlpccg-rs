@@ -19,7 +19,6 @@
 #include "experiment.hpp"
 #include <utility/loop.hpp>
 #include <utility/tty.hpp>
-#include <iostream>
 #include <cstdint>
 #include <vector>
 #include <fstream>
@@ -32,7 +31,7 @@ namespace nlp {
         auto line = std::string{};
         std::getline(in, line, '\0');
         tty.write(line);
+        tty.write("\x1b[0m");
         loop.run_default();
-        std::cin.get();
     }
 }

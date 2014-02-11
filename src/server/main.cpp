@@ -18,9 +18,11 @@
 
 #include "server.hpp"
 #include "experiment.hpp"
+#include <iostream>
 
 int main() {
     nlp::experiment();
     //nlp::server{}.run();
+    std::cin.get();
     return EXIT_SUCCESS;
 }

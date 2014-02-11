@@ -26,9 +26,9 @@ namespace nlp {
         class handle::impl {
         public:
             virtual uv_handle_t * get_handle() = 0;
+            std::shared_ptr<loop::impl> m_loop;
         protected:
             impl(std::shared_ptr<loop::impl>);
-            std::shared_ptr<loop::impl> m_loop;
         };
     }
 }

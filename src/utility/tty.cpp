@@ -24,6 +24,7 @@
 #include <memory>
 #include <algorithm>
 #include <cassert>
+#include <iostream>
 
 namespace nlp {
     namespace uv {
@@ -47,8 +48,10 @@ namespace nlp {
                 auto a = reinterpret_cast<impl *>(p_handle->data);
                 assert(a);
                 delete a;
+                std::cerr << "Deleted tty";
             }
             void operator()(impl * p_impl) {
+                p_impl->m_loop.reset();
                 uv_close(p_impl->get_handle(), &callback);
             }
         };

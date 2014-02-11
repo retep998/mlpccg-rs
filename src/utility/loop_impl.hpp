@@ -25,7 +25,7 @@ namespace nlp {
         class loop::impl final {
         public:
             uv_loop_t * get() const;
-        private:
+        protected:
             impl(uv_loop_t *, bool);
             uv_loop_t * m_loop;
             bool m_owned;
