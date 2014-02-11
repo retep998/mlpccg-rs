@@ -25,9 +25,9 @@
 #include <atomic>
 #include <list>
 #ifdef NLP_CLANG
-    #include <boost/filesystem.hpp>
+#  include <boost/filesystem.hpp>
 #else
-    #include <filesystem>
+#  include <filesystem>
 #endif
 #include <vector>
 #include <algorithm>
