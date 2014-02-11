@@ -16,23 +16,20 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "experiment.hpp"
-#include <utility/loop.hpp>
-#include <utility/tty.hpp>
-#include <iostream>
-#include <cstdint>
-#include <vector>
-#include <fstream>
+#pragma once
+#include "loop.hpp"
+#include <uv.h>
 
 namespace nlp {
-    void experiment() {
-        auto loop = uv::loop::create();
-        auto tty = uv::tty::create(loop);
-        auto in = std::ifstream{"assets/motd.txt", std::ios::binary};
-        auto line = std::string{};
-        std::getline(in, line, '\0');
-        tty.write(line);
-        loop.run_default();
-        std::cin.get();
+    namespace uv {
+        class loop::impl final {
+        public:
+            uv_loop_t * get() const;
+        private:
+            impl(uv_loop_t *, bool);
+            uv_loop_t * m_loop;
+            bool m_owned;
+            friend loop;
+        };
     }
 }

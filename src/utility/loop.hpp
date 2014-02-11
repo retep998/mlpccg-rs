@@ -21,7 +21,7 @@
 
 namespace nlp {
     namespace uv {
-        class loop {
+        class loop final {
         public:
             class impl;
             class deleter;
@@ -36,6 +36,7 @@ namespace nlp {
             void run_nowait() const;
             static loop create();
             static loop get_default();
+            std::shared_ptr<impl> get_impl() const;
         private:
             loop(std::shared_ptr<impl>);
             std::shared_ptr<impl> m_impl;

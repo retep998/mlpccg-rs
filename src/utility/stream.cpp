@@ -16,56 +16,51 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "loop_impl.hpp"
+#include "stream.hpp"
 #include "check.hpp"
+#include "stream_impl.hpp"
 #include <uv.h>
 #include <cassert>
+#include <vector>
 
 namespace nlp {
     namespace uv {
-        uv_loop_t * loop::impl::get() const {
-            return m_loop;
-        }
-        loop::impl::impl(uv_loop_t * p_loop, bool p_owned) :
-            m_loop{p_loop},
-            m_owned{p_owned} {
-            assert(m_loop);
-        }
-        class loop::deleter final {
+        stream::impl::impl(std::shared_ptr<loop::impl> p_loop) :
+            handle::impl{p_loop} {}
+        class stream::writer final {
         public:
-            void operator()(impl * p_ptr) {
-                if (p_ptr->m_owned) {
-                    uv_loop_delete(p_ptr->m_loop);
-                }
-                delete p_ptr;
+            writer(std::string const & p_str) :
+                m_data{p_str.cbegin(), p_str.cend()} {
+                m_buf.len = static_cast<unsigned>(m_data.size());
+                m_buf.base = m_data.data();
+                m_write.data = this;
             }
+            static void callback(uv_write_t * p_write, int p_status) {
+                assert(p_write);
+                assert(p_status == 0);
+                auto w = reinterpret_cast<writer *>(p_write->data);
+                assert(w);
+                delete w;
+            }
+        protected:
+            std::vector<char> m_data;
+            uv_buf_t m_buf;
+            uv_write_t m_write;
+            friend stream;
         };
-        void loop::run_default() const {
-            assert(m_impl);
-            check(uv_run(m_impl->m_loop, UV_RUN_DEFAULT));
+        void stream::write(std::string const & p_str) {
+            auto i = get_impl();
+            assert(i);
+            auto s = i->get_stream();
+            assert(s);
+            auto w = std::make_unique<writer>(p_str);
+            check(uv_write(&w->m_write, s, &w->m_buf, unsigned{1}, &writer::callback));
+            w.release();
         }
-        void loop::run_once() const {
-            assert(m_impl);
-            check(uv_run(m_impl->m_loop, UV_RUN_ONCE));
-        }
-        void loop::run_nowait() const {
-            assert(m_impl);
-            check(uv_run(m_impl->m_loop, UV_RUN_NOWAIT));
-        }
-        loop loop::create() {
-            auto i = std::shared_ptr<impl>{new impl(uv_loop_new(), true), deleter{}};
-            return{i};
-        }
-        loop loop::get_default() {
-            static auto def = std::shared_ptr<impl>{new impl(uv_default_loop(), false), deleter{}};
-            return{def};
-        }
-        std::shared_ptr<loop::impl> loop::get_impl() const {
-            return m_impl;
-        }
-        loop::loop(std::shared_ptr<impl> p_impl) :
-            m_impl{p_impl} {
-            assert(m_impl);
+        stream::stream(std::shared_ptr<impl> p_impl) :
+            handle{std::static_pointer_cast<handle::impl>(p_impl)} {}
+        std::shared_ptr<stream::impl> stream::get_impl() const {
+            return std::static_pointer_cast<stream::impl>(m_impl);
         }
     }
 }

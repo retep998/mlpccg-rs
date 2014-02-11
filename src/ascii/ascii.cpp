@@ -208,20 +208,20 @@ namespace nlp {
             return entries[r];
         }
         void print() {
-            auto && wstr = std::u16string{wchars.cbegin(), wchars.cend()};
-            auto && u8chars = codecvt.to_bytes(wstr);
-            auto && my_loop = loop{};
-            auto && my_tty = tty{my_loop};
-            my_tty << u8chars << '\n';
+            //auto && wstr = std::u16string{wchars.cbegin(), wchars.cend()};
+            //auto && u8chars = codecvt.to_bytes(wstr);
+            //auto && my_loop = loop{};
+            //auto && my_tty = tty{my_loop};
+            //my_tty << u8chars << '\n';
         }
         void display_results() {
-            auto && my_tty = tty{loop::get_default()};
-            auto && in = std::ifstream{asset_path / sys::path{"motd.txt"}, std::ios::binary};
-            auto && line = std::string{};
-            std::getline(in, line, '\0');
-            my_tty << line;
-            my_tty << tty::clear;
-            std::cin.get();
+            //auto && my_tty = tty{loop::get_default()};
+            //auto && in = std::ifstream{asset_path / sys::path{"motd.txt"}, std::ios::binary};
+            //auto && line = std::string{};
+            //std::getline(in, line, '\0');
+            //my_tty << line;
+            //my_tty << tty::clear;
+            //std::cin.get();
         }
         void convert(std::string p_name) {
             auto && in = sf::Image{};

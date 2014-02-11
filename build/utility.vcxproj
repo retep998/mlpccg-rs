@@ -14,10 +14,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\src\utility\algorithm.hpp" />
-    <ClInclude Include="..\src\utility\fwd.hpp" />
+    <ClInclude Include="..\src\utility\handle.hpp" />
+    <ClInclude Include="..\src\utility\handle_impl.hpp" />
     <ClInclude Include="..\src\utility\listener.hpp" />
     <ClInclude Include="..\src\utility\loop.hpp" />
+    <ClInclude Include="..\src\utility\loop_impl.hpp" />
     <ClInclude Include="..\src\utility\ptr.hpp" />
+    <ClInclude Include="..\src\utility\stream.hpp" />
+    <ClInclude Include="..\src\utility\stream_impl.hpp" />
     <ClInclude Include="..\src\utility\tty.hpp" />
     <ClInclude Include="..\src\utility\check.hpp" />
   </ItemGroup>
@@ -25,10 +29,16 @@
     <ClCompile Include="..\src\utility\check.cpp">
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
     </ClCompile>
+    <ClCompile Include="..\src\utility\handle.cpp">
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
     <ClCompile Include="..\src\utility\listener.cpp">
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
     </ClCompile>
     <ClCompile Include="..\src\utility\loop.cpp">
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="..\src\utility\stream.cpp">
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
     </ClCompile>
     <ClCompile Include="..\src\utility\tty.cpp">
