@@ -19,6 +19,7 @@
 #include "check.hpp"
 #include <uv.h>
 #include <stdexcept>
+#include <string>
 
 namespace nlp {
     void check(int p_err) {

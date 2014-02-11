@@ -30,10 +30,18 @@
 #include <set>
 #include <chrono>
 #include <cmath>
-#include <filesystem>
+#ifdef NLP_CLANG
+    #include <boost/filesystem.hpp>
+#else
+    #include <filesystem>
+#endif
 #include <regex>
 #include <functional>
+#ifdef NLP_CLANG
+namespace sys = boost::filesystem;
+#else
 namespace sys = std::tr2::sys;
+#endif
 
 namespace nlp {
     namespace ascii {
@@ -111,7 +119,7 @@ namespace nlp {
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> codecvt{};
         void calc_coverage() {
             auto && in = sf::Image{};
-            in.loadFromFile(asset_path / chars_name);
+            in.loadFromFile((asset_path / chars_name).string());
             auto index = unsigned{0};
             for (auto & c : wchars) {
                 auto sum = unsigned{0};
@@ -228,7 +236,7 @@ namespace nlp {
             if (!in.loadFromFile(p_name)) {
                 return;
             }
-            auto && out = std::ofstream(asset_path / sys::path{"motd.txt"}, std::ios::binary);
+            auto && out = std::ofstream((asset_path / sys::path{"motd.txt"}).string(), std::ios::binary);
             auto imgwidth = in.getSize().x;
             auto imgheight = in.getSize().y;
             auto xratio = static_cast<double>(imgwidth) / conwidth;
@@ -309,7 +317,7 @@ namespace nlp {
             display_results();
         }
         void load_config() {
-            auto && file = std::ifstream(asset_path / sys::path{"ascii.cfg"});
+            auto && file = std::ifstream((asset_path / sys::path{"ascii.cfg"}).string());
             auto && line = std::string{};
             auto && mapping = std::map<std::string, std::function<void(std::string const &)>>{};
             mapping["dithering"] = [](std::string const & str) {
