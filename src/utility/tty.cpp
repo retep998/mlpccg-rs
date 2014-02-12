@@ -36,7 +36,6 @@ namespace nlp {
         protected:
             impl(std::shared_ptr<loop::impl> p_loop) : stream::impl{p_loop} {
                 check(uv_tty_init(m_loop->get(), &m_tty, 1, false));
-                m_tty.data = this;
             }
             uv_tty_t m_tty;
             friend tty;

@@ -117,6 +117,7 @@ namespace nlp {
         std::array<std::array<std::array<uint16_t, 0x100>, 0x100>, 0x100> grid{};
         std::vector<entry> entries{};
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> codecvt{};
+        color_double background{0, 0, 0};
         void calc_coverage() {
             auto && in = sf::Image{};
             in.loadFromFile((asset_path / chars_name).string());
@@ -167,7 +168,8 @@ namespace nlp {
         }
         color_double gamma(sf::Color const & p_color) {
             auto const mult = p_color.a / gamma_mult;
-            return{gamma_decode(p_color.r * mult), gamma_decode(p_color.g * mult), gamma_decode(p_color.b * mult)};
+            auto const imult = 1 - mult;
+            return color_double{gamma_decode(p_color.r * mult), gamma_decode(p_color.g * mult), gamma_decode(p_color.b * mult)} + background * imult;
         }
         void calc_combos() {//std::array<uint8_t, 16>{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
             auto const && fg_colors = std::array<uint8_t, 16>{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
@@ -216,20 +218,22 @@ namespace nlp {
             return entries[r];
         }
         void print() {
-            //auto && wstr = std::u16string{wchars.cbegin(), wchars.cend()};
-            //auto && u8chars = codecvt.to_bytes(wstr);
-            //auto && my_loop = loop{};
-            //auto && my_tty = tty{my_loop};
-            //my_tty << u8chars << '\n';
+            auto wstr = std::u16string{wchars.cbegin(), wchars.cend()};
+            auto u8chars = codecvt.to_bytes(wstr);
+            auto loop = uv::loop::create();
+            auto tty = uv::tty::create(loop);
+            tty.write(u8chars);
+            tty.write("\n");
         }
         void display_results() {
-            //auto && my_tty = tty{loop::get_default()};
-            //auto && in = std::ifstream{asset_path / sys::path{"motd.txt"}, std::ios::binary};
-            //auto && line = std::string{};
-            //std::getline(in, line, '\0');
-            //my_tty << line;
-            //my_tty << tty::clear;
-            //std::cin.get();
+            auto loop = uv::loop::create();
+            auto in = std::ifstream{asset_path / sys::path{"motd.txt"}, std::ios::binary};
+            auto line = std::string{};
+            auto tty = uv::tty::create(loop);
+            std::getline(in, line, '\0');
+            tty.write(line);
+            tty.write("\x1b[0m");
+            std::cin.get();
         }
         void convert(std::string p_name) {
             auto && in = sf::Image{};
@@ -336,6 +340,15 @@ namespace nlp {
             };
             mapping["width"] = [](std::string const & str) {
                 conwidth = static_cast<unsigned>(std::stoul(str));
+            };
+            mapping["bgr"] = [](std::string const & str) {
+                background.r = std::stod(str);
+            };
+            mapping["bgg"] = [](std::string const & str) {
+                background.g = std::stod(str);
+            };
+            mapping["bgb"] = [](std::string const & str) {
+                background.b = std::stod(str);
             };
             auto && regex = std::regex{"(.*)=(.*)", std::regex_constants::ECMAScript};
             while (std::getline(file, line)) {
