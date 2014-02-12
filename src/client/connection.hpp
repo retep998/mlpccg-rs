@@ -17,15 +17,24 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+
+#pragma warning(push, 1)
 #include <SFML/Network.hpp>
 #include <memory>
 #include <chrono>
 #include <iostream>
 #include <functional>
+#pragma warning(pop)
 
 namespace nlp {
     class connection {
     public:
+        connection() = delete;
+        connection(connection const &) = delete;
+        connection(connection &&) = delete;
+        ~connection() = default;
+        connection & operator=(connection const &) = delete;
+        connection & operator=(connection &&) = delete;
         using handler = void(connection::*)(sf::Packet &);
         bool is_disconnected();
         void update();
@@ -37,7 +46,6 @@ namespace nlp {
         connection(std::unique_ptr<sf::TcpSocket> && ptr);
         static void init();
         static void add_handler(size_t, handler);
-        ~connection() {}
     private:
         void handle_ping(sf::Packet &);
         void handle_pong(sf::Packet &);

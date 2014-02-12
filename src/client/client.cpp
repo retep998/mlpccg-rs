@@ -18,6 +18,8 @@
 
 #include "client.hpp"
 #include "context.hpp"
+
+#pragma warning(push, 1)
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include <chrono>
@@ -32,6 +34,7 @@
 #include <vector>
 #include <algorithm>
 #include <random>
+#pragma warning(pop)
 
 #ifdef NLP_CLANG
 namespace sys = boost::filesystem;

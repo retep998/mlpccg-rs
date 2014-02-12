@@ -28,6 +28,11 @@ namespace nlp {
     namespace uv {
         class handle::impl {
         public:
+            impl() = delete;
+            impl(impl const &) = delete;
+            impl(impl &&) = delete;
+            impl & operator=(impl const &) = delete;
+            impl & operator=(impl &&) = delete;
             virtual uv_handle_t * get_handle() = 0;
             virtual ~impl() = default;
         protected:

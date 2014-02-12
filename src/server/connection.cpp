@@ -19,11 +19,14 @@
 #include "connection.hpp"
 #include "packet_handler.hpp"
 #include "manager.hpp"
+
+#pragma warning(push, 1)
 #include <SFML/Network/IpAddress.hpp>
 #include <SFML/Network/TcpSocket.hpp>
 #include <SFML/Network/Packet.hpp>
 #include <iostream>
 #include <iomanip>
+#pragma warning(pop)
 
 namespace nlp {
     connection::connection(std::function<ptr<packet_handler>(ptr<packet_handler>)> p_func, std::unique_ptr<sf::TcpSocket> p_socket, ptr<manager> p_manager) :

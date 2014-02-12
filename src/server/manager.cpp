@@ -20,8 +20,11 @@
 #include "connection.hpp"
 #include "listener.hpp"
 #include <utility/ptr.hpp>
+
+#pragma warning(push, 1)
 #include <SFML/Network/SocketSelector.hpp>
 #include <iostream>
+#pragma warning(pop)
 
 namespace nlp {
     manager::manager() :

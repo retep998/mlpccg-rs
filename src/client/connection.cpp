@@ -17,8 +17,11 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "connection.hpp"
+
+#pragma warning(push, 1)
 #include <iostream>
 #include <functional>
+#pragma warning(pop)
 
 namespace nlp {
     struct count_t {

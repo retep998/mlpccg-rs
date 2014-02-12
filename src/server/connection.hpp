@@ -19,8 +19,11 @@
 #pragma once
 #include "packet_handler.hpp"
 #include <utility/ptr.hpp>
+
+#pragma warning(push, 1)
 #include <memory>
 #include <functional>
+#pragma warning(pop)
 
 namespace sf {
     class TcpSocket;

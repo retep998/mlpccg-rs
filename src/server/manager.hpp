@@ -18,12 +18,15 @@
 
 #pragma once
 #include <utility/ptr.hpp>
+
+#pragma warning(push, 1)
 #include <memory>
 #include <functional>
 #include <cstdint>
 #include <list>
 #include <chrono>
 #include <vector>
+#pragma warning(pop)
 
 namespace sf {
     class SocketSelector;

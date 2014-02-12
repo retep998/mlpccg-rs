@@ -19,7 +19,10 @@
 #include "game.hpp"
 #include "player.hpp"
 #include "server.hpp"
+
+#pragma warning(push, 1)
 #include <map>
+#pragma warning(pop)
 
 namespace nlp {
     game::game(std::string p_name, uint32_t p_id, ptr<server> p_server) :

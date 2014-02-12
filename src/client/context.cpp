@@ -17,7 +17,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "context.hpp"
+
+#pragma warning(push, 1)
 #include <thread>
+#pragma warning(pop)
 
 namespace nlp {
     std::unique_ptr<sf::Font> font;

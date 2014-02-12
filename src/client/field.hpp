@@ -18,9 +18,12 @@
 
 #pragma once
 #include "card.hpp"
+
+#pragma warning(push, 1)
 #include <vector>
 #include <array>
 #include <deque>
+#pragma warning(pop)
 
 namespace nlp {
     class field {

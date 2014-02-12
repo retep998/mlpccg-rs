@@ -21,9 +21,12 @@
 #include "manager.hpp"
 #include "game.hpp"
 #include <utility/algorithm.hpp>
+
+#pragma warning(push, 1)
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#pragma warning(pop)
 
 namespace nlp {
     server::server() :

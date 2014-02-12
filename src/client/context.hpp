@@ -18,14 +18,29 @@
 
 #pragma once
 #include "connection.hpp"
+
+#pragma warning(push, 1)
 #include <SFML/Graphics.hpp>
 #include <atomic>
+#pragma warning(pop)
 
 namespace nlp {
     class context : public connection {
     public:
+        context() = delete;
+        context(context const &) = delete;
+        context(context &&) = delete;
+        ~context() = default;
+        context & operator=(context const &) = delete;
+        context & operator=(context &&) = delete;
         class manager {
         public:
+            manager() = default;
+            manager(manager const &) = delete;
+            manager(manager &&) = delete;
+            ~manager() = default;
+            manager & operator=(manager const &) = delete;
+            manager & operator=(manager &&) = delete;
             void update();
             void render(sf::RenderWindow &);
             std::unique_ptr<context> const & get() {

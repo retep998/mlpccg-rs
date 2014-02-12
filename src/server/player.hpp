@@ -19,9 +19,12 @@
 #pragma once
 #include "packet_handler.hpp"
 #include <utility/ptr.hpp>
+
+#pragma warning(push, 1)
 #include <chrono>
 #include <map>
 #include <string>
+#pragma warning(pop)
 
 namespace sf {
     class Packet;

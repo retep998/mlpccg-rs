@@ -19,9 +19,12 @@
 #include "experiment.hpp"
 #include <utility/loop.hpp>
 #include <utility/tty.hpp>
+
+#pragma warning(push, 1)
 #include <cstdint>
 #include <vector>
 #include <fstream>
+#pragma warning(pop)
 
 namespace nlp {
     void experiment() {

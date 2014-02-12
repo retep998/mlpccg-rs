@@ -18,6 +18,8 @@
 
 #include <utility/tty.hpp>
 #include <utility/loop.hpp>
+
+#pragma warning(push, 1)
 #include <SFML/Graphics/Image.hpp>
 #include <string>
 #include <vector>
@@ -37,6 +39,8 @@
 #endif
 #include <regex>
 #include <functional>
+#pragma warning(pop)
+
 #ifdef NLP_CLANG
 namespace sys = boost::filesystem;
 #else

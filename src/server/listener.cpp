@@ -18,10 +18,13 @@
 
 #include "listener.hpp"
 #include "connection.hpp"
+
+#pragma warning(push, 1)
 #include <SFML/Network/IpAddress.hpp>
 #include <SFML/Network/TcpListener.hpp>
 #include <SFML/Network/TcpSocket.hpp>
 #include <iostream>
+#pragma warning(pop)
 
 namespace nlp {
     listener::listener(uint16_t p_port, std::function<ptr<packet_handler>(ptr<packet_handler>)> p_func, ptr<manager> p_manager) :

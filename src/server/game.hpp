@@ -18,11 +18,14 @@
 
 #pragma once
 #include <utility/ptr.hpp>
+
+#pragma warning(push, 1)
 #include <set>
 #include <string>
 #include <functional>
 #include <memory>
 #include <map>
+#pragma warning(pop)
 
 namespace nlp {
     class player;

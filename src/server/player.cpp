@@ -20,11 +20,14 @@
 #include "game.hpp"
 #include "server.hpp"
 #include "packet_handler.hpp"
+
+#pragma warning(push, 1)
 #include <SFML/Network/Packet.hpp>
 #include <iostream>
 #include <map>
 #include <set>
 #include <sstream>
+#pragma warning(pop)
 
 namespace nlp {
     player::player(ptr<packet_handler> p_send, uint32_t p_id, ptr<server> p_server) :

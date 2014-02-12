@@ -22,7 +22,12 @@ namespace nlp {
     class card::data {
     public:
         class mane;
-        virtual ~data() {}
+        data() = default;
+        data(data const &) = default;
+        data(data &&) = default;
+        ~data() = default;
+        data & operator=(data const &) = default;
+        data & operator=(data &&) = default;
         virtual type get_type() const = 0;
         virtual bool is_mane() const {
             return false;
@@ -37,6 +42,12 @@ namespace nlp {
     };
     class card::data::mane final : public data {
         public:
+            mane() = default;
+            mane(mane const &) = default;
+            mane(mane &&) = default;
+            ~mane() = default;
+            mane & operator=(mane const &) = default;
+            mane & operator=(mane &&) = default;
             type get_type() const override {
                 return type::mane;
             }
