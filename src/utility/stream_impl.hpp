@@ -19,12 +19,21 @@
 #pragma once
 #include "stream.hpp"
 #include "handle_impl.hpp"
+
+#pragma warning(push, 1)
 #include <uv.h>
+#pragma warning(pop)
 
 namespace nlp {
     namespace uv {
         class stream::impl : public handle::impl{
         public:
+            impl() = delete;
+            impl(impl const &) = delete;
+            impl(impl &&) = delete;
+            ~impl() = default;
+            impl & operator=(impl const &) = delete;
+            impl & operator=(impl &&) = delete;
             uv_handle_t * get_handle() override;
             virtual uv_stream_t * get_stream() = 0;
         protected:

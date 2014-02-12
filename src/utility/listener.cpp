@@ -18,9 +18,12 @@
 
 #include "listener.hpp"
 #include "loop.hpp"
+
+#pragma warning(push, 1)
 #include <uv.h>
 #include <stdexcept>
 #include <iostream>
+#pragma warning(pop)
 
 
 namespace nlp {

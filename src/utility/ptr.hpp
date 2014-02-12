@@ -17,7 +17,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+
+#pragma warning(push, 1)
 #include <memory>
+#pragma warning(pop)
 
 namespace nlp {
     //Non-owning pointer with null pointer checking

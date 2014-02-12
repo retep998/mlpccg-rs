@@ -18,7 +18,10 @@
 
 #pragma once
 #include "handle.hpp"
+
+#pragma warning(push, 1)
 #include <string>
+#pragma warning(pop)
 
 namespace nlp {
     namespace uv {

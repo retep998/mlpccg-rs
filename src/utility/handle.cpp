@@ -19,7 +19,10 @@
 #include "handle.hpp"
 #include "handle_impl.hpp"
 #include "loop.hpp"
+
+#pragma warning(push, 1)
 #include <cassert>
+#pragma warning(pop)
 
 namespace nlp {
     namespace uv {

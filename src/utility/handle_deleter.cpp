@@ -18,8 +18,11 @@
 
 #include "handle_deleter.hpp"
 #include "handle_impl.hpp"
+
+#pragma warning(push, 1)
 #include <cassert>
 #include <iostream>
+#pragma warning(pop)
 
 namespace nlp {
     namespace uv {

@@ -18,9 +18,12 @@
 
 #pragma once
 #include "stream.hpp"
+
+#pragma warning(push, 1)
 #include <string>
 #include <cstdint>
 #include <memory>
+#pragma warning(pop)
 
 namespace nlp {
     namespace uv {

@@ -19,9 +19,12 @@
 #include "stream.hpp"
 #include "check.hpp"
 #include "stream_impl.hpp"
+
+#pragma warning(push, 1)
 #include <uv.h>
 #include <cassert>
 #include <vector>
+#pragma warning(pop)
 
 namespace nlp {
     namespace uv {

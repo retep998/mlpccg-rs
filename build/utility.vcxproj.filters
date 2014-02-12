@@ -3,9 +3,6 @@
   <ItemGroup>
     <ClCompile Include="..\src\utility\check.cpp" />
     <ClCompile Include="..\src\utility\listener.cpp" />
-    <ClCompile Include="..\src\utility\loop.cpp">
-      <Filter>uv</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\utility\tty.cpp">
       <Filter>uv</Filter>
     </ClCompile>
@@ -21,15 +18,15 @@
     <ClCompile Include="..\src\utility\handle_impl.cpp">
       <Filter>uv\handle</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\utility\loop.cpp">
+      <Filter>uv\loop</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\utility\algorithm.hpp" />
     <ClInclude Include="..\src\utility\listener.hpp" />
     <ClInclude Include="..\src\utility\ptr.hpp" />
     <ClInclude Include="..\src\utility\check.hpp" />
-    <ClInclude Include="..\src\utility\loop.hpp">
-      <Filter>uv</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\utility\stream.hpp">
       <Filter>uv</Filter>
     </ClInclude>
@@ -37,9 +34,6 @@
       <Filter>uv</Filter>
     </ClInclude>
     <ClInclude Include="..\src\utility\stream_impl.hpp">
-      <Filter>uv</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\utility\loop_impl.hpp">
       <Filter>uv</Filter>
     </ClInclude>
     <ClInclude Include="..\src\utility\handle_impl.hpp">
@@ -51,6 +45,12 @@
     <ClInclude Include="..\src\utility\handle_deleter.hpp">
       <Filter>uv\handle</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\utility\loop_impl.hpp">
+      <Filter>uv\loop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\loop.hpp">
+      <Filter>uv\loop</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="uv">
@@ -58,6 +58,9 @@
     </Filter>
     <Filter Include="uv\handle">
       <UniqueIdentifier>{f9cdbf7f-75cd-4569-9e87-a885bb076af5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="uv\loop">
+      <UniqueIdentifier>{69ef5cd7-55e1-463c-bbc5-982bc6e91461}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

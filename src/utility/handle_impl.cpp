@@ -17,7 +17,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "handle_impl.hpp"
+
+#pragma warning(push, 1)
 #include <cassert>
+#pragma warning(pop)
 
 namespace nlp {
     namespace uv {

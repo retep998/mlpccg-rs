@@ -17,7 +17,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+
+#pragma warning(push, 1)
 #include <map>
+#pragma warning(pop)
 
 namespace nlp {
     template <typename T, typename U, typename Func>

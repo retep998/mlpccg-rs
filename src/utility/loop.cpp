@@ -18,9 +18,12 @@
 
 #include "loop_impl.hpp"
 #include "check.hpp"
+
+#pragma warning(push, 1)
 #include <uv.h>
 #include <cassert>
 #include <iostream>
+#pragma warning(pop)
 
 namespace nlp {
     namespace uv {

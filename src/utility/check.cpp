@@ -17,9 +17,12 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "check.hpp"
+
+#pragma warning(push, 1)
 #include <uv.h>
 #include <stdexcept>
 #include <string>
+#pragma warning(pop)
 
 namespace nlp {
     void check(int p_err) {

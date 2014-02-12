@@ -20,16 +20,25 @@
 #include "loop_impl.hpp"
 #include "check.hpp"
 #include "stream_impl.hpp"
+
+#pragma warning(push, 1)
 #include <uv.h>
 #include <memory>
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#pragma warning(pop)
 
 namespace nlp {
     namespace uv {
         class tty::impl final : public stream::impl{
         public:
+            impl() = delete;
+            impl(impl const &) = delete;
+            impl(impl &&) = delete;
+            ~impl() = default;
+            impl & operator=(impl const &) = delete;
+            impl & operator=(impl &&) = delete;
             uv_stream_t * get_stream() override {
                 return reinterpret_cast<uv_stream_t *>(&m_tty);
             }

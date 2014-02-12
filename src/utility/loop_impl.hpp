@@ -18,7 +18,10 @@
 
 #pragma once
 #include "loop.hpp"
+
+#pragma warning(push, 1)
 #include <uv.h>
+#pragma warning(pop)
 
 namespace nlp {
     namespace uv {

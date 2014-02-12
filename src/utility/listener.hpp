@@ -17,7 +17,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+
+#pragma warning(push, 1)
 #include <memory>
+#pragma warning(pop)
 
 namespace nlp {
     class loop;

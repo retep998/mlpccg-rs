@@ -40,7 +40,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>EnableAllWarnings</WarningLevel>
-      <DisableSpecificWarnings>4061;4201;4265;4350;4365;4510;4512;4514;4571;4610;4625;4626;4668;4710;4711;4820;4837;4996;5024;5025;5026;5027</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4350;4514;4710;4820</DisableSpecificWarnings>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalOptions>/Zc:forScope /Zc:wchar_t /Zc:auto /Zc:trigraphs /Zc:rvalueCast %(AdditionalOptions)</AdditionalOptions>
