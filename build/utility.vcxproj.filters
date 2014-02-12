@@ -13,7 +13,13 @@
       <Filter>uv</Filter>
     </ClCompile>
     <ClCompile Include="..\src\utility\handle.cpp">
-      <Filter>uv</Filter>
+      <Filter>uv\handle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utility\handle_deleter.cpp">
+      <Filter>uv\handle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utility\handle_impl.cpp">
+      <Filter>uv\handle</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -24,16 +30,10 @@
     <ClInclude Include="..\src\utility\loop.hpp">
       <Filter>uv</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\utility\handle.hpp">
-      <Filter>uv</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\utility\stream.hpp">
       <Filter>uv</Filter>
     </ClInclude>
     <ClInclude Include="..\src\utility\tty.hpp">
-      <Filter>uv</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\utility\handle_impl.hpp">
       <Filter>uv</Filter>
     </ClInclude>
     <ClInclude Include="..\src\utility\stream_impl.hpp">
@@ -42,10 +42,22 @@
     <ClInclude Include="..\src\utility\loop_impl.hpp">
       <Filter>uv</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\utility\handle_impl.hpp">
+      <Filter>uv\handle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\handle.hpp">
+      <Filter>uv\handle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\handle_deleter.hpp">
+      <Filter>uv\handle</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="uv">
       <UniqueIdentifier>{34262b5b-ad6c-4291-9328-734c76734970}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="uv\handle">
+      <UniqueIdentifier>{f9cdbf7f-75cd-4569-9e87-a885bb076af5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -16,21 +16,14 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-#include "handle.hpp"
-#include "loop.hpp"
-#include <uv.h>
+#include "handle_impl.hpp"
+#include <cassert>
 
 namespace nlp {
     namespace uv {
-        class handle::impl {
-        public:
-            virtual uv_handle_t * get_handle() = 0;
-            virtual ~impl() = default;
-        protected:
-            impl(std::shared_ptr<loop::impl>);
-            std::shared_ptr<loop::impl> m_loop;
-            friend deleter;
-        };
+        handle::impl::impl(std::shared_ptr<loop::impl> p_loop) :
+            m_loop{p_loop} {
+            assert(m_loop);
+        }
     }
 }

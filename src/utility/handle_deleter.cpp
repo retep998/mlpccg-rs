@@ -16,21 +16,23 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-#include "handle.hpp"
-#include "loop.hpp"
-#include <uv.h>
+#include "handle_deleter.hpp"
+#include "handle_impl.hpp"
+#include <cassert>
+#include <iostream>
 
 namespace nlp {
     namespace uv {
-        class handle::impl {
-        public:
-            virtual uv_handle_t * get_handle() = 0;
-            virtual ~impl() = default;
-        protected:
-            impl(std::shared_ptr<loop::impl>);
-            std::shared_ptr<loop::impl> m_loop;
-            friend deleter;
-        };
+        void handle::deleter::cleanup(impl * p_impl) const {
+            assert(p_impl);
+            uv_close(p_impl->get_handle(), [](uv_handle_t * p_handle) {
+                assert(p_handle);
+                auto a = reinterpret_cast<impl *>(p_handle->data);
+                assert(a);
+                delete a;
+                std::cerr << "Deleted handle" << std::endl;
+            });
+            p_impl->m_loop.reset();
+        }
     }
 }

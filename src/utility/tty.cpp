@@ -43,16 +43,7 @@ namespace nlp {
         };
         class tty::deleter final {
         public:
-            static void callback(uv_handle_t * p_handle) {
-                assert(p_handle);
-                auto a = reinterpret_cast<impl *>(p_handle->data);
-                assert(a);
-                delete a;
-                std::cerr << "Deleted tty";
-            }
-            void operator()(impl * p_impl) {
-                p_impl->m_loop.reset();
-                uv_close(p_impl->get_handle(), &callback);
+            void operator()(impl *) {
             }
         };
         tty tty::create(loop const & p_loop) {

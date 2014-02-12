@@ -24,6 +24,7 @@ namespace nlp {
         class handle {
         public:
             class impl;
+            class deleter;
             handle() = default;
             handle(handle const &) = default;
             handle(handle &&) = default;
@@ -32,7 +33,6 @@ namespace nlp {
             handle & operator=(handle &&) = default;
         protected:
             handle(std::shared_ptr<impl>);
-            std::shared_ptr<impl> get_impl() const;
             std::shared_ptr<impl> m_impl;
         };
     }

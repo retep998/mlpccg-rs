@@ -23,10 +23,6 @@
 
 namespace nlp {
     namespace uv {
-        handle::impl::impl(std::shared_ptr<loop::impl> p_loop) :
-            m_loop{p_loop} {
-            assert(m_loop);
-        }
         handle::handle(std::shared_ptr<impl> p_impl) :
             m_impl{p_impl} {
             assert(m_impl);
