@@ -21,12 +21,6 @@
 #include "loop_deleter.hpp"
 #include "check.hpp"
 
-#pragma warning(push, 1)
-#include <uv.h>
-#include <cassert>
-#include <iostream>
-#pragma warning(pop)
-
 namespace nlp {
     namespace uv {
         //loop
@@ -40,19 +34,19 @@ namespace nlp {
             check(uv_run(m_impl->m_loop, UV_RUN_NOWAIT));
         }
         loop loop::create() {
-            auto i = std::shared_ptr<impl>{new impl{uv_loop_new(), true}, deleter{}};
+            auto && i = std::shared_ptr<impl>{new impl{uv_loop_new(), true}, deleter{}};
             return{i};
         }
         loop loop::get_default() {
-            static auto def = std::shared_ptr<impl>{new impl{uv_default_loop(), false}, deleter{}};
+            static auto && def = std::shared_ptr<impl>{new impl{uv_default_loop(), false}, deleter{}};
             return{def};
         }
-        std::shared_ptr<loop::impl> loop::get_impl() const {
+        std::shared_ptr<loop::impl> const & loop::get_impl() const {
             return m_impl;
         }
 
         loop::loop(std::shared_ptr<impl> p_impl) :
-            m_impl{p_impl} {}
+            m_impl{std::move(p_impl)} {}
         //loop::impl
         uv_loop_t * loop::impl::get() const {
             return m_loop;
@@ -67,7 +61,6 @@ namespace nlp {
                 uv_loop_delete(p_impl->m_loop);
             }
             delete p_impl;
-            std::cerr << "Deleted loop";
         }
     }
 }

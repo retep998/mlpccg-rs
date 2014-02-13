@@ -22,12 +22,6 @@
 #include "stream_writer.hpp"
 #include "check.hpp"
 
-#pragma warning(push, 1)
-#include <uv.h>
-#include <cassert>
-#include <vector>
-#pragma warning(pop)
-
 namespace nlp {
     namespace uv {
         //stream
@@ -44,7 +38,7 @@ namespace nlp {
             return reinterpret_cast<uv_handle_t *>(get_stream());
         }
         stream::impl::impl(std::shared_ptr<loop::impl> p_loop) :
-            handle::impl{p_loop} {}
+            handle::impl{std::move(p_loop)} {}
         //stream::deleter
         void stream::deleter::operator()(impl * p_impl) const {
             handle::deleter::operator()(p_impl);

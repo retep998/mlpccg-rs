@@ -21,23 +21,18 @@
 #include "handle_deleter.hpp"
 #include "loop.hpp"
 
-#pragma warning(push, 1)
-#include <iostream>
-#pragma warning(pop)
-
 namespace nlp {
     namespace uv {
         //handle
         handle::handle(std::shared_ptr<impl> p_impl) :
-            m_impl{p_impl} {}
+            m_impl{std::move(p_impl)} {}
         //handle::impl
         handle::impl::impl(std::shared_ptr<loop::impl> p_loop) :
-            m_loop{p_loop} {}
+            m_loop{std::move(p_loop)} {}
         //handle::deleter
         void handle::deleter::operator()(impl * p_impl) const {
             uv_close(p_impl->get_handle(), [](uv_handle_t * p_handle) {
                 delete reinterpret_cast<impl *>(p_handle->data);
-                std::cerr << "Deleted handle" << std::endl;
             });
             p_impl->m_loop.reset();
         }

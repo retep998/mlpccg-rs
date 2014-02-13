@@ -39,7 +39,7 @@ namespace nlp {
             void run_nowait() const;
             static loop create();
             static loop get_default();
-            std::shared_ptr<impl> get_impl() const;
+            std::shared_ptr<impl> const & get_impl() const;
         protected:
             loop(std::shared_ptr<impl>);
             std::shared_ptr<impl> m_impl;
