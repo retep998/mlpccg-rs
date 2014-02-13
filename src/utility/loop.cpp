@@ -62,11 +62,11 @@ namespace nlp {
             check(uv_run(m_impl->m_loop, UV_RUN_NOWAIT));
         }
         loop loop::create() {
-            auto i = std::shared_ptr<impl>{new impl(uv_loop_new(), true), deleter{}};
+            auto i = std::shared_ptr<impl>{new impl{uv_loop_new(), true}, deleter{}};
             return{i};
         }
         loop loop::get_default() {
-            static auto def = std::shared_ptr<impl>{new impl(uv_default_loop(), false), deleter{}};
+            static auto def = std::shared_ptr<impl>{new impl{uv_default_loop(), false}, deleter{}};
             return{def};
         }
         std::shared_ptr<loop::impl> loop::get_impl() const {

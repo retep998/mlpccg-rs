@@ -175,7 +175,7 @@ namespace nlp {
             auto const imult = 1 - mult;
             return color_double{gamma_decode(p_color.r * mult), gamma_decode(p_color.g * mult), gamma_decode(p_color.b * mult)} + background * imult;
         }
-        void calc_combos() {//std::array<uint8_t, 16>{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
+        void calc_combos() {
             auto const && fg_colors = std::array<uint8_t, 16>{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
             auto const && bg_colors = std::array<uint8_t, 16>{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
             auto const total_mult = 1. / (cwidth * cheight);
@@ -185,12 +185,10 @@ namespace nlp {
                 for (auto x : fg_colors) {
                     auto & fg = colors[x];
                     auto && fgg = gamma(fg);
-                    auto const lf = fgg.luminance();
                     for (auto y : bg_colors) {
                         auto & bg = colors[y];
                         auto && bgg = gamma(bg);
-                        auto const bf = bgg.luminance();
-                        auto const diff = std::abs(lf - bf);
+                        auto const diff = (fgg - bgg).abs().luminance();
                         auto && combine = gamma(fg) * ratio + gamma(bg) * iratio;
                         entries.push_back({combine, diff, c.ch, x, y});
                     }
@@ -365,7 +363,8 @@ namespace nlp {
             }
         }
         void do_stuff(std::vector<std::string> p_args) {
-            asset_path = sys::path{p_args[0]}.remove_filename() / sys::path{"assets"};
+            asset_path = sys::initial_path<sys::path>() / sys::path{"assets"};
+            //asset_path = sys::path{p_args[0]}.remove_filename() / sys::path{"assets"};
             load_config();
             if (p_args.size() > 1) {
                 auto t1 = std::chrono::high_resolution_clock::now();
