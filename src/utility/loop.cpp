@@ -16,7 +16,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
+#include "loop.hpp"
 #include "loop_impl.hpp"
+#include "loop_deleter.hpp"
 #include "check.hpp"
 
 #pragma warning(push, 1)
@@ -27,38 +29,14 @@
 
 namespace nlp {
     namespace uv {
-        //loop::impl
-        uv_loop_t * loop::impl::get() const {
-            return m_loop;
-        }
-        loop::impl::impl(uv_loop_t * p_loop, bool p_owned) :
-            m_loop{p_loop},
-            m_owned{p_owned} {
-            assert(m_loop);
-        }
-        //loop::deleter
-        class loop::deleter final {
-        public:
-            void operator()(impl * p_impl) {
-                uv_run(p_impl->m_loop, UV_RUN_DEFAULT);
-                if (p_impl->m_owned) {
-                    uv_loop_delete(p_impl->m_loop);
-                }
-                delete p_impl;
-                std::cerr << "Deleted loop";
-            }
-        };
         //loop
         void loop::run_default() const {
-            assert(m_impl);
             check(uv_run(m_impl->m_loop, UV_RUN_DEFAULT));
         }
         void loop::run_once() const {
-            assert(m_impl);
             check(uv_run(m_impl->m_loop, UV_RUN_ONCE));
         }
         void loop::run_nowait() const {
-            assert(m_impl);
             check(uv_run(m_impl->m_loop, UV_RUN_NOWAIT));
         }
         loop loop::create() {
@@ -72,9 +50,24 @@ namespace nlp {
         std::shared_ptr<loop::impl> loop::get_impl() const {
             return m_impl;
         }
+
         loop::loop(std::shared_ptr<impl> p_impl) :
-            m_impl{p_impl} {
-            assert(m_impl);
+            m_impl{p_impl} {}
+        //loop::impl
+        uv_loop_t * loop::impl::get() const {
+            return m_loop;
+        }
+        loop::impl::impl(uv_loop_t * p_loop, bool p_owned) :
+            m_loop{p_loop},
+            m_owned{p_owned} {}
+        //loop::deleter
+        void loop::deleter::operator()(impl * p_impl) {
+            check(uv_run(p_impl->m_loop, UV_RUN_DEFAULT));
+            if (p_impl->m_owned) {
+                uv_loop_delete(p_impl->m_loop);
+            }
+            delete p_impl;
+            std::cerr << "Deleted loop";
         }
     }
 }

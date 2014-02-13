@@ -17,12 +17,12 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "tty.hpp"
+#include "tty_impl.hpp"
+#include "tty_deleter.hpp"
 #include "loop_impl.hpp"
 #include "check.hpp"
-#include "stream_impl.hpp"
 
 #pragma warning(push, 1)
-#include <uv.h>
 #include <memory>
 #include <algorithm>
 #include <cassert>
@@ -31,39 +31,27 @@
 
 namespace nlp {
     namespace uv {
-        class tty::impl final : public stream::impl{
-        public:
-            impl() = delete;
-            impl(impl const &) = delete;
-            impl(impl &&) = delete;
-            ~impl() = default;
-            impl & operator=(impl const &) = delete;
-            impl & operator=(impl &&) = delete;
-            uv_stream_t * get_stream() override {
-                return reinterpret_cast<uv_stream_t *>(&m_tty);
-            }
-        protected:
-            impl(std::shared_ptr<loop::impl> p_loop) : stream::impl{p_loop} {
-                check(uv_tty_init(m_loop->get(), &m_tty, 1, false));
-            }
-            uv_tty_t m_tty;
-            friend tty;
-        };
-        class tty::deleter final {
-        public:
-            void operator()(impl *) {
-            }
-        };
+        //tty
         tty tty::create(loop const & p_loop) {
             auto i = std::shared_ptr<impl>{new impl{p_loop.get_impl()}, deleter{}};
             return{i};
         }
         tty::tty(std::shared_ptr<impl> p_impl) :
-            stream{std::static_pointer_cast<stream::impl>(p_impl)}{
-
-        }
+            stream{std::static_pointer_cast<stream::impl>(p_impl)} {}
         std::shared_ptr<tty::impl> tty::get_impl() const {
             return std::static_pointer_cast<tty::impl>(m_impl);
+        }
+        //tty::impl
+        uv_stream_t * tty::impl::get_stream() {
+            return reinterpret_cast<uv_stream_t *>(&m_tty);
+        }
+        tty::impl::impl(std::shared_ptr<loop::impl> p_loop) : stream::impl{p_loop} {
+            check(uv_tty_init(m_loop->get(), &m_tty, 1, false));
+            m_tty.data = this;
+        }
+        //tty::deleter
+        void tty::deleter::operator()(impl * p_impl) const {
+            stream::deleter::operator()(p_impl);
         }
     }
 }

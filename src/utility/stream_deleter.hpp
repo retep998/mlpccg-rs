@@ -16,26 +16,15 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
+#pragma once
+#include "stream.hpp"
 #include "handle_deleter.hpp"
-#include "handle_impl.hpp"
-
-#pragma warning(push, 1)
-#include <cassert>
-#include <iostream>
-#pragma warning(pop)
 
 namespace nlp {
     namespace uv {
-        void handle::deleter::cleanup(impl * p_impl) const {
-            assert(p_impl);
-            uv_close(p_impl->get_handle(), [](uv_handle_t * p_handle) {
-                assert(p_handle);
-                auto a = reinterpret_cast<impl *>(p_handle->data);
-                assert(a);
-                delete a;
-                std::cerr << "Deleted handle" << std::endl;
-            });
-            p_impl->m_loop.reset();
-        }
+        class stream::deleter : public handle::deleter{
+        protected:
+            void operator()(impl *) const;
+        };
     }
 }

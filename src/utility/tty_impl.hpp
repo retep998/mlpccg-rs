@@ -16,30 +16,25 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "handle.hpp"
-#include "handle_impl.hpp"
-#include "handle_deleter.hpp"
-#include "loop.hpp"
-
-#pragma warning(push, 1)
-#include <iostream>
-#pragma warning(pop)
+#pragma once
+#include "tty.hpp"
+#include "stream_impl.hpp"
 
 namespace nlp {
     namespace uv {
-        //handle
-        handle::handle(std::shared_ptr<impl> p_impl) :
-            m_impl{p_impl} {}
-        //handle::impl
-        handle::impl::impl(std::shared_ptr<loop::impl> p_loop) :
-            m_loop{p_loop} {}
-        //handle::deleter
-        void handle::deleter::operator()(impl * p_impl) const {
-            uv_close(p_impl->get_handle(), [](uv_handle_t * p_handle) {
-                delete reinterpret_cast<impl *>(p_handle->data);
-                std::cerr << "Deleted handle" << std::endl;
-            });
-            p_impl->m_loop.reset();
-        }
+        class tty::impl final : public stream::impl{
+        public:
+            impl() = delete;
+            impl(impl const &) = delete;
+            impl(impl &&) = delete;
+            ~impl() = default;
+            impl & operator=(impl const &) = delete;
+            impl & operator=(impl &&) = delete;
+            uv_stream_t * get_stream() override;
+        protected:
+            impl(std::shared_ptr<loop::impl>);
+            uv_tty_t m_tty;
+            friend tty;
+        };
     }
 }

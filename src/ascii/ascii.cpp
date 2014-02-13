@@ -364,7 +364,9 @@ namespace nlp {
         }
         void do_stuff(std::vector<std::string> p_args) {
             asset_path = sys::initial_path<sys::path>() / sys::path{"assets"};
-            //asset_path = sys::path{p_args[0]}.remove_filename() / sys::path{"assets"};
+            if (!sys::is_directory(asset_path)) {
+                asset_path = sys::path{p_args[0]}.remove_filename() / sys::path{"assets"};
+            }
             load_config();
             if (p_args.size() > 1) {
                 auto t1 = std::chrono::high_resolution_clock::now();

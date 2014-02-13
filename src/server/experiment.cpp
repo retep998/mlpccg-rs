@@ -28,13 +28,11 @@
 
 namespace nlp {
     void experiment() {
-        auto loop = uv::loop::create();
-        auto tty = uv::tty::create(loop);
+        auto tty = uv::tty::create(uv::loop::create());
         auto in = std::ifstream{"assets/motd.txt", std::ios::binary};
         auto line = std::string{};
         std::getline(in, line, '\0');
         tty.write(line);
         tty.write("\x1b[0m");
-        loop.run_default();
     }
 }

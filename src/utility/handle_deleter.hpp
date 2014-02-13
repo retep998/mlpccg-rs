@@ -23,7 +23,7 @@ namespace nlp {
     namespace uv {
         class handle::deleter {
         protected:
-            void cleanup(impl *) const;
+            void operator()(impl *) const;
         };
     }
 }

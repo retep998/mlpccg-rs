@@ -16,17 +16,30 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "handle_impl.hpp"
+#pragma once
+#include "stream.hpp"
 
 #pragma warning(push, 1)
-#include <cassert>
+#include <uv.h>
+#include <vector>
 #pragma warning(pop)
 
 namespace nlp {
     namespace uv {
-        handle::impl::impl(std::shared_ptr<loop::impl> p_loop) :
-            m_loop{p_loop} {
-            assert(m_loop);
-        }
+        class stream::writer final {
+        public:
+            writer() = delete;
+            writer(writer const &) = delete;
+            writer(writer &&) = delete;
+            ~writer() = default;
+            writer & operator=(writer const &) = delete;
+            writer & operator=(writer &&) = delete;
+        protected:
+            writer(std::string const &, uv_stream_t *);
+            std::vector<char> m_data;
+            uv_buf_t m_buf;
+            uv_write_t m_write;
+            friend stream;
+        };
     }
 }

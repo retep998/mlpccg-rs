@@ -3,23 +3,20 @@
   <ItemGroup>
     <ClCompile Include="..\src\utility\check.cpp" />
     <ClCompile Include="..\src\utility\listener.cpp" />
-    <ClCompile Include="..\src\utility\tty.cpp">
-      <Filter>uv</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\utility\stream.cpp">
-      <Filter>uv</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\utility\handle.cpp">
-      <Filter>uv\handle</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\utility\handle_deleter.cpp">
-      <Filter>uv\handle</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\utility\handle_impl.cpp">
       <Filter>uv\handle</Filter>
     </ClCompile>
     <ClCompile Include="..\src\utility\loop.cpp">
       <Filter>uv\loop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utility\stream.cpp">
+      <Filter>uv\stream</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utility\tty.cpp">
+      <Filter>uv\tty</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utility\tty_deleter.hpp">
+      <Filter>uv\tty</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -27,15 +24,6 @@
     <ClInclude Include="..\src\utility\listener.hpp" />
     <ClInclude Include="..\src\utility\ptr.hpp" />
     <ClInclude Include="..\src\utility\check.hpp" />
-    <ClInclude Include="..\src\utility\stream.hpp">
-      <Filter>uv</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\utility\tty.hpp">
-      <Filter>uv</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\utility\stream_impl.hpp">
-      <Filter>uv</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\utility\handle_impl.hpp">
       <Filter>uv\handle</Filter>
     </ClInclude>
@@ -51,6 +39,27 @@
     <ClInclude Include="..\src\utility\loop.hpp">
       <Filter>uv\loop</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\utility\loop_deleter.hpp">
+      <Filter>uv\loop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\stream.hpp">
+      <Filter>uv\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\stream_impl.hpp">
+      <Filter>uv\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\stream_deleter.hpp">
+      <Filter>uv\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\stream_writer.hpp">
+      <Filter>uv\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\tty.hpp">
+      <Filter>uv\tty</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\tty_impl.hpp">
+      <Filter>uv\tty</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="uv">
@@ -61,6 +70,12 @@
     </Filter>
     <Filter Include="uv\loop">
       <UniqueIdentifier>{69ef5cd7-55e1-463c-bbc5-982bc6e91461}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="uv\stream">
+      <UniqueIdentifier>{f583aa57-a5a9-4c06-bac6-3dab9610e0b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="uv\tty">
+      <UniqueIdentifier>{f8075e8e-6ab7-42d0-96d9-76b33fc5bd78}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
