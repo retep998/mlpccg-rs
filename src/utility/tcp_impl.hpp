@@ -32,9 +32,11 @@ namespace nlp {
             impl & operator=(impl const &) = delete;
             impl & operator=(impl &&) = delete;
             uv_stream_t * get_stream() override;
+            void bind(std::shared_ptr<ip::impl> const &);
         protected:
-            impl(std::shared_ptr<loop::impl> const &, std::shared_ptr<ip::impl> const &);
+            impl(std::shared_ptr<loop::impl> const &);
             uv_tcp_t m_tcp;
+            std::function<void(tcp)> m_listen_callback;
             friend tcp;
         };
     }

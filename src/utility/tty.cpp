@@ -26,7 +26,7 @@ namespace nlp {
     namespace uv {
         //tty
         tty tty::create(loop const & p_loop) {
-            auto && i = std::shared_ptr<impl>{new impl{p_loop.get_impl()}, deleter{}};
+            auto && i = std::shared_ptr<impl>{new impl{p_loop.get()}, deleter{}};
             return{i};
         }
         tty::tty(std::shared_ptr<impl> p_impl) :

@@ -41,7 +41,7 @@ namespace nlp {
             static auto && def = std::shared_ptr<impl>{new impl{uv_default_loop(), false}, deleter{}};
             return{def};
         }
-        std::shared_ptr<loop::impl> const & loop::get_impl() const {
+        std::shared_ptr<loop::impl> const & loop::get() const {
             return m_impl;
         }
 

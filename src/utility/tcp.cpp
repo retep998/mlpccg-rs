@@ -30,9 +30,18 @@
 namespace nlp {
     namespace uv {
         //tcp
-        tcp tcp::listen(loop const & p_loop, ip const & p_ip) {
-            auto && b = std::shared_ptr<impl>{new impl{p_loop.get_impl(), p_ip.get()}, deleter{}};
-            return{b};
+        tcp tcp::listen(loop const & p_loop, ip const & p_ip, std::function<void(tcp)> p_callback) {
+            auto && a = std::shared_ptr<impl>{new impl{p_loop.get()}, deleter{}};
+            a->bind(p_ip.get());
+            a->listen(0x100, [](uv_stream_t * p_stream, int p_status) {
+                check(p_status);
+                auto a = static_cast<tcp::impl *>(static_cast<handle::impl *>(p_stream->data));
+                auto && b = std::shared_ptr<impl>{new impl{a->m_loop}, deleter{}};
+                check(uv_accept(p_stream, b->get_stream()));
+                a->m_listen_callback(std::move(b));
+            });
+            a->m_listen_callback = std::move(p_callback);
+            return{a};
         }
         tcp::tcp(std::shared_ptr<impl> const & p_impl) :
             stream{std::static_pointer_cast<stream::impl>(p_impl)} {}
@@ -40,15 +49,13 @@ namespace nlp {
         uv_stream_t * tcp::impl::get_stream() {
             return reinterpret_cast<uv_stream_t *>(&m_tcp);
         }
-        tcp::impl::impl(std::shared_ptr<loop::impl> const & p_loop, std::shared_ptr<ip::impl> const & p_ip) :
+        void tcp::impl::bind(std::shared_ptr<ip::impl> const & p_ip) {
+            check(uv_tcp_bind(&m_tcp, &p_ip->get(), 0));
+        }
+        tcp::impl::impl(std::shared_ptr<loop::impl> const & p_loop) :
             stream::impl{p_loop} {
             check(uv_tcp_init(p_loop->get(), &m_tcp));
             m_tcp.data = static_cast<handle::impl *>(this);
-            check(uv_tcp_bind(&m_tcp, &p_ip->get(), 0));
-            check(uv_listen(get_stream(), 128, [](uv_stream_t *, int p_status) {
-                check(p_status);
-                std::cerr << "Received connection!" << std::endl;
-            }));
         }
     }
 }

@@ -21,6 +21,10 @@
 #include "loop.hpp"
 #include "ip.hpp"
 
+#pragma warning(push, 1)
+#include <functional>
+#pragma warning(pop)
+
 namespace nlp {
     namespace uv {
         class tcp final : public stream {
@@ -32,7 +36,7 @@ namespace nlp {
             ~tcp() = default;
             tcp & operator=(tcp const &) = default;
             tcp & operator=(tcp &&) = default;
-            static tcp listen(loop const &, ip const &);
+            static tcp listen(loop const &, ip const &, std::function<void(tcp)>);
         protected:
             tcp(std::shared_ptr<impl> const &);
             std::shared_ptr<impl> get() const;

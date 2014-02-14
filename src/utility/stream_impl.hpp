@@ -36,6 +36,7 @@ namespace nlp {
             impl & operator=(impl &&) = delete;
             uv_handle_t * get_handle() override;
             virtual uv_stream_t * get_stream() = 0;
+            void listen(int, uv_connection_cb);
         protected:
             impl(std::shared_ptr<loop::impl>);
         };

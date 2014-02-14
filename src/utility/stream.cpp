@@ -36,6 +36,9 @@ namespace nlp {
         uv_handle_t * stream::impl::get_handle() {
             return reinterpret_cast<uv_handle_t *>(get_stream());
         }
+        void stream::impl::listen(int p_backlog, uv_connection_cb p_callback) {
+            check(uv_listen(get_stream(), p_backlog, p_callback));
+        }
         stream::impl::impl(std::shared_ptr<loop::impl> p_loop) :
             handle::impl{std::move(p_loop)} {}
         //stream::writer

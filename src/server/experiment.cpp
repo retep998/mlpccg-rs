@@ -30,6 +30,7 @@
 
 namespace nlp {
     void experiment() {
+        auto connections = std::vector<uv::tcp>{};
         auto loop = uv::loop::create();
         auto tty = uv::tty::create(loop);
         auto in = std::ifstream{"assets/motd.txt", std::ios::binary};
@@ -37,7 +38,10 @@ namespace nlp {
         std::getline(in, line, '\0');
         tty.write(line);
         tty.write("\x1b[0m");
-        auto tcp = uv::tcp::listen(loop, uv::ip::create("0.0.0.0", 273));
+        auto tcp = uv::tcp::listen(loop, uv::ip::create("0.0.0.0", 273), [&](uv::tcp p_tcp) {
+            connections.emplace_back(p_tcp);
+            tty.write("Got connection!\n");
+        });
         loop.run_default();
     }
 }
