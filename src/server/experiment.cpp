@@ -20,6 +20,7 @@
 #include <utility/loop.hpp>
 #include <utility/tty.hpp>
 #include <utility/tcp.hpp>
+#include <utility/ip.hpp>
 
 #pragma warning(push, 1)
 #include <cstdint>
@@ -36,7 +37,7 @@ namespace nlp {
         std::getline(in, line, '\0');
         tty.write(line);
         tty.write("\x1b[0m");
-        auto tcp = uv::tcp::listen(loop, "0.0.0.0", 273);
+        auto tcp = uv::tcp::listen(loop, uv::ip::create("0.0.0.0", 273));
         loop.run_default();
     }
 }

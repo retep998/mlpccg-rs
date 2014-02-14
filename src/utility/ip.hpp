@@ -16,39 +16,30 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "tcp.hpp"
-#include "tcp_impl.hpp"
-#include "handle_deleter.hpp"
-#include "loop_impl.hpp"
-#include "ip_impl.hpp"
-#include "check.hpp"
+#pragma once
 
 #pragma warning(push, 1)
-#include <iostream>
+#include <string>
+#include <cstdint>
+#include <memory>
 #pragma warning(pop)
 
 namespace nlp {
     namespace uv {
-        //tcp
-        tcp tcp::listen(loop const & p_loop, ip const & p_ip) {
-            auto && b = std::shared_ptr<impl>{new impl{p_loop.get_impl(), p_ip.get()}, deleter{}};
-            return{b};
-        }
-        tcp::tcp(std::shared_ptr<impl> const & p_impl) :
-            stream{std::static_pointer_cast<stream::impl>(p_impl)} {}
-        //tcp::impl
-        uv_stream_t * tcp::impl::get_stream() {
-            return reinterpret_cast<uv_stream_t *>(&m_tcp);
-        }
-        tcp::impl::impl(std::shared_ptr<loop::impl> const & p_loop, std::shared_ptr<ip::impl> const & p_ip) :
-            stream::impl{p_loop} {
-            check(uv_tcp_init(p_loop->get(), &m_tcp));
-            m_tcp.data = static_cast<handle::impl *>(this);
-            check(uv_tcp_bind(&m_tcp, &p_ip->get(), 0));
-            check(uv_listen(get_stream(), 128, [](uv_stream_t *, int p_status) {
-                check(p_status);
-                std::cerr << "Received connection!" << std::endl;
-            }));
-        }
+        class ip {
+        public:
+            class impl;
+            ip() = default;
+            ip(ip const &) = default;
+            ip(ip &&) = default;
+            ~ip() = default;
+            ip & operator=(ip const &) = default;
+            ip & operator=(ip &&) = default;
+            static ip create(std::string const &, uint16_t);
+            std::shared_ptr<impl> const & get() const;
+        protected:
+            ip(std::shared_ptr<impl> &&);
+            std::shared_ptr<impl> m_impl;
+        };
     }
 }

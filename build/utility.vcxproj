@@ -18,6 +18,8 @@
     <ClInclude Include="..\src\utility\handle.hpp" />
     <ClInclude Include="..\src\utility\handle_deleter.hpp" />
     <ClInclude Include="..\src\utility\handle_impl.hpp" />
+    <ClInclude Include="..\src\utility\ip.hpp" />
+    <ClInclude Include="..\src\utility\ip_impl.hpp" />
     <ClInclude Include="..\src\utility\listener.hpp" />
     <ClInclude Include="..\src\utility\loop.hpp" />
     <ClInclude Include="..\src\utility\loop_deleter.hpp" />
@@ -35,6 +37,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\utility\check.cpp" />
     <ClCompile Include="..\src\utility\handle.cpp" />
+    <ClCompile Include="..\src\utility\ip.cpp" />
     <ClCompile Include="..\src\utility\listener.cpp" />
     <ClCompile Include="..\src\utility\loop.cpp" />
     <ClCompile Include="..\src\utility\stream.cpp" />

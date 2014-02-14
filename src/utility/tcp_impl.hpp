@@ -19,6 +19,7 @@
 #pragma once
 #include "tcp.hpp"
 #include "stream_impl.hpp"
+#include "ip_impl.hpp"
 
 namespace nlp {
     namespace uv {
@@ -32,7 +33,7 @@ namespace nlp {
             impl & operator=(impl &&) = delete;
             uv_stream_t * get_stream() override;
         protected:
-            impl(std::shared_ptr<loop::impl>, sockaddr const &);
+            impl(std::shared_ptr<loop::impl> const &, std::shared_ptr<ip::impl> const &);
             uv_tcp_t m_tcp;
             friend tcp;
         };

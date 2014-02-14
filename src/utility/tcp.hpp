@@ -19,6 +19,7 @@
 #pragma once
 #include "stream.hpp"
 #include "loop.hpp"
+#include "ip.hpp"
 
 namespace nlp {
     namespace uv {
@@ -31,10 +32,10 @@ namespace nlp {
             ~tcp() = default;
             tcp & operator=(tcp const &) = default;
             tcp & operator=(tcp &&) = default;
-            static tcp listen(loop const &, std::string const &, uint16_t);
+            static tcp listen(loop const &, ip const &);
         protected:
-            tcp(std::shared_ptr<impl>);
-            std::shared_ptr<impl> get_impl() const;
+            tcp(std::shared_ptr<impl> const &);
+            std::shared_ptr<impl> get() const;
         };
     }
 }

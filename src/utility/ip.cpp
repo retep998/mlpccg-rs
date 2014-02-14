@@ -16,39 +16,27 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "tcp.hpp"
-#include "tcp_impl.hpp"
-#include "handle_deleter.hpp"
-#include "loop_impl.hpp"
 #include "ip_impl.hpp"
 #include "check.hpp"
 
-#pragma warning(push, 1)
-#include <iostream>
-#pragma warning(pop)
-
 namespace nlp {
     namespace uv {
-        //tcp
-        tcp tcp::listen(loop const & p_loop, ip const & p_ip) {
-            auto && b = std::shared_ptr<impl>{new impl{p_loop.get_impl(), p_ip.get()}, deleter{}};
-            return{b};
+        //ip
+        ip ip::create(std::string const & p_ip, uint16_t p_port) {
+            auto && a = std::shared_ptr<impl>{new impl{p_ip, p_port}};
+            return{std::move(a)};
         }
-        tcp::tcp(std::shared_ptr<impl> const & p_impl) :
-            stream{std::static_pointer_cast<stream::impl>(p_impl)} {}
-        //tcp::impl
-        uv_stream_t * tcp::impl::get_stream() {
-            return reinterpret_cast<uv_stream_t *>(&m_tcp);
+        std::shared_ptr<ip::impl> const & ip::get() const {
+            return m_impl;
         }
-        tcp::impl::impl(std::shared_ptr<loop::impl> const & p_loop, std::shared_ptr<ip::impl> const & p_ip) :
-            stream::impl{p_loop} {
-            check(uv_tcp_init(p_loop->get(), &m_tcp));
-            m_tcp.data = static_cast<handle::impl *>(this);
-            check(uv_tcp_bind(&m_tcp, &p_ip->get(), 0));
-            check(uv_listen(get_stream(), 128, [](uv_stream_t *, int p_status) {
-                check(p_status);
-                std::cerr << "Received connection!" << std::endl;
-            }));
+        ip::ip(std::shared_ptr<impl> && p_impl) :
+            m_impl{std::move(p_impl)} {}
+        //ip::impl
+        sockaddr const & ip::impl::get() const {
+            return reinterpret_cast<sockaddr const &>(m_addr);
+        }
+        ip::impl::impl(std::string const & p_ip, uint16_t p_port) {
+            check(uv_ip4_addr(p_ip.c_str(), p_port, &m_addr));
         }
     }
 }

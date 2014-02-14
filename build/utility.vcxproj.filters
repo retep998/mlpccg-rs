@@ -18,6 +18,9 @@
     <ClCompile Include="..\src\utility\tcp.cpp">
       <Filter>uv\tcp</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\utility\ip.cpp">
+      <Filter>uv\ip</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\utility\algorithm.hpp" />
@@ -63,6 +66,12 @@
     <ClInclude Include="..\src\utility\tcp_impl.hpp">
       <Filter>uv\tcp</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\utility\ip.hpp">
+      <Filter>uv\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\ip_impl.hpp">
+      <Filter>uv\ip</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="uv">
@@ -82,6 +91,9 @@
     </Filter>
     <Filter Include="uv\tcp">
       <UniqueIdentifier>{15b88c35-58bb-4932-ac64-3a8fc5a9d7f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="uv\ip">
+      <UniqueIdentifier>{415b461e-ef01-4165-9443-351a24882eda}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
