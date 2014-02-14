@@ -17,14 +17,24 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "tty.hpp"
-#include "stream_deleter.hpp"
+#include "stream.hpp"
+#include "loop.hpp"
 
 namespace nlp {
     namespace uv {
-        class tty::deleter final : public stream::deleter{
+        class tcp final : public stream {
         public:
-            void operator()(impl *) const;
+            class impl;
+            tcp() = default;
+            tcp(tcp const &) = default;
+            tcp(tcp &&) = default;
+            ~tcp() = default;
+            tcp & operator=(tcp const &) = default;
+            tcp & operator=(tcp &&) = default;
+            static tcp listen(loop const &, std::string const &, uint16_t);
+        protected:
+            tcp(std::shared_ptr<impl>);
+            std::shared_ptr<impl> get_impl() const;
         };
     }
 }

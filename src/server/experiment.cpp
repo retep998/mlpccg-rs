@@ -19,6 +19,7 @@
 #include "experiment.hpp"
 #include <utility/loop.hpp>
 #include <utility/tty.hpp>
+#include <utility/tcp.hpp>
 
 #pragma warning(push, 1)
 #include <cstdint>
@@ -28,11 +29,14 @@
 
 namespace nlp {
     void experiment() {
-        auto tty = uv::tty::create(uv::loop::create());
+        auto loop = uv::loop::create();
+        auto tty = uv::tty::create(loop);
         auto in = std::ifstream{"assets/motd.txt", std::ios::binary};
         auto line = std::string{};
         std::getline(in, line, '\0');
         tty.write(line);
         tty.write("\x1b[0m");
+        auto tcp = uv::tcp::listen(loop, "0.0.0.0", 273);
+        loop.run_default();
     }
 }

@@ -28,7 +28,6 @@ namespace nlp {
         class stream : public handle {
         public:
             class impl;
-            class deleter;
             class writer;
             stream() = default;
             stream(stream const &) = default;

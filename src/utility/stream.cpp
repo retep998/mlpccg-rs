@@ -18,7 +18,6 @@
 
 #include "stream.hpp"
 #include "stream_impl.hpp"
-#include "stream_deleter.hpp"
 #include "stream_writer.hpp"
 #include "check.hpp"
 
@@ -39,10 +38,6 @@ namespace nlp {
         }
         stream::impl::impl(std::shared_ptr<loop::impl> p_loop) :
             handle::impl{std::move(p_loop)} {}
-        //stream::deleter
-        void stream::deleter::operator()(impl * p_impl) const {
-            handle::deleter::operator()(p_impl);
-        }
         //stream::writer
         stream::writer::writer(std::string const & p_str, uv_stream_t * p_stream) :
             m_data{p_str.cbegin(), p_str.cend()} {

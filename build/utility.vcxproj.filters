@@ -15,8 +15,8 @@
     <ClCompile Include="..\src\utility\tty.cpp">
       <Filter>uv\tty</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\utility\tty_deleter.hpp">
-      <Filter>uv\tty</Filter>
+    <ClCompile Include="..\src\utility\tcp.cpp">
+      <Filter>uv\tcp</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -48,9 +48,6 @@
     <ClInclude Include="..\src\utility\stream_impl.hpp">
       <Filter>uv\stream</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\utility\stream_deleter.hpp">
-      <Filter>uv\stream</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\utility\stream_writer.hpp">
       <Filter>uv\stream</Filter>
     </ClInclude>
@@ -59,6 +56,12 @@
     </ClInclude>
     <ClInclude Include="..\src\utility\tty_impl.hpp">
       <Filter>uv\tty</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\tcp.hpp">
+      <Filter>uv\tcp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\tcp_impl.hpp">
+      <Filter>uv\tcp</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -76,6 +79,9 @@
     </Filter>
     <Filter Include="uv\tty">
       <UniqueIdentifier>{f8075e8e-6ab7-42d0-96d9-76b33fc5bd78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="uv\tcp">
+      <UniqueIdentifier>{15b88c35-58bb-4932-ac64-3a8fc5a9d7f7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

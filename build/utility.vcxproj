@@ -24,9 +24,10 @@
     <ClInclude Include="..\src\utility\loop_impl.hpp" />
     <ClInclude Include="..\src\utility\ptr.hpp" />
     <ClInclude Include="..\src\utility\stream.hpp" />
-    <ClInclude Include="..\src\utility\stream_deleter.hpp" />
     <ClInclude Include="..\src\utility\stream_impl.hpp" />
     <ClInclude Include="..\src\utility\stream_writer.hpp" />
+    <ClInclude Include="..\src\utility\tcp.hpp" />
+    <ClInclude Include="..\src\utility\tcp_impl.hpp" />
     <ClInclude Include="..\src\utility\tty.hpp" />
     <ClInclude Include="..\src\utility\check.hpp" />
     <ClInclude Include="..\src\utility\tty_impl.hpp" />
@@ -37,7 +38,7 @@
     <ClCompile Include="..\src\utility\listener.cpp" />
     <ClCompile Include="..\src\utility\loop.cpp" />
     <ClCompile Include="..\src\utility\stream.cpp" />
+    <ClCompile Include="..\src\utility\tcp.cpp" />
     <ClCompile Include="..\src\utility\tty.cpp" />
-    <ClCompile Include="..\src\utility\tty_deleter.hpp" />
   </ItemGroup>
 </Project>

@@ -18,7 +18,7 @@
 
 #include "tty.hpp"
 #include "tty_impl.hpp"
-#include "tty_deleter.hpp"
+#include "handle_deleter.hpp"
 #include "loop_impl.hpp"
 #include "check.hpp"
 
@@ -38,13 +38,10 @@ namespace nlp {
         uv_stream_t * tty::impl::get_stream() {
             return reinterpret_cast<uv_stream_t *>(&m_tty);
         }
-        tty::impl::impl(std::shared_ptr<loop::impl> p_loop) : stream::impl{std::move(p_loop)} {
+        tty::impl::impl(std::shared_ptr<loop::impl> p_loop) :
+            stream::impl{std::move(p_loop)} {
             check(uv_tty_init(m_loop->get(), &m_tty, 1, false));
             m_tty.data = static_cast<handle::impl *>(this);
-        }
-        //tty::deleter
-        void tty::deleter::operator()(impl * p_impl) const {
-            stream::deleter::operator()(p_impl);
         }
     }
 }
