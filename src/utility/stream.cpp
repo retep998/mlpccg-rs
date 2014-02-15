@@ -21,15 +21,41 @@
 #include "stream_writer.hpp"
 #include "check.hpp"
 
+#pragma warning(push, 1)
+#include <algorithm>
+#pragma warning(pop)
+
 namespace nlp {
     namespace uv {
         //stream
-        void stream::write(std::string const & p_str) {
-            new writer{p_str, get_impl()->get_stream()};
+        void stream::write(std::string const & p_data) {
+            write(std::vector<char>{p_data.cbegin(), p_data.cend()});
+        }
+        void stream::write(std::vector<char> p_data) {
+            new writer{std::move(p_data), get()->get_stream()};
+        }
+        void stream::read(std::function<void(std::vector<char> const &)> p_func) {
+            get()->m_read_callback = std::move(p_func);
+            check(uv_read_start(get()->get_stream(), [](uv_handle_t * p_handle, size_t p_size, uv_buf_t * p_buf) {
+                auto && a = static_cast<stream::impl *>(static_cast<handle::impl *>(p_handle->data));
+                a->m_read_buf.resize(p_size);
+                *p_buf = uv_buf_init(a->m_read_buf.data(), static_cast<unsigned>(a->m_read_buf.size()));
+            }, [](uv_stream_t * p_stream, ssize_t p_size, uv_buf_t const *) {
+                if (p_size < 0) switch (p_size) {
+                case UV__EOF:
+                case UV__ECONNRESET:
+                    return;//TODO - Handle disconnection
+                default:
+                    check(static_cast<int>(p_size));
+                }
+                auto && a = static_cast<stream::impl *>(static_cast<handle::impl *>(p_stream->data));
+                a->m_read_buf.resize(static_cast<std::vector<char>::size_type>(p_size));
+                a->m_read_callback(a->m_read_buf);
+            }));
         }
         stream::stream(std::shared_ptr<impl> p_impl) :
-            handle{std::static_pointer_cast<handle::impl>(p_impl)} {}
-        std::shared_ptr<stream::impl> stream::get_impl() const {
+            handle{p_impl} {}
+        std::shared_ptr<stream::impl> stream::get() const {
             return std::static_pointer_cast<stream::impl>(m_impl);
         }
         //stream::impl
@@ -42,14 +68,13 @@ namespace nlp {
         stream::impl::impl(std::shared_ptr<loop::impl> p_loop) :
             handle::impl{std::move(p_loop)} {}
         //stream::writer
-        stream::writer::writer(std::string const & p_str, uv_stream_t * p_stream) :
-            m_data{p_str.cbegin(), p_str.cend()} {
-            m_buf.len = static_cast<unsigned>(m_data.size());
-            m_buf.base = m_data.data();
+        stream::writer::writer(std::vector<char> && p_data, uv_stream_t * p_stream) :
+            m_data{std::move(p_data)} {
+            m_buf = uv_buf_init(m_data.data(), static_cast<unsigned>(m_data.size()));
             m_write.data = this;
             check(uv_write(&m_write, p_stream, &m_buf, unsigned{1}, [](uv_write_t * p_write, int p_status) {
                 check(p_status);
-                delete reinterpret_cast<writer *>(p_write->data);
+                delete static_cast<writer *>(p_write->data);
             }));
         }
     }

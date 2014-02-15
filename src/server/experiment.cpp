@@ -26,6 +26,8 @@
 #include <cstdint>
 #include <vector>
 #include <fstream>
+#include <sstream>
+#include <iomanip>
 #pragma warning(pop)
 
 namespace nlp {
@@ -39,6 +41,16 @@ namespace nlp {
         tty.write(line);
         tty.write("\x1b[0m");
         auto tcp = uv::tcp::listen(loop, uv::ip::create("0.0.0.0", 273), [&](uv::tcp p_tcp) {
+            p_tcp.read([&](std::vector<char> const & p_data) {
+                tty.write("Got packet!\n");
+                auto ss = std::ostringstream{};
+                ss << std::hex << std::setfill('0');
+                for (auto && c : p_data) {
+                    ss << std::setw(2) << static_cast<unsigned>(static_cast<unsigned char>(c)) << ' ';
+                }
+                ss << '\n';
+                tty.write(ss.str());
+            });
             connections.emplace_back(p_tcp);
             tty.write("Got connection!\n");
         });

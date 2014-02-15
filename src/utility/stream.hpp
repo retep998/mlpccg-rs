@@ -21,6 +21,8 @@
 
 #pragma warning(push, 1)
 #include <string>
+#include <functional>
+#include <vector>
 #pragma warning(pop)
 
 namespace nlp {
@@ -35,10 +37,12 @@ namespace nlp {
             ~stream() = default;
             stream & operator=(stream const &) = default;
             stream & operator=(stream &&) = default;
+            void write(std::vector<char>);
             void write(std::string const &);
+            void read(std::function<void(std::vector<char> const &)>);
         protected:
             stream(std::shared_ptr<impl>);
-            std::shared_ptr<impl> get_impl() const;
+            std::shared_ptr<impl> get() const;
         };
     }
 }

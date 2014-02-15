@@ -30,7 +30,7 @@ namespace nlp {
             return{i};
         }
         tty::tty(std::shared_ptr<impl> p_impl) :
-            stream{std::static_pointer_cast<stream::impl>(p_impl)} {}
+            stream{p_impl} {}
         std::shared_ptr<tty::impl> tty::get_impl() const {
             return std::static_pointer_cast<tty::impl>(m_impl);
         }

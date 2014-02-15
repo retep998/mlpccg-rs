@@ -44,7 +44,7 @@ namespace nlp {
             return{a};
         }
         tcp::tcp(std::shared_ptr<impl> const & p_impl) :
-            stream{std::static_pointer_cast<stream::impl>(p_impl)} {}
+            stream{p_impl} {}
         //tcp::impl
         uv_stream_t * tcp::impl::get_stream() {
             return reinterpret_cast<uv_stream_t *>(&m_tcp);

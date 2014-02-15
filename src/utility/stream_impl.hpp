@@ -39,6 +39,9 @@ namespace nlp {
             void listen(int, uv_connection_cb);
         protected:
             impl(std::shared_ptr<loop::impl>);
+            std::vector<char> m_read_buf;
+            std::function<void(std::vector<char> const &)> m_read_callback;
+            friend stream;
         };
     }
 }
