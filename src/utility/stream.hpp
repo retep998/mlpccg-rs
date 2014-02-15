@@ -37,9 +37,10 @@ namespace nlp {
             ~stream() = default;
             stream & operator=(stream const &) = default;
             stream & operator=(stream &&) = default;
-            void write(std::vector<char>);
-            void write(std::string const &);
-            void read(std::function<void(std::vector<char> const &)>);
+            void write(std::vector<char>) const;
+            void write(std::string const &) const;
+            void read(std::function<void(std::vector<char> const &)>) const;
+            void disconnect(std::function<void()>) const;
         protected:
             stream(std::shared_ptr<impl>);
             std::shared_ptr<impl> get() const;

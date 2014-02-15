@@ -28,30 +28,36 @@
 namespace nlp {
     namespace uv {
         //stream
-        void stream::write(std::string const & p_data) {
+        void stream::write(std::string const & p_data) const {
             write(std::vector<char>{p_data.cbegin(), p_data.cend()});
         }
-        void stream::write(std::vector<char> p_data) {
+        void stream::write(std::vector<char> p_data) const {
             new writer{std::move(p_data), get()->get_stream()};
         }
-        void stream::read(std::function<void(std::vector<char> const &)> p_func) {
+        void stream::read(std::function<void(std::vector<char> const &)> p_func) const {
             get()->m_read_callback = std::move(p_func);
             check(uv_read_start(get()->get_stream(), [](uv_handle_t * p_handle, size_t p_size, uv_buf_t * p_buf) {
                 auto && a = static_cast<stream::impl *>(static_cast<handle::impl *>(p_handle->data));
                 a->m_read_buf.resize(p_size);
                 *p_buf = uv_buf_init(a->m_read_buf.data(), static_cast<unsigned>(a->m_read_buf.size()));
             }, [](uv_stream_t * p_stream, ssize_t p_size, uv_buf_t const *) {
+                auto && a = static_cast<stream::impl *>(static_cast<handle::impl *>(p_stream->data));
                 if (p_size < 0) switch (p_size) {
                 case UV__EOF:
                 case UV__ECONNRESET:
-                    return;//TODO - Handle disconnection
+                    if (a->m_disconnect_callback) {
+                        a->m_disconnect_callback();
+                    }
+                    return;
                 default:
                     check(static_cast<int>(p_size));
                 }
-                auto && a = static_cast<stream::impl *>(static_cast<handle::impl *>(p_stream->data));
                 a->m_read_buf.resize(static_cast<std::vector<char>::size_type>(p_size));
                 a->m_read_callback(a->m_read_buf);
             }));
+        }
+        void stream::disconnect(std::function<void()> p_func) const {
+            get()->m_disconnect_callback = std::move(p_func);
         }
         stream::stream(std::shared_ptr<impl> p_impl) :
             handle{p_impl} {}

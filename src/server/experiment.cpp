@@ -27,12 +27,13 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <list>
 #include <iomanip>
 #pragma warning(pop)
 
 namespace nlp {
     void experiment() {
-        auto connections = std::vector<uv::tcp>{};
+        auto connections = std::list<uv::tcp>{};
         auto loop = uv::loop::create();
         auto tty = uv::tty::create(loop);
         auto in = std::ifstream{"assets/motd.txt", std::ios::binary};
@@ -40,8 +41,17 @@ namespace nlp {
         std::getline(in, line, '\0');
         tty.write(line);
         tty.write("\x1b[0m");
-        auto tcp = uv::tcp::listen(loop, uv::ip::create("0.0.0.0", 273), [&](uv::tcp p_tcp) {
-            p_tcp.read([&](std::vector<char> const & p_data) {
+        auto tcp = uv::tcp::listen(loop, uv::ip::create("0.0.0.0", 273), [&tty, &connections](uv::tcp p_tcp) {
+            connections.emplace_back(p_tcp);
+            auto it = --connections.cend();
+#pragma warning(push)
+#pragma warning(disable : 5026 5027)
+            p_tcp.disconnect([&tty, &connections, it] {
+                connections.erase(it);
+                tty.write("Disconnected!\n");
+            });
+#pragma warning(pop)
+            p_tcp.read([&tty](std::vector<char> const & p_data) {
                 tty.write("Got packet!\n");
                 auto ss = std::ostringstream{};
                 ss << std::hex << std::setfill('0');
@@ -51,7 +61,6 @@ namespace nlp {
                 ss << '\n';
                 tty.write(ss.str());
             });
-            connections.emplace_back(p_tcp);
             tty.write("Got connection!\n");
         });
         loop.run_default();
