@@ -17,7 +17,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "game.hpp"
+#include "player.hpp"
 #include <utility/ptr.hpp>
+#include <utility/tcp.hpp>
 
 #pragma warning(push, 1)
 #include <map>
@@ -30,39 +33,39 @@ namespace nlp {
     class player;
     class game;
     class packet_handler;
-    class manager;
     class server final {
     public:
         server();
         server(server const &) = delete;
-        ~server();
+        server(server &&) = delete;
+        ~server() = default;
         server & operator=(server const &) = delete;
+        server & operator=(server &&) = delete;
         void run();
-        ptr<player> create_player(ptr<packet_handler>);
         ptr<game> create_game(std::string);
-        ptr<player> get_player(uint32_t) const;
-        ptr<game> get_game(uint32_t) const;
+        ptr<player> get_player(uint32_t);
+        ptr<game> get_game(uint32_t);
         uint32_t total_players() const;
         uint32_t total_games() const;
         std::mt19937_64 & rng();
         template <typename Func>
-        void for_game(Func && p_func) const {
+        void for_game(Func && p_func) {
             for (auto & g : m_games) {
-                p_func(*g.second);
+                p_func(g.second);
             }
         }
         template <typename Func>
-        void for_player(Func && p_func) const {
+        void for_player(Func && p_func) {
             for (auto & p : m_players) {
-                p_func(*p.second);
+                p_func(p.second);
             }
         }
-    private:
+    protected:
         void update();
-        void collect();
-        std::map<uint32_t, std::unique_ptr<game>> m_games;
-        std::map<uint32_t, std::unique_ptr<player>> m_players;
-        std::unique_ptr<manager> m_manager;
+        std::map<uint32_t, game> m_games;
+        std::map<uint32_t, player> m_players;
         std::mt19937_64 m_rng;
+        uv::tcp m_listener;
+        uv::loop m_loop;
     };
 }

@@ -35,38 +35,39 @@
 
 namespace nlp {
     void experiment() {
-        auto connections = std::list<framed_stream>{};
         auto loop = uv::loop::create();
-        auto tty = uv::tty::create(loop);
+        auto out = uv::tty::create(loop);
         auto in = std::ifstream{"assets/motd.txt", std::ios::binary};
         auto line = std::string{};
         std::getline(in, line, '\0');
-        tty.write(line);
-        tty.write("\x1b[0m");
-        auto tcp = uv::tcp::listen(loop, uv::ip::create("0.0.0.0", 273), [&tty, &connections](uv::tcp p_tcp) {
+        out.write(line);
+        out.write("\x1b[0m");
+        return;
+        /*
+        auto connections = std::list<framed_stream>{};
+        auto tcp = uv::tcp::listen(loop, uv::ip::create("0.0.0.0", 273), [&out, &connections](uv::tcp p_tcp) {
             auto stream = framed_stream::create(p_tcp);
             connections.emplace_back(stream);
             auto it = --connections.cend();
 #pragma warning(push)
 #pragma warning(disable: 5026 5027)
-            p_tcp.disconnect([&tty, &connections, it] {
+            p_tcp.disconnect([&out, &connections, it] {
                 connections.erase(it);
-                tty.write("Disconnected!\n");
+                out.write("Disconnected!\n");
             });
 #pragma warning(pop)
-            stream.read([&tty](packet p_packet) {
-                tty.write("Got packet!\n");
+            stream.read([&out](packet p_packet) {
+                out.write("Got packet!\n");
                 auto ss = std::ostringstream{};
                 ss << std::hex << std::setfill('0') << std::uppercase;
                 for (auto c : p_packet.get()) {
                     ss << std::setw(2) << static_cast<unsigned>(static_cast<unsigned char>(c)) << ' ';
                 }
                 ss << '\n';
-                tty.write(ss.str());
+                out.write(ss.str());
             });
-            tty.write("Got connection!\n");
+            out.write("Got connection!\n");
         });
-        packet p{};
-        loop.run_default();
+        */
     }
 }

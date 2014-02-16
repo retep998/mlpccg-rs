@@ -25,7 +25,8 @@
 
 int main() {
     nlp::experiment();
-    //nlp::server{}.run();
+    nlp::server{}.run();
+    std::cerr << "...";
     std::cin.get();
     return EXIT_SUCCESS;
 }

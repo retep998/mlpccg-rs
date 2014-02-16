@@ -21,10 +21,6 @@
 #include "handle_deleter.hpp"
 #include "loop.hpp"
 
-#pragma warning(push, 1)
-#include <iostream>
-#pragma warning(pop)
-
 namespace nlp {
     namespace uv {
         //handle
@@ -37,7 +33,6 @@ namespace nlp {
         void handle::deleter::operator()(impl * p_impl) const {
             uv_close(p_impl->get_handle(), [](uv_handle_t * p_handle) {
                 delete reinterpret_cast<impl *>(p_handle->data);
-                std::cerr << "Handle deleted!" << std::endl;
             });
             p_impl->m_loop.reset();
         }

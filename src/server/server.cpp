@@ -30,28 +30,24 @@
 
 namespace nlp {
     server::server() :
-        m_manager{std::make_unique<manager>()} {
-        m_manager->add_listener(273, [this](auto p_send) {
-            return create_player(p_send);
+        m_loop{uv::loop::create()} {
+        m_listener = uv::tcp::listen(m_loop, uv::ip::create("0.0.0.0", 273), [this](uv::tcp p_tcp) {
+            auto dist = std::uniform_int_distribution<uint32_t>{1, std::numeric_limits<uint32_t>::max()};
+            uint32_t id;
+            do {
+                id = dist(m_rng);
+            } while (m_players.find(id) != m_players.end());
+            auto it = m_players.emplace(std::piecewise_construct, std::make_tuple(id), std::make_tuple(id, this, p_tcp));
+            p_tcp.disconnect([this, it] {
+                m_players.erase(it.first);
+            });
         });
     }
-    server::~server() {}
     void server::run() {
         for (;;) {
-            m_manager->update();
+            m_loop.run_once();
             update();
-            m_manager->collect();
-            collect();
         }
-    }
-    ptr<player> server::create_player(ptr<packet_handler> p_send) {
-        auto dist = std::uniform_int_distribution<uint32_t>{1, std::numeric_limits<uint32_t>::max()};
-        uint32_t id;
-        do {
-            id = dist(m_rng);
-        } while (m_players.find(id) != m_players.end());
-        auto p = std::make_unique<player>(p_send, id, this);
-        return m_players.emplace(id, std::move(p)).first->second;
     }
     ptr<game> server::create_game(std::string p_name) {
         auto dist = std::uniform_int_distribution<uint32_t>{1, std::numeric_limits<uint32_t>::max()};
@@ -59,17 +55,17 @@ namespace nlp {
         do {
             id = dist(m_rng);
         } while (m_games.find(id) != m_games.end());
-        auto g = std::make_unique<game>(p_name, id, this);
-        return m_games.emplace(id, std::move(g)).first->second;
+        auto it = m_games.emplace(std::piecewise_construct, std::make_tuple(id), std::make_tuple(p_name, id, this));
+        return it.first->second;
     }
-    ptr<player> server::get_player(uint32_t p_id) const {
+    ptr<player> server::get_player(uint32_t p_id) {
         auto it = m_players.find(p_id);
         if (it == m_players.end()) {
             return{};
         }
         return it->second;
     }
-    ptr<game> server::get_game(uint32_t p_id) const {
+    ptr<game> server::get_game(uint32_t p_id) {
         auto it = m_games.find(p_id);
         if (it == m_games.end()) {
             return{};
@@ -87,18 +83,10 @@ namespace nlp {
     }
     void server::update() {
         for (auto & p : m_players) {
-            p.second->update();
+            p.second.update();
         }
         for (auto & g : m_games) {
-            g.second->update();
+            g.second.update();
         }
-    }
-    void server::collect() {
-        remove_if(m_players, [](auto & p) {
-            return p.second->is_dead();
-        });
-        remove_if(m_games, [](auto & g) {
-            return g.second->is_dead();
-        });
     }
 }

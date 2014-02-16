@@ -18,6 +18,7 @@
 
 #pragma once
 #include "packet_handler.hpp"
+#include <utility/tcp.hpp>
 #include <utility/ptr.hpp>
 
 #pragma warning(push, 1)
@@ -34,7 +35,7 @@ namespace nlp {
     class server;
     class player final : public packet_handler {
     public:
-        player(ptr<packet_handler>, uint32_t, ptr<server>);
+        player(uint32_t, ptr<server>, uv::tcp);
         ~player();
         uint32_t get_id() const;
         std::string const & get_name() const;

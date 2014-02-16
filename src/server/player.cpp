@@ -30,8 +30,7 @@
 #pragma warning(pop)
 
 namespace nlp {
-    player::player(ptr<packet_handler> p_send, uint32_t p_id, ptr<server> p_server) :
-        m_send{p_send},
+    player::player(uint32_t p_id, ptr<server> p_server, uv::tcp) :
         m_id{p_id},
         m_server{p_server} {
         m_name = default_name();
