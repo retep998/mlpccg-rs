@@ -21,6 +21,12 @@
     <ClCompile Include="..\src\utility\ip.cpp">
       <Filter>uv\ip</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\utility\framed_stream.cpp">
+      <Filter>framed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utility\packet.cpp">
+      <Filter>framed</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\utility\algorithm.hpp" />
@@ -72,6 +78,15 @@
     <ClInclude Include="..\src\utility\ip_impl.hpp">
       <Filter>uv\ip</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\utility\framed_stream.hpp">
+      <Filter>framed</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\packet.hpp">
+      <Filter>framed</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\framed_stream_impl.hpp">
+      <Filter>framed</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="uv">
@@ -94,6 +109,9 @@
     </Filter>
     <Filter Include="uv\ip">
       <UniqueIdentifier>{415b461e-ef01-4165-9443-351a24882eda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="framed">
+      <UniqueIdentifier>{74d1d380-4f17-4056-bbd6-d2d2964226ab}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

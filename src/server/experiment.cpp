@@ -21,6 +21,8 @@
 #include <utility/tty.hpp>
 #include <utility/tcp.hpp>
 #include <utility/ip.hpp>
+#include <utility/packet.hpp>
+#include <utility/framed_stream.hpp>
 
 #pragma warning(push, 1)
 #include <cstdint>
@@ -33,7 +35,7 @@
 
 namespace nlp {
     void experiment() {
-        auto connections = std::list<uv::tcp>{};
+        auto connections = std::list<framed_stream>{};
         auto loop = uv::loop::create();
         auto tty = uv::tty::create(loop);
         auto in = std::ifstream{"assets/motd.txt", std::ios::binary};
@@ -42,20 +44,21 @@ namespace nlp {
         tty.write(line);
         tty.write("\x1b[0m");
         auto tcp = uv::tcp::listen(loop, uv::ip::create("0.0.0.0", 273), [&tty, &connections](uv::tcp p_tcp) {
-            connections.emplace_back(p_tcp);
+            auto stream = framed_stream::create(p_tcp);
+            connections.emplace_back(stream);
             auto it = --connections.cend();
 #pragma warning(push)
-#pragma warning(disable : 5026 5027)
+#pragma warning(disable: 5026 5027)
             p_tcp.disconnect([&tty, &connections, it] {
                 connections.erase(it);
                 tty.write("Disconnected!\n");
             });
 #pragma warning(pop)
-            p_tcp.read([&tty](std::vector<char> const & p_data) {
+            stream.read([&tty](packet p_packet) {
                 tty.write("Got packet!\n");
                 auto ss = std::ostringstream{};
-                ss << std::hex << std::setfill('0');
-                for (auto && c : p_data) {
+                ss << std::hex << std::setfill('0') << std::uppercase;
+                for (auto c : p_packet.get()) {
                     ss << std::setw(2) << static_cast<unsigned>(static_cast<unsigned char>(c)) << ' ';
                 }
                 ss << '\n';
@@ -63,6 +66,7 @@ namespace nlp {
             });
             tty.write("Got connection!\n");
         });
+        packet p{};
         loop.run_default();
     }
 }
