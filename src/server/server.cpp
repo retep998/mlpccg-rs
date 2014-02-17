@@ -20,7 +20,6 @@
 #include "player.hpp"
 #include "manager.hpp"
 #include "game.hpp"
-#include <utility/algorithm.hpp>
 
 #pragma warning(push, 1)
 #include <fstream>
@@ -44,10 +43,7 @@ namespace nlp {
         });
     }
     void server::run() {
-        for (;;) {
-            m_loop.run_once();
-            update();
-        }
+        m_loop.run();
     }
     ptr<game> server::create_game(std::string p_name) {
         auto dist = std::uniform_int_distribution<uint32_t>{1, std::numeric_limits<uint32_t>::max()};
@@ -80,13 +76,5 @@ namespace nlp {
     }
     std::mt19937_64 & server::rng() {
         return m_rng;
-    }
-    void server::update() {
-        for (auto & p : m_players) {
-            p.second.update();
-        }
-        for (auto & g : m_games) {
-            g.second.update();
-        }
     }
 }

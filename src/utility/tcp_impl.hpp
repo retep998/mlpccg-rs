@@ -31,12 +31,10 @@ namespace nlp {
             ~impl() = default;
             impl & operator=(impl const &) = delete;
             impl & operator=(impl &&) = delete;
-            uv_stream_t * get_stream() override;
-            void bind(std::shared_ptr<ip::impl> const &);
+            uv_stream_t & get_stream() override;
         protected:
-            impl(std::shared_ptr<loop::impl> const &);
+            impl(loop const &);
             uv_tcp_t m_tcp;
-            std::function<void(tcp)> m_listen_callback;
             friend tcp;
         };
     }

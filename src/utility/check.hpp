@@ -19,5 +19,7 @@
 #pragma once
 
 namespace nlp {
-    void check(int);
+    namespace uv {
+        void check(int);
+    }
 }

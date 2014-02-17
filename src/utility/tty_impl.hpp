@@ -30,9 +30,9 @@ namespace nlp {
             ~impl() = default;
             impl & operator=(impl const &) = delete;
             impl & operator=(impl &&) = delete;
-            uv_stream_t * get_stream() override;
+            uv_stream_t & get_stream() override;
         protected:
-            impl(std::shared_ptr<loop::impl>);
+            impl(loop const &);
             uv_tty_t m_tty;
             friend tty;
         };

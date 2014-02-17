@@ -17,24 +17,25 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-
-#pragma warning(push, 1)
-#include <memory>
-#pragma warning(pop)
+#include "timer.hpp"
+#include "handle_impl.hpp"
 
 namespace nlp {
-    class loop;
-    class listener {
-    public:
-        class impl;
-        listener() = default;
-        listener(listener const &) = default;
-        listener(listener &&) = default;
-        ~listener();
-        listener & operator=(listener const &) = default;
-        listener & operator=(listener &&) = default;
-        void open(loop const &, uint16_t);
-    private:
-        std::shared_ptr<impl> m_impl;
-    };
+    namespace uv {
+        class timer::impl final : public handle::impl{
+        public:
+            impl() = delete;
+            impl(impl const &) = delete;
+            impl(impl &&) = delete;
+            ~impl() = default;
+            impl & operator=(impl const &) = delete;
+            impl & operator=(impl &&) = delete;
+            uv_handle_t & get_handle() override;
+        protected:
+            impl(std::shared_ptr<loop::impl>);
+            uv_timer_t m_timer;
+            std::function<void(void)> m_callback;
+            friend timer;
+        };
+    }
 }

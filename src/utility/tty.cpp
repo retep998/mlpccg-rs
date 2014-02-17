@@ -26,20 +26,19 @@ namespace nlp {
     namespace uv {
         //tty
         tty tty::create(loop const & p_loop) {
-            auto && i = std::shared_ptr<impl>{new impl{p_loop.get()}, deleter{}};
-            return{i};
+            auto && a = tty{};
+            a.m_impl = std::shared_ptr<impl>{new impl{p_loop}, deleter{}};
+            return a;
         }
-        tty::tty(std::shared_ptr<impl> p_impl) :
-            stream{p_impl} {}
-        std::shared_ptr<tty::impl> tty::get_impl() const {
+        std::shared_ptr<tty::impl> tty::get() const {
             return std::static_pointer_cast<tty::impl>(m_impl);
         }
         //tty::impl
-        uv_stream_t * tty::impl::get_stream() {
-            return reinterpret_cast<uv_stream_t *>(&m_tty);
+        uv_stream_t & tty::impl::get_stream() {
+            return reinterpret_cast<uv_stream_t &>(m_tty);
         }
-        tty::impl::impl(std::shared_ptr<loop::impl> p_loop) :
-            stream::impl{std::move(p_loop)} {
+        tty::impl::impl(loop const & p_loop) :
+            stream::impl{p_loop} {
             check(uv_tty_init(m_loop->get(), &m_tty, 1, false));
             m_tty.data = static_cast<handle::impl *>(this);
         }

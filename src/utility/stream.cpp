@@ -32,11 +32,11 @@ namespace nlp {
             write(std::vector<char>{p_data.cbegin(), p_data.cend()});
         }
         void stream::write(std::vector<char> p_data) const {
-            new writer{std::move(p_data), get()->get_stream()};
+            new writer{std::move(p_data), &get()->get_stream()};
         }
         void stream::read(std::function<void(std::vector<char> const &)> p_func) const {
             get()->m_read_callback = std::move(p_func);
-            check(uv_read_start(get()->get_stream(), [](uv_handle_t * p_handle, size_t p_size, uv_buf_t * p_buf) {
+            check(uv_read_start(&get()->get_stream(), [](uv_handle_t * p_handle, size_t p_size, uv_buf_t * p_buf) {
                 auto && a = static_cast<stream::impl *>(static_cast<handle::impl *>(p_handle->data));
                 a->m_read_buf.resize(p_size);
                 *p_buf = uv_buf_init(a->m_read_buf.data(), static_cast<unsigned>(a->m_read_buf.size()));
@@ -65,11 +65,11 @@ namespace nlp {
             return std::static_pointer_cast<stream::impl>(m_impl);
         }
         //stream::impl
-        uv_handle_t * stream::impl::get_handle() {
-            return reinterpret_cast<uv_handle_t *>(get_stream());
+        uv_handle_t & stream::impl::get_handle() {
+            return reinterpret_cast<uv_handle_t &>(get_stream());
         }
         void stream::impl::listen(int p_backlog, uv_connection_cb p_callback) {
-            check(uv_listen(get_stream(), p_backlog, p_callback));
+            check(uv_listen(&get_stream(), p_backlog, p_callback));
         }
         stream::impl::impl(std::shared_ptr<loop::impl> p_loop) :
             handle::impl{std::move(p_loop)} {}

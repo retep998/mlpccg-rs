@@ -16,23 +16,34 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-
-#pragma warning(push, 1)
-#include <map>
-#pragma warning(pop)
+#include "timer_impl.hpp"
+#include "loop_impl.hpp"
+#include "handle_deleter.hpp"
+#include "check.hpp"
 
 namespace nlp {
-    template <typename T, typename U, typename Func>
-    void remove_if(std::map<T, U> & p_map, Func && p_func) {
-        auto const begin = p_map.cbegin();
-        auto const end = p_map.cend();
-        for (auto it = begin; it != end;) {
-            if (p_func(*it)) {
-                it = p_map.erase(it);
-            } else {
-                ++it;
-            }
+    namespace uv {
+        //timer
+        void timer::start(std::function<void(void)> p_callback, std::chrono::milliseconds p_timeout, std::chrono::milliseconds p_repeat) {
+            get()->m_callback = std::move(p_callback);
+            check(uv_timer_start(&get()->m_timer, [](uv_timer_t * p_timer, int p_status) {
+                check(p_status);
+                auto a = static_cast<timer::impl *>(static_cast<handle::impl *>(p_timer->data));
+                a->m_callback();
+            }, static_cast<uint64_t>(p_timeout.count()), static_cast<uint64_t>(p_repeat.count())));
+        }
+        timer timer::create(loop const & p_loop) {
+            auto && a = timer{};
+            a.m_impl = std::shared_ptr<impl>{new impl{p_loop.get()}, deleter{}};
+            return{std::move(a)};
+        }
+        std::shared_ptr<timer::impl> timer::get() {
+            return std::static_pointer_cast<impl>(m_impl);
+        }
+        //timer::impl
+        timer::impl::impl(std::shared_ptr<loop::impl> p_loop) :
+            handle::impl{std::move(p_loop)} {
+            check(uv_timer_init(m_loop->get(), &m_timer));
         }
     }
 }

@@ -35,7 +35,6 @@ namespace nlp {
             handle & operator=(handle const &) = default;
             handle & operator=(handle &&) = default;
         protected:
-            handle(std::shared_ptr<impl>);
             std::shared_ptr<impl> m_impl;
         };
     }

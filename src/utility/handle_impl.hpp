@@ -31,14 +31,14 @@ namespace nlp {
             impl() = delete;
             impl(impl const &) = delete;
             impl(impl &&) = delete;
+            virtual ~impl() = default;
             impl & operator=(impl const &) = delete;
             impl & operator=(impl &&) = delete;
-            virtual uv_handle_t * get_handle() = 0;
-            virtual ~impl() = default;
+            virtual uv_handle_t & get_handle() = 0;
         protected:
-            impl(std::shared_ptr<loop::impl>);
-            std::shared_ptr<loop::impl> m_loop;
-            friend deleter;
+            impl(loop const &);
+            loop m_loop;
+            friend handle;
         };
     }
 }

@@ -24,6 +24,7 @@
 
 namespace nlp {
     namespace uv {
+        class handle;
         class loop final {
         public:
             class impl;
@@ -34,15 +35,11 @@ namespace nlp {
             ~loop() = default;
             loop & operator=(loop const &) = default;
             loop & operator=(loop &&) = default;
-            void run_default() const;
-            void run_once() const;
-            void run_nowait() const;
+            void run() const;
             static loop create();
-            static loop get_default();
-            std::shared_ptr<impl> const & get() const;
         protected:
-            loop(std::shared_ptr<impl>);
             std::shared_ptr<impl> m_impl;
+            friend handle;
         };
     }
 }

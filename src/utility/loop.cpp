@@ -21,46 +21,35 @@
 #include "loop_deleter.hpp"
 #include "check.hpp"
 
+#pragma warning(push, 1)
+#include <stdexcept>
+#pragma warning(pop)
+
 namespace nlp {
     namespace uv {
         //loop
-        void loop::run_default() const {
+        void loop::run() const {
             check(uv_run(m_impl->m_loop, UV_RUN_DEFAULT));
         }
-        void loop::run_once() const {
-            check(uv_run(m_impl->m_loop, UV_RUN_ONCE));
-        }
-        void loop::run_nowait() const {
-            check(uv_run(m_impl->m_loop, UV_RUN_NOWAIT));
-        }
         loop loop::create() {
-            auto && i = std::shared_ptr<impl>{new impl{uv_loop_new(), true}, deleter{}};
-            return{i};
+            auto && a = loop{};
+            a.m_impl = std::shared_ptr<impl>{new impl{}, deleter{}};
+            return a;
         }
-        loop loop::get_default() {
-            static auto && def = std::shared_ptr<impl>{new impl{uv_default_loop(), false}, deleter{}};
-            return{def};
-        }
-        std::shared_ptr<loop::impl> const & loop::get() const {
-            return m_impl;
-        }
-
-        loop::loop(std::shared_ptr<impl> p_impl) :
-            m_impl{std::move(p_impl)} {}
         //loop::impl
-        uv_loop_t * loop::impl::get() const {
+        uv_loop_t * loop::impl::get() {
             return m_loop;
         }
-        loop::impl::impl(uv_loop_t * p_loop, bool p_owned) :
-            m_loop{p_loop},
-            m_owned{p_owned} {}
+        loop::impl::impl() :
+            m_loop{uv_loop_new()} {}
         //loop::deleter
         void loop::deleter::operator()(impl * p_impl) {
-            check(uv_run(p_impl->m_loop, UV_RUN_DEFAULT));
-            if (p_impl->m_owned) {
-                uv_loop_delete(p_impl->m_loop);
+            auto && a = std::unique_ptr<impl>{p_impl};//Guarantee that p_impl gets destroyed even if an exception is thrown
+            check(uv_run(p_impl->m_loop, UV_RUN_ONCE));//One final run to deal with all the handle close events
+            if (uv_loop_alive(p_impl->m_loop)) {
+                throw std::runtime_error{"ERROR: Trying to destroy loop when it is still alive!"};
             }
-            delete p_impl;
+            uv_loop_delete(p_impl->m_loop);
         }
     }
 }

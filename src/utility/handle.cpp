@@ -19,22 +19,20 @@
 #include "handle.hpp"
 #include "handle_impl.hpp"
 #include "handle_deleter.hpp"
-#include "loop.hpp"
+#include "loop_impl.hpp"
 
 namespace nlp {
     namespace uv {
         //handle
-        handle::handle(std::shared_ptr<impl> p_impl) :
-            m_impl{std::move(p_impl)} {}
         //handle::impl
-        handle::impl::impl(std::shared_ptr<loop::impl> p_loop) :
-            m_loop{std::move(p_loop)} {}
+        handle::impl::impl(loop const & p_loop) :
+            m_loop{p_loop} {}
         //handle::deleter
         void handle::deleter::operator()(impl * p_impl) const {
-            uv_close(p_impl->get_handle(), [](uv_handle_t * p_handle) {
+            uv_close(&p_impl->get_handle(), [](uv_handle_t * p_handle) {
                 delete reinterpret_cast<impl *>(p_handle->data);
             });
-            p_impl->m_loop.reset();
+            p_impl->m_loop = {};
         }
     }
 }

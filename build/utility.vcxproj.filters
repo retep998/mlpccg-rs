@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\src\utility\check.cpp" />
-    <ClCompile Include="..\src\utility\listener.cpp" />
     <ClCompile Include="..\src\utility\handle.cpp">
       <Filter>uv\handle</Filter>
     </ClCompile>
@@ -10,13 +8,13 @@
       <Filter>uv\loop</Filter>
     </ClCompile>
     <ClCompile Include="..\src\utility\stream.cpp">
-      <Filter>uv\stream</Filter>
+      <Filter>uv\handle\stream</Filter>
     </ClCompile>
     <ClCompile Include="..\src\utility\tty.cpp">
-      <Filter>uv\tty</Filter>
+      <Filter>uv\handle\stream\tty</Filter>
     </ClCompile>
     <ClCompile Include="..\src\utility\tcp.cpp">
-      <Filter>uv\tcp</Filter>
+      <Filter>uv\handle\stream\tcp</Filter>
     </ClCompile>
     <ClCompile Include="..\src\utility\ip.cpp">
       <Filter>uv\ip</Filter>
@@ -27,12 +25,15 @@
     <ClCompile Include="..\src\utility\packet.cpp">
       <Filter>framed</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\utility\timer.cpp">
+      <Filter>uv\handle\timer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utility\check.cpp">
+      <Filter>uv</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\utility\algorithm.hpp" />
-    <ClInclude Include="..\src\utility\listener.hpp" />
     <ClInclude Include="..\src\utility\ptr.hpp" />
-    <ClInclude Include="..\src\utility\check.hpp" />
     <ClInclude Include="..\src\utility\handle_impl.hpp">
       <Filter>uv\handle</Filter>
     </ClInclude>
@@ -52,25 +53,25 @@
       <Filter>uv\loop</Filter>
     </ClInclude>
     <ClInclude Include="..\src\utility\stream.hpp">
-      <Filter>uv\stream</Filter>
+      <Filter>uv\handle\stream</Filter>
     </ClInclude>
     <ClInclude Include="..\src\utility\stream_impl.hpp">
-      <Filter>uv\stream</Filter>
+      <Filter>uv\handle\stream</Filter>
     </ClInclude>
     <ClInclude Include="..\src\utility\stream_writer.hpp">
-      <Filter>uv\stream</Filter>
+      <Filter>uv\handle\stream</Filter>
     </ClInclude>
     <ClInclude Include="..\src\utility\tty.hpp">
-      <Filter>uv\tty</Filter>
+      <Filter>uv\handle\stream\tty</Filter>
     </ClInclude>
     <ClInclude Include="..\src\utility\tty_impl.hpp">
-      <Filter>uv\tty</Filter>
+      <Filter>uv\handle\stream\tty</Filter>
     </ClInclude>
     <ClInclude Include="..\src\utility\tcp.hpp">
-      <Filter>uv\tcp</Filter>
+      <Filter>uv\handle\stream\tcp</Filter>
     </ClInclude>
     <ClInclude Include="..\src\utility\tcp_impl.hpp">
-      <Filter>uv\tcp</Filter>
+      <Filter>uv\handle\stream\tcp</Filter>
     </ClInclude>
     <ClInclude Include="..\src\utility\ip.hpp">
       <Filter>uv\ip</Filter>
@@ -87,6 +88,15 @@
     <ClInclude Include="..\src\utility\framed_stream_impl.hpp">
       <Filter>framed</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\utility\timer.hpp">
+      <Filter>uv\handle\timer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\timer_impl.hpp">
+      <Filter>uv\handle\timer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utility\check.hpp">
+      <Filter>uv</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="uv">
@@ -98,20 +108,23 @@
     <Filter Include="uv\loop">
       <UniqueIdentifier>{69ef5cd7-55e1-463c-bbc5-982bc6e91461}</UniqueIdentifier>
     </Filter>
-    <Filter Include="uv\stream">
-      <UniqueIdentifier>{f583aa57-a5a9-4c06-bac6-3dab9610e0b0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="uv\tty">
-      <UniqueIdentifier>{f8075e8e-6ab7-42d0-96d9-76b33fc5bd78}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="uv\tcp">
-      <UniqueIdentifier>{15b88c35-58bb-4932-ac64-3a8fc5a9d7f7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="uv\ip">
       <UniqueIdentifier>{415b461e-ef01-4165-9443-351a24882eda}</UniqueIdentifier>
     </Filter>
     <Filter Include="framed">
       <UniqueIdentifier>{74d1d380-4f17-4056-bbd6-d2d2964226ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="uv\handle\stream">
+      <UniqueIdentifier>{f583aa57-a5a9-4c06-bac6-3dab9610e0b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="uv\handle\timer">
+      <UniqueIdentifier>{38694c8d-6b51-4962-90bc-bf8114334255}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="uv\handle\stream\tcp">
+      <UniqueIdentifier>{15b88c35-58bb-4932-ac64-3a8fc5a9d7f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="uv\handle\stream\tty">
+      <UniqueIdentifier>{f8075e8e-6ab7-42d0-96d9-76b33fc5bd78}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

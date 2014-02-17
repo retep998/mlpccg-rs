@@ -25,9 +25,11 @@
 #pragma warning(pop)
 
 namespace nlp {
-    void check(int p_err) {
-        if (p_err) {
-            throw std::runtime_error{std::string{"ERROR: "} + uv_err_name(p_err) + ": " + uv_strerror(p_err)};
+    namespace uv {
+        void check(int p_err) {
+            if (p_err) {
+                throw std::runtime_error{std::string{"ERROR: "} + uv_err_name(p_err) + ": " + uv_strerror(p_err)};
+            }
         }
     }
 }
