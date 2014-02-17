@@ -38,7 +38,7 @@ namespace nlp {
             virtual uv_stream_t & get_stream() = 0;
             void listen(int, uv_connection_cb);
         protected:
-            impl(std::shared_ptr<loop::impl>);
+            impl(loop const &);
             std::vector<char> m_read_buf;
             std::function<void(std::vector<char> const &)> m_read_callback;
             std::function<void()> m_disconnect_callback;

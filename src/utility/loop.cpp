@@ -28,6 +28,9 @@
 namespace nlp {
     namespace uv {
         //loop
+        std::shared_ptr<loop::impl> const & loop::operator->() const {
+            return m_impl;
+        }
         void loop::run() const {
             check(uv_run(m_impl->m_loop, UV_RUN_DEFAULT));
         }

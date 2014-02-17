@@ -35,11 +35,11 @@ namespace nlp {
             ~loop() = default;
             loop & operator=(loop const &) = default;
             loop & operator=(loop &&) = default;
+            std::shared_ptr<impl> const & operator->() const;
             void run() const;
             static loop create();
         protected:
             std::shared_ptr<impl> m_impl;
-            friend handle;
         };
     }
 }

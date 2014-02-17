@@ -34,16 +34,20 @@ namespace nlp {
         }
         timer timer::create(loop const & p_loop) {
             auto && a = timer{};
-            a.m_impl = std::shared_ptr<impl>{new impl{p_loop.get()}, deleter{}};
+            a.m_impl = std::shared_ptr<impl>{new impl{p_loop}, deleter{}};
             return{std::move(a)};
         }
         std::shared_ptr<timer::impl> timer::get() {
             return std::static_pointer_cast<impl>(m_impl);
         }
         //timer::impl
-        timer::impl::impl(std::shared_ptr<loop::impl> p_loop) :
-            handle::impl{std::move(p_loop)} {
+        uv_handle_t & timer::impl::get_handle() {
+            return reinterpret_cast<uv_handle_t &>(m_timer);
+        }
+        timer::impl::impl(loop const & p_loop) :
+            handle::impl{p_loop} {
             check(uv_timer_init(m_loop->get(), &m_timer));
+            m_timer.data = static_cast<handle::impl *>(this);
         }
     }
 }

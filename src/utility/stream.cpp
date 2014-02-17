@@ -59,8 +59,6 @@ namespace nlp {
         void stream::disconnect(std::function<void()> p_func) const {
             get()->m_disconnect_callback = std::move(p_func);
         }
-        stream::stream(std::shared_ptr<impl> p_impl) :
-            handle{p_impl} {}
         std::shared_ptr<stream::impl> stream::get() const {
             return std::static_pointer_cast<stream::impl>(m_impl);
         }
@@ -71,8 +69,8 @@ namespace nlp {
         void stream::impl::listen(int p_backlog, uv_connection_cb p_callback) {
             check(uv_listen(&get_stream(), p_backlog, p_callback));
         }
-        stream::impl::impl(std::shared_ptr<loop::impl> p_loop) :
-            handle::impl{std::move(p_loop)} {}
+        stream::impl::impl(loop const & p_loop) :
+            handle::impl{p_loop} {}
         //stream::writer
         stream::writer::writer(std::vector<char> && p_data, uv_stream_t * p_stream) :
             m_data{std::move(p_data)} {

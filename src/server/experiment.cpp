@@ -23,6 +23,7 @@
 #include <utility/ip.hpp>
 #include <utility/packet.hpp>
 #include <utility/framed_stream.hpp>
+#include <utility/timer.hpp>
 
 #pragma warning(push, 1)
 #include <cstdint>
@@ -42,6 +43,17 @@ namespace nlp {
         std::getline(in, line, '\0');
         out.write(line);
         out.write("\x1b[0m");
+        auto timer = uv::timer::create(loop);
+        auto timers = std::vector<uv::timer>{};
+        timer.start([&out, &timers, &loop] {
+            for (auto i = 0; i < 1000; ++i) {
+                auto timer = uv::timer::create(loop);
+                timer.start([] {}, {}, std::chrono::seconds{1});
+                timers.push_back(timer);
+            }
+            out.write("Timers: " + std::to_string(timers.size()) + "\n");
+        }, {}, std::chrono::seconds{1});
+        loop.run();
         return;
         /*
         auto connections = std::list<framed_stream>{};

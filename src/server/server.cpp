@@ -30,7 +30,7 @@
 namespace nlp {
     server::server() :
         m_loop{uv::loop::create()} {
-        m_listener = uv::tcp::listen(m_loop, uv::ip::create("0.0.0.0", 273), [this](uv::tcp p_tcp) {
+        /*m_listener = uv::tcp::listen(m_loop, uv::ip::create("0.0.0.0", 273), [this](uv::tcp p_tcp) {
             auto dist = std::uniform_int_distribution<uint32_t>{1, std::numeric_limits<uint32_t>::max()};
             uint32_t id;
             do {
@@ -40,7 +40,7 @@ namespace nlp {
             p_tcp.disconnect([this, it] {
                 m_players.erase(it.first);
             });
-        });
+        });*/
     }
     void server::run() {
         m_loop.run();

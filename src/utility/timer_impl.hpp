@@ -32,7 +32,7 @@ namespace nlp {
             impl & operator=(impl &&) = delete;
             uv_handle_t & get_handle() override;
         protected:
-            impl(std::shared_ptr<loop::impl>);
+            impl(loop const &);
             uv_timer_t m_timer;
             std::function<void(void)> m_callback;
             friend timer;

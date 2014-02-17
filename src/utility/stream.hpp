@@ -42,7 +42,6 @@ namespace nlp {
             void read(std::function<void(std::vector<char> const &)>) const;
             void disconnect(std::function<void()>) const;
         protected:
-            stream(std::shared_ptr<impl>);
             std::shared_ptr<impl> get() const;
         };
     }
