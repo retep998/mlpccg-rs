@@ -37,12 +37,14 @@ namespace nlp {
             ~stream() = default;
             stream & operator=(stream const &) = default;
             stream & operator=(stream &&) = default;
+            impl * operator->() const;
+            void listen(std::function<void(stream)>, int) const;
+            void read_start(std::function<void(std::vector<char> const &)>) const;
+            void read_stop() const;
             void write(std::vector<char>) const;
+            //Temporary until I create an std::streambuf wrapper
             void write(std::string const &) const;
-            void read(std::function<void(std::vector<char> const &)>) const;
-            void disconnect(std::function<void()>) const;
-        protected:
-            std::shared_ptr<impl> get() const;
+            void eof(std::function<void()>) const;
         };
     }
 }

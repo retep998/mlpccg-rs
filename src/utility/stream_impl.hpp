@@ -36,12 +36,13 @@ namespace nlp {
             impl & operator=(impl &&) = delete;
             uv_handle_t & get_handle() override;
             virtual uv_stream_t & get_stream() = 0;
-            void listen(int, uv_connection_cb);
+            virtual stream clone() const = 0;
         protected:
             impl(loop const &);
             std::vector<char> m_read_buf;
+            std::function<void(stream)> m_listen_callback;
             std::function<void(std::vector<char> const &)> m_read_callback;
-            std::function<void()> m_disconnect_callback;
+            std::function<void()> m_eof_callback;
             friend stream;
         };
     }

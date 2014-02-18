@@ -31,6 +31,7 @@ namespace nlp {
             impl & operator=(impl const &) = delete;
             impl & operator=(impl &&) = delete;
             uv_stream_t & get_stream() override;
+            stream clone() const override;
         protected:
             impl(loop const &);
             uv_tty_t m_tty;

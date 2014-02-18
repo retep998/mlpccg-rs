@@ -35,7 +35,7 @@ namespace nlp {
             writer & operator=(writer const &) = delete;
             writer & operator=(writer &&) = delete;
         protected:
-            writer(std::vector<char> &&, uv_stream_t *);
+            writer(std::vector<char> &&, stream const &);
             std::vector<char> m_data;
             uv_buf_t m_buf;
             uv_write_t m_write;

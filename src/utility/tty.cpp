@@ -37,6 +37,9 @@ namespace nlp {
         uv_stream_t & tty::impl::get_stream() {
             return reinterpret_cast<uv_stream_t &>(m_tty);
         }
+        stream tty::impl::clone() const {
+            return create(m_loop);
+        }
         tty::impl::impl(loop const & p_loop) :
             stream::impl{p_loop} {
             check(uv_tty_init(m_loop->get(), &m_tty, 1, false));

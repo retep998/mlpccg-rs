@@ -46,6 +46,9 @@ namespace nlp {
         uv_stream_t & tcp::impl::get_stream() {
             return reinterpret_cast<uv_stream_t &>(m_tcp);
         }
+        stream tcp::impl::clone() const {
+            return create(m_loop);
+        }
         tcp::impl::impl(loop const & p_loop) :
             stream::impl{p_loop} {
             check(uv_tcp_init(m_loop->get(), &m_tcp));

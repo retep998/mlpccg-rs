@@ -37,31 +37,28 @@
 
 namespace nlp {
     void experiment() {
+        auto connections = std::list<framed_stream>{};
         auto loop = uv::loop::create();
         auto out = uv::tty::create(loop);
         auto in = std::ifstream{"assets/motd.txt", std::ios::binary};
         auto line = std::string{};
+        auto listener = uv::tcp::create(loop);
         std::getline(in, line, '\0');
         out.write(line);
         out.write("\x1b[0m");
-        auto listener = uv::tcp::create(loop);
         listener.bind(uv::ip::create("0.0.0.0", 273));
-        loop.run();
-        return;
-        /*
-        auto connections = std::list<framed_stream>{};
-        auto tcp = uv::tcp::listen(loop, uv::ip::create("0.0.0.0", 273), [&out, &connections](uv::tcp p_tcp) {
-            auto stream = framed_stream::create(p_tcp);
-            connections.emplace_back(stream);
+        listener.listen([&](uv::stream p_stream) {
+            auto && frame = framed_stream::create(p_stream);
+            connections.emplace_back(frame);
             auto it = --connections.cend();
 #pragma warning(push)
 #pragma warning(disable: 5026 5027)
-            p_tcp.disconnect([&out, &connections, it] {
+            p_stream.eof([&, it] {
                 connections.erase(it);
                 out.write("Disconnected!\n");
             });
 #pragma warning(pop)
-            stream.read([&out](packet p_packet) {
+            frame.read([&out](packet p_packet) {
                 out.write("Got packet!\n");
                 auto ss = std::ostringstream{};
                 ss << std::hex << std::setfill('0') << std::uppercase;
@@ -72,7 +69,8 @@ namespace nlp {
                 out.write(ss.str());
             });
             out.write("Got connection!\n");
-        });
-        */
+        }, 0x100);
+        loop.run();
+        return;
     }
 }

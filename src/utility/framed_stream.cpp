@@ -40,11 +40,14 @@ namespace nlp {
     framed_stream::framed_stream(std::shared_ptr<impl> p_impl) :
         m_impl{std::move(p_impl)} {}
     //framed_stream::impl
+    framed_stream::impl::~impl() {
+        m_stream.read_stop();
+    }
     framed_stream::impl::impl(uv::stream p_stream) :
         m_stream{std::move(p_stream)} {}
     void framed_stream::impl::read(std::function<void(packet)> p_func) {
         m_read_callback = std::move(p_func);
-        m_stream.read([this](std::vector<char> const & p_data) {
+        m_stream.read_start([this](std::vector<char> const & p_data) {
             std::copy(p_data.cbegin(), p_data.cend(), std::back_inserter(m_data));
             while (m_data.size() >= sizeof(uint32_t)) {
                 auto size = ::ntohl(reinterpret_cast<uint32_t &>(m_data[0]));

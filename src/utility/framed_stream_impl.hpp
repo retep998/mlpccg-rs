@@ -25,7 +25,7 @@ namespace nlp {
         impl() = delete;
         impl(impl const &) = delete;
         impl(impl &&) = delete;
-        ~impl() = default;
+        ~impl();
         impl & operator=(impl const &) = delete;
         impl & operator=(impl &&) = delete;
     protected:
