@@ -32,6 +32,7 @@
 #include <sstream>
 #include <list>
 #include <iomanip>
+#include <algorithm>
 #pragma warning(pop)
 
 namespace nlp {
@@ -43,16 +44,8 @@ namespace nlp {
         std::getline(in, line, '\0');
         out.write(line);
         out.write("\x1b[0m");
-        auto timer = uv::timer::create(loop);
-        auto timers = std::vector<uv::timer>{};
-        timer.start([&out, &timers, &loop] {
-            for (auto i = 0; i < 1000; ++i) {
-                auto timer = uv::timer::create(loop);
-                timer.start([] {}, {}, std::chrono::seconds{1});
-                timers.push_back(timer);
-            }
-            out.write("Timers: " + std::to_string(timers.size()) + "\n");
-        }, {}, std::chrono::seconds{1});
+        auto listener = uv::tcp::create(loop);
+        listener.bind(uv::ip::create("0.0.0.0", 273));
         loop.run();
         return;
         /*

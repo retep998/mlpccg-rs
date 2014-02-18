@@ -47,10 +47,10 @@ namespace nlp {
             m_loop{uv_loop_new()} {}
         //loop::deleter
         void loop::deleter::operator()(impl * p_impl) {
-            auto && a = std::unique_ptr<impl>{p_impl};//Guarantee that p_impl gets destroyed even if an exception is thrown
-            check(uv_run(p_impl->m_loop, UV_RUN_ONCE));//One final run to deal with all the handle close events
+            auto && a = std::unique_ptr<impl>{p_impl};
+            check(uv_run(p_impl->m_loop, UV_RUN_ONCE));
             if (uv_loop_alive(p_impl->m_loop)) {
-                throw std::runtime_error{"ERROR: Trying to destroy loop when it is still alive!"};
+                throw std::runtime_error{"Loop is still alive"};
             }
             uv_loop_delete(p_impl->m_loop);
         }

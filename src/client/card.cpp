@@ -71,7 +71,6 @@ namespace nlp {
     bool card::is_problem() const {
         return m_data->is_problem();
     }
-    //Returns whether the card is a regular card, aka a card that goes directly in the deck, and not separately as a problem or mane.
     bool card::is_regular() const {
         return m_data->is_regular();
     }

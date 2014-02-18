@@ -41,7 +41,6 @@ namespace nlp {
         type get_type() const;
         bool is_mane() const;
         bool is_problem() const;
-        //Returns whether the card is a regular card, aka a card that goes directly in the deck, and not separately as a problem or mane.
         bool is_regular() const;
     private:
         ptr<data> m_data;

@@ -22,15 +22,14 @@
 namespace nlp {
     namespace uv {
         //ip
+        ip::impl * ip::operator->() const {
+            return m_impl.get();
+        }
         ip ip::create(std::string const & p_ip, uint16_t p_port) {
-            auto && a = std::shared_ptr<impl>{new impl{p_ip, p_port}};
-            return{std::move(a)};
+            auto && a = ip{};
+            a.m_impl = std::shared_ptr<impl>{new impl{p_ip, p_port}};
+            return a;
         }
-        std::shared_ptr<ip::impl> const & ip::get() const {
-            return m_impl;
-        }
-        ip::ip(std::shared_ptr<impl> && p_impl) :
-            m_impl{std::move(p_impl)} {}
         //ip::impl
         sockaddr const & ip::impl::get() const {
             return reinterpret_cast<sockaddr const &>(m_addr);

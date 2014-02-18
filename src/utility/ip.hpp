@@ -35,10 +35,9 @@ namespace nlp {
             ~ip() = default;
             ip & operator=(ip const &) = default;
             ip & operator=(ip &&) = default;
+            impl * operator->() const;
             static ip create(std::string const &, uint16_t);
-            std::shared_ptr<impl> const & get() const;
         protected:
-            ip(std::shared_ptr<impl> &&);
             std::shared_ptr<impl> m_impl;
         };
     }

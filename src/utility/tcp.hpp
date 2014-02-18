@@ -23,6 +23,7 @@
 
 #pragma warning(push, 1)
 #include <functional>
+#include <chrono>
 #pragma warning(pop)
 
 namespace nlp {
@@ -36,10 +37,16 @@ namespace nlp {
             ~tcp() = default;
             tcp & operator=(tcp const &) = default;
             tcp & operator=(tcp &&) = default;
-            void bind(ip const &);
+            impl * operator->() const;
             static tcp create(loop const &);
+            void bind(ip const &);
+            void nodelay(bool);
+            void keepalive(bool, std::chrono::seconds);
+            void simultaneous_accepts(bool);
+            ip getsockname();
+            ip getpeername();
+            void connect(ip const &, std::function<void()>);
         protected:
-            std::shared_ptr<impl> get() const;
         };
     }
 }

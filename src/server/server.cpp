@@ -36,7 +36,8 @@ namespace nlp {
             do {
                 id = dist(m_rng);
             } while (m_players.find(id) != m_players.end());
-            auto it = m_players.emplace(std::piecewise_construct, std::make_tuple(id), std::make_tuple(id, this, p_tcp));
+            auto it = m_players.emplace(std::piecewise_construct, std::make_tuple(id),
+                                        std::make_tuple(id, this, p_tcp));
             p_tcp.disconnect([this, it] {
                 m_players.erase(it.first);
             });

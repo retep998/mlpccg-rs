@@ -35,12 +35,14 @@ namespace nlp {
             return m_mane && m_mane.is_mane();
         }
         bool is_problems_valid() const {
-            return m_problems.size() == 10 && std::all_of(m_problems.cbegin(), m_problems.cend(), [this](card const & c) {
+            return m_problems.size() == 10 && std::all_of(m_problems.cbegin(),m_problems.cend(),
+                                                          [this](card const & c) {
                 return c && c.is_problem() && std::count(m_problems.cbegin(), m_problems.cend(), c) <= 2;
             });
         }
         bool is_regulars_valid() const {
-            return m_problems.size() >= 45 && std::all_of(m_problems.cbegin(), m_problems.cend(), [this](card const & c) {
+            return m_problems.size() >= 45 && std::all_of(m_problems.cbegin(), m_problems.cend(),
+                                                          [this](card const & c) {
                 return c && c.is_regular() && std::count(m_problems.cbegin(), m_problems.cend(), c) <= 3;
             });
         }

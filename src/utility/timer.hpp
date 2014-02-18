@@ -36,7 +36,7 @@ namespace nlp {
             ~timer() = default;
             timer & operator=(timer const &) = default;
             timer & operator=(timer &&) = default;
-            void start(std::function<void(void)>, std::chrono::milliseconds timeout, std::chrono::milliseconds repeat);
+            void start(std::function<void(void)>, std::chrono::milliseconds, std::chrono::milliseconds);
             void stop();
             void again();
             void set_repeat(std::chrono::milliseconds);

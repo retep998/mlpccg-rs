@@ -24,7 +24,8 @@
 namespace nlp {
     namespace uv {
         //timer
-        void timer::start(std::function<void(void)> p_callback, std::chrono::milliseconds p_timeout, std::chrono::milliseconds p_repeat) {
+        void timer::start(std::function<void(void)> p_callback, std::chrono::milliseconds p_timeout,
+                          std::chrono::milliseconds p_repeat) {
             get()->m_callback = std::move(p_callback);
             check(uv_timer_start(&get()->m_timer, [](uv_timer_t * p_timer, int p_status) {
                 check(p_status);

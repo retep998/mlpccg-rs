@@ -36,7 +36,8 @@ namespace nlp {
     public:
         connection() = delete;
         connection(connection const &) = delete;
-        connection(std::function<ptr<packet_handler>(ptr<packet_handler>)>, std::unique_ptr<sf::TcpSocket>, ptr<manager>);
+        connection(std::function<ptr<packet_handler>(ptr<packet_handler>)>, std::unique_ptr<sf::TcpSocket>,
+                   ptr<manager>);
         ~connection();
         connection & operator=(connection const &) = delete;
         sf::Socket & get_socket() const;

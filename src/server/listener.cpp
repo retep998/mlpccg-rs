@@ -27,7 +27,8 @@
 #pragma warning(pop)
 
 namespace nlp {
-    listener::listener(uint16_t p_port, std::function<ptr<packet_handler>(ptr<packet_handler>)> p_func, ptr<manager> p_manager) :
+    listener::listener(uint16_t p_port, std::function<ptr<packet_handler>(ptr<packet_handler>)> p_func,
+                       ptr<manager> p_manager) :
         m_listen{std::make_unique<sf::TcpListener>()},
         m_func{std::move(p_func)},
         m_manager{p_manager} {

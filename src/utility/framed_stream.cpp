@@ -46,11 +46,13 @@ namespace nlp {
         m_read_callback = std::move(p_func);
         m_stream.read([this](std::vector<char> const & p_data) {
             std::copy(p_data.cbegin(), p_data.cend(), std::back_inserter(m_data));
-            if (m_data.size() >= sizeof(uint32_t)) {
+            while (m_data.size() >= sizeof(uint32_t)) {
                 auto size = ::ntohl(reinterpret_cast<uint32_t &>(m_data[0]));
                 if (m_data.size() >= size + sizeof(uint32_t)) {
                     m_read_callback({m_data.begin() + sizeof(uint32_t), m_data.begin() + size + sizeof(uint32_t)});
                     m_data.erase(m_data.begin(), m_data.begin() + size + sizeof(uint32_t));
+                } else {
+                    return;
                 }
             }
         });

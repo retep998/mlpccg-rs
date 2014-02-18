@@ -29,7 +29,8 @@
 #pragma warning(pop)
 
 namespace nlp {
-    connection::connection(std::function<ptr<packet_handler>(ptr<packet_handler>)> p_func, std::unique_ptr<sf::TcpSocket> p_socket, ptr<manager> p_manager) :
+    connection::connection(std::function<ptr<packet_handler>(ptr<packet_handler>)> p_func,
+                           std::unique_ptr<sf::TcpSocket> p_socket, ptr<manager> p_manager) :
         m_socket{std::move(p_socket)},
         m_manager{p_manager} {
         m_receive = p_func(this);
