@@ -48,7 +48,7 @@ namespace nlp {
         //loop::deleter
         void loop::deleter::operator()(impl * p_impl) {
             auto && a = std::unique_ptr<impl>{p_impl};
-            check(uv_run(p_impl->m_loop, UV_RUN_ONCE));
+            check(uv_run(p_impl->m_loop, UV_RUN_NOWAIT));
             if (uv_loop_alive(p_impl->m_loop)) {
                 throw std::runtime_error{"Loop is still alive"};
             }

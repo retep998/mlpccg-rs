@@ -18,35 +18,39 @@
 
 #include "server.hpp"
 #include "player.hpp"
-#include "manager.hpp"
 #include "game.hpp"
+#include <utility/framed_stream.hpp>
 
 #pragma warning(push, 1)
 #include <fstream>
-#include <iostream>
 #include <algorithm>
 #pragma warning(pop)
 
 namespace nlp {
     server::server() :
-        m_loop{uv::loop::create()} {
-        /*m_listener = uv::tcp::listen(m_loop, uv::ip::create("0.0.0.0", 273), [this](uv::tcp p_tcp) {
+        m_loop{uv::loop::create()},
+        m_tty{uv::tty::create(m_loop)} {
+        m_listener = uv::tcp::create(m_loop);
+        m_listener.bind(uv::ip::create("0.0.0.0", 273));
+        m_listener.listen([this](uv::stream p_stream) {
             auto dist = std::uniform_int_distribution<uint32_t>{1, std::numeric_limits<uint32_t>::max()};
-            uint32_t id;
+            auto id = uint32_t{};
             do {
                 id = dist(m_rng);
             } while (m_players.find(id) != m_players.end());
-            auto it = m_players.emplace(std::piecewise_construct, std::make_tuple(id),
-                                        std::make_tuple(id, this, p_tcp));
-            p_tcp.disconnect([this, it] {
-                m_players.erase(it.first);
-            });
-        });*/
+            m_players.emplace(std::piecewise_construct, std::make_tuple(id),
+                              std::make_tuple(id, std::ref(*this), p_stream));
+        }, 0x100);
+        auto in = std::ifstream{"assets/motd.txt", std::ios::binary};
+        auto line = std::string{};
+        std::getline(in, line, '\0');
+        m_tty.write(line);
+        m_tty.write("\x1b[0m");
     }
     void server::run() {
         m_loop.run();
     }
-    ptr<game> server::create_game(std::string p_name) {
+    game & server::create_game(std::string p_name) {
         auto dist = std::uniform_int_distribution<uint32_t>{1, std::numeric_limits<uint32_t>::max()};
         uint32_t id;
         do {
@@ -75,7 +79,26 @@ namespace nlp {
     uint32_t server::total_games() const {
         return static_cast<uint32_t>(m_games.size());
     }
+    void server::destroy_player(uint32_t p_id) {
+        m_players.erase(p_id);
+    }
     std::mt19937_64 & server::rng() {
         return m_rng;
+    }
+    uv::tty & server::tty() {
+        return m_tty;
+    }
+    uv::loop const & server::loop() const {
+        return m_loop;
+    }
+    void server::for_game(std::function<void(game &)> p_func) {
+        for (auto & game : m_games) {
+            p_func(game.second);
+        }
+    }
+    void server::for_player(std::function<void(player &)> p_func) {
+        for (auto & player : m_players) {
+            p_func(player.second);
+        }
     }
 }

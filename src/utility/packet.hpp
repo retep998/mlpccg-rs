@@ -20,7 +20,7 @@
 
 #pragma warning(push, 1)
 #include <vector>
-#include <iostream>
+#include <cstdint>
 #pragma warning(pop)
 
 namespace nlp {
@@ -35,8 +35,28 @@ namespace nlp {
         packet & operator=(packet &&) = default;
         void compute_size();
         std::vector<char> & get();
+        packet & operator>>(int8_t &);
+        packet & operator>>(uint8_t &);
+        packet & operator>>(int16_t &);
+        packet & operator>>(uint16_t &);
+        packet & operator>>(int32_t &);
+        packet & operator>>(uint32_t &);
+        packet & operator>>(int64_t &);
+        packet & operator>>(uint64_t &);
+        packet & operator>>(std::string &);
+        packet & operator<<(int8_t);
+        packet & operator<<(uint8_t);
+        packet & operator<<(int16_t);
+        packet & operator<<(uint16_t);
+        packet & operator<<(int32_t);
+        packet & operator<<(uint32_t);
+        packet & operator<<(int64_t);
+        packet & operator<<(uint64_t);
+        packet & operator<<(std::string const &);
     protected:
+        void read(void *, size_t);
+        void write(void const *, size_t);
         std::vector<char> m_data{4};
-        size_t m_read_pos{0};
+        size_t m_read_pos{4};
     };
 }

@@ -17,15 +17,13 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "server.hpp"
-#include "experiment.hpp"
 
 #pragma warning(push, 1)
 #include <iostream>
 #pragma warning(pop)
 
 int main() {
-    nlp::experiment();
-    //nlp::server{}.run();
+    nlp::server{}.run();
     std::cerr << "...";
     std::cin.get();
     return EXIT_SUCCESS;

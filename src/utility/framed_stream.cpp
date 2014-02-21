@@ -52,7 +52,7 @@ namespace nlp {
             while (m_data.size() >= sizeof(uint32_t)) {
                 auto size = ::ntohl(reinterpret_cast<uint32_t &>(m_data[0]));
                 if (m_data.size() >= size + sizeof(uint32_t)) {
-                    m_read_callback({m_data.begin() + sizeof(uint32_t), m_data.begin() + size + sizeof(uint32_t)});
+                    m_read_callback({m_data.begin(), m_data.begin() + size + sizeof(uint32_t)});
                     m_data.erase(m_data.begin(), m_data.begin() + size + sizeof(uint32_t));
                 } else {
                     return;

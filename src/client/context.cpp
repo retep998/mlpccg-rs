@@ -30,7 +30,7 @@ namespace nlp {
                 connected = false;
                 socket = std::make_unique<sf::TcpSocket>();
                 std::thread([this] {
-                    while (socket->connect("retep998.no-ip.org", 273, sf::seconds(10)) != sf::Socket::Status::Done);
+                    while (socket->connect("127.0.0.1", 273, sf::seconds(10)) != sf::Socket::Status::Done);
                     connected = true;
                 }).detach();
             } else if (connected) {

@@ -17,9 +17,11 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "packet_handler.hpp"
 #include <utility/tcp.hpp>
 #include <utility/ptr.hpp>
+#include <utility/framed_stream.hpp>
+#include <utility/timer.hpp>
+#include <utility/packet.hpp>
 
 #pragma warning(push, 1)
 #include <chrono>
@@ -27,20 +29,20 @@
 #include <string>
 #pragma warning(pop)
 
-namespace sf {
-    class Packet;
-}
 namespace nlp {
     class game;
     class server;
-    class player final : public packet_handler {
+    class player final {
     public:
-        player(uint32_t, ptr<server>, uv::tcp);
-        ~player();
+        player() = delete;
+        player(player const &) = delete;
+        player(player &&) = delete;
+        player(uint32_t, server &, uv::stream);
+        ~player() = default;
+        player & operator=(player const &) = delete;
+        player & operator=(player &&) = delete;
         uint32_t get_id() const;
         std::string const & get_name() const;
-        void update();
-        bool is_dead() const;
         void send_game_created(ptr<game>);
         void send_game_joined(ptr<game>);
         void send_game_deleted(ptr<game>);
@@ -48,9 +50,10 @@ namespace nlp {
         void send_player_joined_game(ptr<player>);
     private:
         std::string default_name() const;
-        void handle(sf::Packet &) override;
-        void kill() override;
-        void send(sf::Packet &);
+        void handle(packet);
+        void kill();
+        void start(uint16_t);
+        void send();
         void send_pong(uint32_t);
         void send_id();
         void send_player_joined(ptr<player>);
@@ -59,13 +62,13 @@ namespace nlp {
         void send_global_chat(ptr<player>, std::string const &);
         void send_game_chat(ptr<player>, std::string const &);
         void send_private_chat(ptr<player>, std::string const &);
-        ptr<packet_handler> m_send;
-        std::chrono::steady_clock::time_point m_ping{std::chrono::steady_clock::now()};
-        uint32_t m_ping_id{};
-        std::string m_name;
+        uint32_t m_ping_id{0};
         uint32_t m_id;
+        std::string m_name;
+        server & m_server;
+        uv::timer m_timer;
+        framed_stream m_stream;
         ptr<game> m_game;
-        ptr<server> m_server;
-        bool m_dead = false;
+        packet m_packet;
     };
 }

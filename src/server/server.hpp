@@ -21,6 +21,7 @@
 #include "player.hpp"
 #include <utility/ptr.hpp>
 #include <utility/tcp.hpp>
+#include <utility/tty.hpp>
 
 #pragma warning(push, 1)
 #include <map>
@@ -32,7 +33,6 @@
 namespace nlp {
     class player;
     class game;
-    class packet_handler;
     class server final {
     public:
         server();
@@ -42,24 +42,17 @@ namespace nlp {
         server & operator=(server const &) = delete;
         server & operator=(server &&) = delete;
         void run();
-        ptr<game> create_game(std::string);
+        game & create_game(std::string);
         ptr<player> get_player(uint32_t);
         ptr<game> get_game(uint32_t);
+        void destroy_player(uint32_t);
         uint32_t total_players() const;
         uint32_t total_games() const;
         std::mt19937_64 & rng();
-        template <typename Func>
-        void for_game(Func && p_func) {
-            for (auto & g : m_games) {
-                p_func(g.second);
-            }
-        }
-        template <typename Func>
-        void for_player(Func && p_func) {
-            for (auto & p : m_players) {
-                p_func(p.second);
-            }
-        }
+        uv::tty & tty();
+        uv::loop const & loop() const;
+        void for_game(std::function<void(game &)>);
+        void for_player(std::function<void(player &)>);
     protected:
         void update();
         std::map<uint32_t, game> m_games;
@@ -67,5 +60,6 @@ namespace nlp {
         std::mt19937_64 m_rng;
         uv::tcp m_listener;
         uv::loop m_loop;
+        uv::tty m_tty;
     };
 }
