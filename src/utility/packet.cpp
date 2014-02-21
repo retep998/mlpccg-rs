@@ -29,14 +29,7 @@
 
 namespace nlp {
     packet::packet(std::vector<char>::const_iterator first, std::vector<char>::const_iterator last) :
-        m_data{first, last} {
-        auto ss = std::ostringstream{};
-        ss << std::hex << std::setfill('0') << std::uppercase;
-        for (auto c : m_data) {
-            ss << std::setw(2) << static_cast<unsigned>(static_cast<unsigned char>(c)) << ' ';
-        }
-        std::cerr << "In: " << ss.str() << std::endl;;
-    }
+        m_data{first, last} {}
     void packet::compute_size() {
         if (m_data.size() > std::numeric_limits<uint32_t>::max()) {
             throw std::runtime_error{"Packet too big!"};
@@ -47,12 +40,6 @@ namespace nlp {
         }
         size = ::htonl(size);
         reinterpret_cast<uint32_t &>(m_data[0]) = size;
-        auto ss = std::ostringstream{};
-        ss << std::hex << std::setfill('0') << std::uppercase;
-        for (auto c : m_data) {
-            ss << std::setw(2) << static_cast<unsigned>(static_cast<unsigned char>(c)) << ' ';
-        }
-        std::cerr << "Out: " << ss.str() << std::endl;
     }
     std::vector<char> & packet::get() {
         return m_data;

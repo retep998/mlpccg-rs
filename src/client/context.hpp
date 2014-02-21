@@ -38,7 +38,7 @@ namespace nlp {
             manager() = default;
             manager(manager const &) = delete;
             manager(manager &&) = delete;
-            ~manager() = default;
+            ~manager();
             manager & operator=(manager const &) = delete;
             manager & operator=(manager &&) = delete;
             void update();

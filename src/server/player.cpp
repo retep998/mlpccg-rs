@@ -94,6 +94,7 @@ namespace nlp {
             } else if (new_name.empty()) {
                 new_name = default_name();
             }
+            m_server.tty().write(m_name + " renamed to " + new_name + "\n");
             m_name = new_name;
             m_server.for_player([&](player & p_player) {
                 p_player.send_player_joined(this);
@@ -106,6 +107,7 @@ namespace nlp {
             auto game_name = std::string{};
             p_packet >> game_name;
             m_server.create_game(game_name).add_player(this);
+            m_server.tty().write(m_name + " created game" + game_name + "\n");
         } break;
         case 0x0008: {
             if (m_game) {
@@ -115,11 +117,13 @@ namespace nlp {
             p_packet >> id;
             if (auto g = m_server.get_game(id)) {
                 g->add_player(this);
+                m_server.tty().write(m_name + " joined game " + g->get_name() + "\n");
             }
         } break;
         case 0x000A: {
             auto message = std::string{};
             p_packet >> message;
+            m_server.tty().write(m_name + " globally says " + message + "\n");
             m_server.for_player([&](player & p_player) {
                 p_player.send_global_chat(this, message);
             });
@@ -128,6 +132,7 @@ namespace nlp {
             auto message = std::string{};
             p_packet >> message;
             if (m_game) {
+                m_server.tty().write(m_name + " game says " + message + "\n");
                 m_game->for_player([&](player & p_player) {
                     p_player.send_game_chat(this, message);
                 });
@@ -139,7 +144,10 @@ namespace nlp {
             auto message = std::string{};
             p_packet >> message;
             if (auto target = m_server.get_player(id)) {
+                m_server.tty().write(m_name + " private to " + target->get_name() + " says " + message + "\n");
                 target->send_private_chat(this, message);
+            } else {
+                m_server.tty().write(std::to_string(id) + " does not exist!\n");
             }
         } break;
         default: break;

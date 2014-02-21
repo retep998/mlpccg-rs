@@ -24,6 +24,9 @@
 
 namespace nlp {
     std::unique_ptr<sf::Font> font;
+    context::manager::~manager() {
+        font.reset();
+    }
     void context::manager::update() {
         if (!current) {
             if (!socket) {
