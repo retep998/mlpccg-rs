@@ -148,6 +148,7 @@ namespace nlp {
         std::vector<entry> entries{};
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> codecvt{};
         color_double background{0, 0, 0};
+        uv::tty tty{};
         void calc_coverage() {
             chars_name = "chars" + std::to_string(cwidth) + "x" + std::to_string(cheight) + ".png";
             auto && in = sf::Image{};
@@ -185,13 +186,13 @@ namespace nlp {
             }
         }
         uint8_t gamma_encode(double p_val) {
-            auto num = uint8_t{};
+            auto num = double{};
             if (p_val <= gamma_encode_threshhold) {
-                num = static_cast<uint8_t>(p_val * gamma_factor * gamma_mult);
+                num = p_val * gamma_factor * gamma_mult;
             } else {
-                num = static_cast<uint8_t>(((1 + gamma_a) * std::pow(p_val, 1 / gamma_val) - gamma_a) * gamma_mult);
+                num = ((1 + gamma_a) * std::pow(p_val, 1 / gamma_val) - gamma_a) * gamma_mult;
             }
-            return std::min(uint8_t{255}, std::max(uint8_t{0}, num));
+            return static_cast<uint8_t>(std::min(255., std::max(0., num)));
         }
         color_double gamma(color const & p_color) {
             return{gamma_decode(p_color.r), gamma_decode(p_color.g), gamma_decode(p_color.b)};
@@ -226,6 +227,8 @@ namespace nlp {
             }
         }
         void prep() {
+            auto loop = uv::loop::create();
+            tty = uv::tty::create(loop);
             calc_coverage();
             clear_grid();
             calc_combos();
@@ -252,21 +255,16 @@ namespace nlp {
         void print() {
             auto wstr = std::u16string{wchars.cbegin(), wchars.cend()};
             auto u8chars = codecvt.to_bytes(wstr);
-            auto loop = uv::loop::create();
-            auto tty = uv::tty::create(loop);
             tty.write(u8chars);
             tty.write("\n");
             std::cin.get();
         }
         void display_results() {
-            auto loop = uv::loop::create();
             auto in = std::ifstream{asset_path / sys::path{"motd.txt"}, std::ios::binary};
             auto line = std::string{};
-            auto tty = uv::tty::create(loop);
             std::getline(in, line, '\0');
             tty.write(line);
             tty.write("\x1b[0m");
-            std::cin.get();
         }
         void convert(std::string p_name) {
             auto && in = sf::Image{};
@@ -304,44 +302,44 @@ namespace nlp {
                     shrunk[y * conwidth + x] = sum * mult;
                 }
             }
-            auto adjust = [&](unsigned const & x, unsigned const & y, color_double const & err, double const & mult) {
-                auto const index = y * conwidth + x;
-                if (index < total_pixels) {
-                    shrunk[index] += err * mult;
-                }
-            };
-            auto lfg = uint8_t{}, lbg = uint8_t{};
+            auto lfg = uint8_t{0xff}, lbg = uint8_t{0xff};
             for (auto y = unsigned{0}; y < conheight; ++y) {
                 for (auto x = unsigned{0}; x < conwidth; ++x) {
                     auto & c = shrunk[y * conwidth + x];
                     auto & e = get_grid(c);
                     auto && err = c - e.col;
+                    auto adjust = [&](unsigned const & x, unsigned const & y, double const & mult) {
+                        auto const index = y * conwidth + x;
+                        if (index < total_pixels) {
+                            shrunk[index] += err * mult;
+                        }
+                    };
                     switch (dither) {
                     case dithering::floydsteinberg:{
-                        adjust(x + 1, y + 0, err, 7. / 16.);
-                        adjust(x - 1, y + 1, err, 3. / 16.);
-                        adjust(x + 0, y + 1, err, 5. / 16.);
-                        adjust(x + 1, y + 1, err, 1. / 16.);
+                        adjust(x + 1, y + 0, 7. / 16.);
+                        adjust(x - 1, y + 1, 3. / 16.);
+                        adjust(x + 0, y + 1, 5. / 16.);
+                        adjust(x + 1, y + 1, 1. / 16.);
                     } break;
                     case dithering::sierra:{
-                        adjust(x + 1, y + 0, err, 5. / 32.);
-                        adjust(x + 2, y + 0, err, 3. / 32.);
-                        adjust(x + 2, y + 1, err, 2. / 32.);
-                        adjust(x - 1, y + 1, err, 4. / 32.);
-                        adjust(x - 0, y + 1, err, 5. / 32.);
-                        adjust(x + 1, y + 1, err, 4. / 32.);
-                        adjust(x + 2, y + 1, err, 2. / 32.);
-                        adjust(x - 1, y + 2, err, 2. / 32.);
-                        adjust(x + 0, y + 2, err, 3. / 32.);
-                        adjust(x + 1, y + 2, err, 2. / 32.);
+                        adjust(x + 1, y + 0, 5. / 32.);
+                        adjust(x + 2, y + 0, 3. / 32.);
+                        adjust(x + 2, y + 1, 2. / 32.);
+                        adjust(x - 1, y + 1, 4. / 32.);
+                        adjust(x - 0, y + 1, 5. / 32.);
+                        adjust(x + 1, y + 1, 4. / 32.);
+                        adjust(x + 2, y + 1, 2. / 32.);
+                        adjust(x - 1, y + 2, 2. / 32.);
+                        adjust(x + 0, y + 2, 3. / 32.);
+                        adjust(x + 1, y + 2, 2. / 32.);
                     } break;
                     case dithering::atkinson:{
-                        adjust(x + 1, y + 0, err, 1. / 8.);
-                        adjust(x + 2, y + 0, err, 1. / 8.);
-                        adjust(x - 1, y + 1, err, 1. / 8.);
-                        adjust(x + 0, y + 1, err, 1. / 8.);
-                        adjust(x + 1, y + 1, err, 1. / 8.);
-                        adjust(x + 0, y + 2, err, 1. / 8.);
+                        adjust(x + 1, y + 0, 1. / 8.);
+                        adjust(x + 2, y + 0, 1. / 8.);
+                        adjust(x - 1, y + 1, 1. / 8.);
+                        adjust(x + 0, y + 1, 1. / 8.);
+                        adjust(x + 1, y + 1, 1. / 8.);
+                        adjust(x + 0, y + 2, 1. / 8.);
                     } break;
                     default:;
                     }
@@ -355,7 +353,9 @@ namespace nlp {
                     }
                     out << codecvt.to_bytes(e.ch);
                 }
-                out << '\n';
+                out << "\x1b[0m\n";
+                lfg = 0xff;
+                lbg = 0xff;
             }
             out << std::flush;
             display_results();
@@ -416,10 +416,19 @@ namespace nlp {
             }
             load_config();
             if (p_args.size() > 1) {
-                auto t1 = std::chrono::high_resolution_clock::now();
                 nlp::ascii::prep();
-                nlp::ascii::convert(p_args[1]);
-                auto t2 = std::chrono::high_resolution_clock::now();
+                std::for_each(p_args.cbegin() + 1, p_args.cend(), [](std::string const & p_str) {
+                    auto p = sys::path{p_str};
+                    if (sys::is_regular_file(p)) {
+                        nlp::ascii::convert(p_str);
+                    } else if (sys::is_directory(p)) {
+                        std::for_each(sys::recursive_directory_iterator{p}, sys::recursive_directory_iterator{},
+                                      [](sys::path p_path) {
+                            nlp::ascii::convert(p_path);
+                        });
+                    }
+                });
+                std::cin.get();
             } else {
                 nlp::ascii::print();
             }
