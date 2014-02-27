@@ -36,14 +36,14 @@ namespace nlp {
             ~timer() = default;
             timer & operator=(timer const &) = default;
             timer & operator=(timer &&) = default;
+            impl * operator->() const;
+            static timer create(loop const &);
             void start(std::function<void(void)>, std::chrono::milliseconds, std::chrono::milliseconds);
             void stop();
             void again();
             void set_repeat(std::chrono::milliseconds);
             std::chrono::milliseconds get_repeat();
-            static timer create(loop const &);
         protected:
-            std::shared_ptr<impl> get();
         };
     }
 }

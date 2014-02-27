@@ -31,9 +31,9 @@ namespace nlp {
             ~tty() = default;
             tty & operator=(tty const &) = default;
             tty & operator=(tty &&) = default;
+            impl * operator->() const;
             static tty create(loop const &);
         protected:
-            std::shared_ptr<impl> get() const;
         };
     }
 }

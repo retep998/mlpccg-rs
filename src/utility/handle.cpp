@@ -24,6 +24,9 @@
 namespace nlp {
     namespace uv {
         //handle
+        handle::impl * handle::operator->() const {
+            return m_impl.get();
+        }
         //handle::impl
         handle::impl::impl(loop const & p_loop) :
             m_loop{p_loop} {}

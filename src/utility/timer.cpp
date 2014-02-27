@@ -24,22 +24,22 @@
 namespace nlp {
     namespace uv {
         //timer
-        void timer::start(std::function<void(void)> p_callback, std::chrono::milliseconds p_timeout,
-                          std::chrono::milliseconds p_repeat) {
-            get()->m_callback = std::move(p_callback);
-            check(uv_timer_start(&get()->m_timer, [](uv_timer_t * p_timer, int p_status) {
-                check(p_status);
-                auto a = static_cast<timer::impl *>(static_cast<handle::impl *>(p_timer->data));
-                a->m_callback();
-            }, static_cast<uint64_t>(p_timeout.count()), static_cast<uint64_t>(p_repeat.count())));
+        timer::impl * timer::operator->() const {
+            return static_cast<impl *>(m_impl.get());
         }
         timer timer::create(loop const & p_loop) {
             auto && a = timer{};
             a.m_impl = std::shared_ptr<impl>{new impl{p_loop}, deleter{}};
             return{std::move(a)};
         }
-        std::shared_ptr<timer::impl> timer::get() {
-            return std::static_pointer_cast<impl>(m_impl);
+        void timer::start(std::function<void(void)> p_callback, std::chrono::milliseconds p_timeout,
+                          std::chrono::milliseconds p_repeat) {
+            (*this)->m_callback = std::move(p_callback);
+            check(uv_timer_start(&(*this)->m_timer, [](uv_timer_t * p_timer, int p_status) {
+                check(p_status);
+                auto a = static_cast<timer::impl *>(static_cast<handle::impl *>(p_timer->data));
+                a->m_callback();
+            }, static_cast<uint64_t>(p_timeout.count()), static_cast<uint64_t>(p_repeat.count())));
         }
         //timer::impl
         uv_handle_t & timer::impl::get_handle() {
