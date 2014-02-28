@@ -31,6 +31,9 @@
     <ClCompile Include="..\src\utility\check.cpp">
       <Filter>uv</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\utility\ttystream.cpp">
+      <Filter>ttystream</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\utility\ptr.hpp" />
@@ -97,6 +100,9 @@
     <ClInclude Include="..\src\utility\check.hpp">
       <Filter>uv</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\utility\ttystream.hpp">
+      <Filter>ttystream</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="uv">
@@ -125,6 +131,9 @@
     </Filter>
     <Filter Include="uv\handle\stream\tty">
       <UniqueIdentifier>{f8075e8e-6ab7-42d0-96d9-76b33fc5bd78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ttystream">
+      <UniqueIdentifier>{fa901a78-78be-4e5c-a7a2-37af1913fbc4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

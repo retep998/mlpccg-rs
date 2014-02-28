@@ -35,6 +35,7 @@
     <ClInclude Include="..\src\utility\timer_impl.hpp" />
     <ClInclude Include="..\src\utility\tty.hpp" />
     <ClInclude Include="..\src\utility\check.hpp" />
+    <ClInclude Include="..\src\utility\ttystream.hpp" />
     <ClInclude Include="..\src\utility\tty_impl.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -48,5 +49,6 @@
     <ClCompile Include="..\src\utility\tcp.cpp" />
     <ClCompile Include="..\src\utility\timer.cpp" />
     <ClCompile Include="..\src\utility\tty.cpp" />
+    <ClCompile Include="..\src\utility\ttystream.cpp" />
   </ItemGroup>
 </Project>

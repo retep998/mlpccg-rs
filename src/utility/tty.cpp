@@ -34,6 +34,9 @@ namespace nlp {
             return a;
         }
         //tty::impl
+        tty::impl::~impl() {
+            check(uv_tty_reset_mode());
+        }
         uv_stream_t & tty::impl::get_stream() {
             return reinterpret_cast<uv_stream_t &>(m_tty);
         }

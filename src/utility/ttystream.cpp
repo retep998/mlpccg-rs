@@ -16,50 +16,57 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-#include "game.hpp"
-#include "player.hpp"
-#include <utility/ptr.hpp>
-#include <utility/tcp.hpp>
-#include <utility/tty.hpp>
-#include <utility/ttystream.hpp>
+#include "ttystream.hpp"
+#include "tty.hpp"
 
 #pragma warning(push, 1)
-#include <map>
-#include <string>
-#include <cstdint>
-#include <random>
+#include <iostream>
 #pragma warning(pop)
 
 namespace nlp {
-    class player;
-    class game;
-    class server final {
+    class ttybuf : public std::streambuf {
     public:
-        server();
-        server(server const &) = delete;
-        server(server &&) = delete;
-        ~server() = default;
-        server & operator=(server const &) = delete;
-        server & operator=(server &&) = delete;
-        void run();
-        game & create_game(std::string);
-        ptr<player> get_player(uint32_t);
-        ptr<game> get_game(uint32_t);
-        void destroy_player(uint32_t);
-        uint32_t total_players() const;
-        uint32_t total_games() const;
-        std::mt19937_64 & rng();
-        uv::loop const & loop() const;
-        void for_game(std::function<void(game &)>);
-        void for_player(std::function<void(player &)>);
-    protected:
-        void update();
-        uv::loop m_loop;
-        ttystream m_tty;
-        std::map<uint32_t, game> m_games;
-        std::map<uint32_t, player> m_players;
-        std::mt19937_64 m_rng;
-        uv::tcp m_listener;
+        ttybuf() = delete;
+        ttybuf(uv::loop const & p_loop) :
+            m_tty{uv::tty::create(p_loop)},
+            m_old{std::cout.rdbuf()} {
+            std::cout.rdbuf(this);
+        }
+        ttybuf(ttybuf const &) = delete;
+        ttybuf(ttybuf &&) = delete;
+        ~ttybuf() {
+            std::cout.rdbuf(m_old);
+        }
+        ttybuf & operator=(ttybuf const &) = delete;
+        ttybuf & operator=(ttybuf &&) = delete;
+        int_type overflow(int_type ch) override {
+            m_buf.push_back(traits_type::to_char_type(ch));
+            return{};
+        }
+        int sync() override {
+            m_tty.write(m_buf);
+            m_buf.clear();
+            return{0};
+        }
+    private:
+        uv::tty m_tty;
+        std::vector<char_type> m_buf;
+        std::streambuf * m_old;
     };
+    class ttystream::impl {
+    public:
+        impl() = delete;
+        impl(uv::loop const & p_loop) :
+            m_out{p_loop} {}
+        impl(impl const &) = delete;
+        impl(impl &&) = delete;
+        ~impl() = default;
+        impl & operator=(impl const &) = delete;
+        impl & operator=(impl &&) = delete;
+    private:
+        ttybuf m_out;
+    };
+    ttystream::ttystream(uv::loop const & p_loop) :
+        m_impl{std::make_unique<impl>(p_loop)} {}
+    ttystream::~ttystream() = default;
 }

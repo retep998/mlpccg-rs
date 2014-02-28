@@ -27,7 +27,7 @@ namespace nlp {
             impl() = delete;
             impl(impl const &) = delete;
             impl(impl &&) = delete;
-            ~impl() = default;
+            ~impl();
             impl & operator=(impl const &) = delete;
             impl & operator=(impl &&) = delete;
             uv_stream_t & get_stream() override;

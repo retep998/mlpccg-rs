@@ -24,12 +24,13 @@
 #pragma warning(push, 1)
 #include <fstream>
 #include <algorithm>
+#include <iostream>
 #pragma warning(pop)
 
 namespace nlp {
     server::server() :
         m_loop{uv::loop::create()},
-        m_tty{uv::tty::create(m_loop)} {
+        m_tty{m_loop} {
         m_listener = uv::tcp::create(m_loop);
         m_listener.bind(uv::ip::create("0.0.0.0", 273));
         m_listener.listen([this](uv::stream p_stream) {
@@ -44,8 +45,7 @@ namespace nlp {
         auto in = std::ifstream{"assets/motd.txt", std::ios::binary};
         auto line = std::string{};
         std::getline(in, line, '\0');
-        m_tty.write(line);
-        m_tty.write("\x1b[0m");
+        std::cout << line << std::endl;
     }
     void server::run() {
         m_loop.run();
@@ -84,9 +84,6 @@ namespace nlp {
     }
     std::mt19937_64 & server::rng() {
         return m_rng;
-    }
-    uv::tty & server::tty() {
-        return m_tty;
     }
     uv::loop const & server::loop() const {
         return m_loop;
