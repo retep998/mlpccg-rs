@@ -19,6 +19,12 @@
 #pragma once
 #include "loop.hpp"
 
+#pragma warning(push, 1)
+#include <iosfwd>
+#include <string>
+#include <functional>
+#pragma warning(pop)
+
 namespace nlp {
     class ttystream {
     public:
@@ -33,4 +39,37 @@ namespace nlp {
     private:
         std::unique_ptr<impl> m_impl;
     };
+    enum class style {
+        clear = 0,
+        fgbright = 1,
+        bgbright = 5,
+        fgdark = 21,
+        bgdark = 25,
+        fgblack = 30,
+        fgred = 31,
+        fggreen = 32,
+        fgyellow = 33,
+        fgblue = 34,
+        fgmagenta = 35,
+        fgcyan = 36,
+        fgwhite = 37,
+        bgblack = 40,
+        bgred = 41,
+        bggreen = 42,
+        bgyellow = 43,
+        bgblue = 44,
+        bgmagenta = 45,
+        bgcyan = 46,
+        bgwhite = 47,
+    };
+    struct action {
+        void operator()(std::ostream & p_stream) const;
+        std::function<void(std::ostream &)> m_func;
+    };
+    std::ostream & operator<<(std::ostream &, action const &);
+    std::ostream & operator<<(std::ostream &, style const &);
+    action strip(std::string const &);
+    action quote(std::string const &);
+    action name(std::string const &);
+    std::ostream & time(std::ostream &);
 }

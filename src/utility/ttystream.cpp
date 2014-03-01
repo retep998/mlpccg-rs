@@ -21,6 +21,8 @@
 
 #pragma warning(push, 1)
 #include <iostream>
+#include <string>
+#include <iomanip>
 #pragma warning(pop)
 
 namespace nlp {
@@ -43,7 +45,7 @@ namespace nlp {
             if (!traits_type::eq_int_type(traits_type::eof(), p_char)) {
                 m_buf.push_back(traits_type::to_char_type(p_char));
             }
-            return{};
+            return{0};
         }
         int sync() override {
             m_tty.write(m_buf.cbegin(), m_buf.cend());
@@ -78,4 +80,34 @@ namespace nlp {
     ttystream::ttystream(uv::loop const & p_loop) :
         m_impl{std::make_unique<impl>(p_loop)} {}
     ttystream::~ttystream() = default;
+    void action::operator()(std::ostream & p_stream) const {
+        return m_func(p_stream);
+    }
+    std::ostream & operator<<(std::ostream & p_stream, action const & p_action) {
+        p_action(p_stream);
+        return p_stream;
+    }
+    std::ostream & operator<<(std::ostream & p_stream, style const & p_style) {
+        return p_stream << "\x1b[" << static_cast<int>(p_style) << "m";
+    }
+    action strip(std::string const & p_str) {
+        return{[&](std::ostream & p_stream) {
+            for (auto const & c : p_str) {
+                if (c < 0 || c >= 0x20) {
+                    p_stream.put(c);
+                }
+            }
+        }};
+    }
+    action quote(std::string const & p_str) {
+        return{[&](std::ostream & p_stream) {
+            p_stream << '"' << strip(p_str) << '"';
+        }};
+    }
+    std::ostream & time(std::ostream & p_stream) {
+        auto t = std::time(nullptr);
+        auto tm = std::localtime(&t);
+        p_stream << style::fgyellow << style::fgbright << std::put_time(tm, "[%H:%M:%S] ") << style::fgwhite;
+        return p_stream;
+    }
 }

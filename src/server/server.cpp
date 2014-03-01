@@ -46,6 +46,7 @@ namespace nlp {
         auto line = std::string{};
         std::getline(in, line, '\0');
         std::cout << line << std::endl;
+        std::cout << time << "Server listening on port 273" << std::endl;
     }
     void server::run() {
         m_loop.run();
