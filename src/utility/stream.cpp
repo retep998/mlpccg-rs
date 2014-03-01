@@ -64,9 +64,6 @@ namespace nlp {
         void stream::read_stop() const {
             check(::uv_read_stop(&(*this)->get_stream()));
         }
-        void stream::write(std::string const & p_data) const {
-            write(std::vector<char>{p_data.cbegin(), p_data.cend()});
-        }
         void stream::write(std::vector<char> p_data) const {
             new writer{std::move(p_data), *this};
         }

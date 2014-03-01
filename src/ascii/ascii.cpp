@@ -18,6 +18,7 @@
 
 #include <utility/tty.hpp>
 #include <utility/loop.hpp>
+#include <utility/ttystream.hpp>
 
 #pragma warning(push, 1)
 #include <SFML/Graphics/Image.hpp>
@@ -148,7 +149,7 @@ namespace nlp {
         std::vector<entry> entries{};
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> codecvt{};
         color_double background{0, 0, 0};
-        uv::tty tty{};
+        ttystream tty{uv::loop::create()};
         void calc_coverage() {
             chars_name = "chars" + std::to_string(cwidth) + "x" + std::to_string(cheight) + ".png";
             auto && in = sf::Image{};
@@ -227,8 +228,6 @@ namespace nlp {
             }
         }
         void prep() {
-            auto loop = uv::loop::create();
-            tty = uv::tty::create(loop);
             calc_coverage();
             clear_grid();
             calc_combos();
@@ -255,16 +254,14 @@ namespace nlp {
         void print() {
             auto wstr = std::u16string{wchars.cbegin(), wchars.cend()};
             auto u8chars = codecvt.to_bytes(wstr);
-            tty.write(u8chars);
-            tty.write("\n");
+            std::cout << u8chars << std::endl;
             std::cin.get();
         }
         void display_results() {
             auto in = std::ifstream{asset_path / sys::path{"motd.txt"}, std::ios::binary};
             auto line = std::string{};
             std::getline(in, line, '\0');
-            tty.write(line);
-            tty.write("\x1b[0m");
+            std::cout << line << std::flush;
         }
         void convert(std::string p_name) {
             auto && in = sf::Image{};

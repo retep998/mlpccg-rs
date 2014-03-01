@@ -61,8 +61,8 @@ namespace nlp {
     }
     std::string player::default_name() const {
         std::ostringstream ss;
-        ss << std::setfill('0') << std::setw(8) << std::hex << std::uppercase << m_id;
-        return "Pony" + ss.str();
+        ss << "Pony" << std::setfill('0') << std::setw(8) << std::hex << std::uppercase << m_id;
+        return ss.str();
     }
     void player::kill() {
         std::cout << m_name << " has left" << std::endl;

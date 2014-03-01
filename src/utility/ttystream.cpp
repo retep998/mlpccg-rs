@@ -39,18 +39,27 @@ namespace nlp {
         }
         ttybuf & operator=(ttybuf const &) = delete;
         ttybuf & operator=(ttybuf &&) = delete;
-        int_type overflow(int_type ch) override {
-            m_buf.push_back(traits_type::to_char_type(ch));
+        int_type overflow(int_type p_char) override {
+            if (!traits_type::eq_int_type(traits_type::eof(), p_char)) {
+                m_buf.push_back(traits_type::to_char_type(p_char));
+            }
             return{};
         }
         int sync() override {
-            m_tty.write(m_buf);
+            m_tty.write(m_buf.cbegin(), m_buf.cend());
             m_buf.clear();
             return{0};
         }
+        std::streamsize xsputn(char_type const * p_str, std::streamsize p_length) override {
+            if (p_length < 0) {
+                throw std::invalid_argument{"Length cannot be negative"};
+            }
+            m_buf.append(p_str, static_cast<std::string::size_type>(p_length));
+            return p_length;
+        }
     private:
         uv::tty m_tty;
-        std::vector<char_type> m_buf;
+        std::string m_buf;
         std::streambuf * m_old;
     };
     class ttystream::impl {

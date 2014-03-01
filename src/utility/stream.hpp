@@ -41,9 +41,11 @@ namespace nlp {
             void listen(std::function<void(stream)>, int) const;
             void read_start(std::function<void(std::vector<char> const &)>) const;
             void read_stop() const;
+            template <typename T_iter>
+            void write(T_iter p_begin, T_iter p_end) {
+                return write({p_begin, p_end});
+            }
             void write(std::vector<char>) const;
-            //Temporary until I create an std::streambuf wrapper
-            void write(std::string const &) const;
             void eof(std::function<void()>) const;
         };
     }
