@@ -32,10 +32,10 @@ namespace nlp {
             ~impl() = default;
             impl & operator=(impl const &) = delete;
             impl & operator=(impl &&) = delete;
-            uv_loop_t * get();
+            uv_loop_t & get();
         protected:
             impl();
-            uv_loop_t * m_loop;
+            uv_loop_t m_loop;
             friend loop;
         };
     }

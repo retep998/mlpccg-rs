@@ -38,7 +38,7 @@ namespace nlp {
         p_stream.eof([this] {
             kill();
         });
-        std::cout << time << m_name << " has joined" << std::endl;
+        std::cout << io::time << m_name << " has joined" << std::endl;
         send_id();
         send_player_joined({});
         send_player_joined(this);
@@ -65,7 +65,7 @@ namespace nlp {
         return ss.str();
     }
     void player::kill() {
-        std::cout << time << m_name << " has left" << std::endl;
+        std::cout << io::time << m_name << " has left" << std::endl;
         m_server.destroy_player(m_id);
     }
     void player::handle(packet p_packet) {
@@ -95,7 +95,7 @@ namespace nlp {
             } else if (new_name.empty()) {
                 new_name = default_name();
             }
-            std::cout << time << strip(m_name) << " renamed to " << strip(new_name) << std::endl;
+            std::cout << io::time << io::strip(m_name) << " renamed to " << io::strip(new_name) << std::endl;
             m_name.swap(new_name);
             m_server.for_player([&](player & p_player) {
                 p_player.send_player_joined(this);
@@ -108,7 +108,7 @@ namespace nlp {
             auto game_name = std::string{};
             p_packet >> game_name;
             m_server.create_game(game_name).add_player(this);
-            std::cout << time << m_name << " created game " << game_name << std::endl;
+            std::cout << io::time << m_name << " created game " << game_name << std::endl;
         } break;
         case 0x0008: {
             if (m_game) {
@@ -118,13 +118,13 @@ namespace nlp {
             p_packet >> id;
             if (auto g = m_server.get_game(id)) {
                 g->add_player(this);
-                std::cout << time << m_name << " joined game " << g->get_name() << std::endl;
+                std::cout << io::time << m_name << " joined game " << g->get_name() << std::endl;
             }
         } break;
         case 0x000A: {
             auto message = std::string{};
             p_packet >> message;
-            std::cout << time << m_name << " globally says " << message << std::endl;
+            std::cout << io::time << m_name << " globally says " << message << std::endl;
             m_server.for_player([&](player & p_player) {
                 p_player.send_global_chat(this, message);
             });
@@ -133,7 +133,7 @@ namespace nlp {
             auto message = std::string{};
             p_packet >> message;
             if (m_game) {
-                std::cout << time << m_name << " game says " << message << std::endl;
+                std::cout << io::time << m_name << " game says " << message << std::endl;
                 m_game->for_player([&](player & p_player) {
                     p_player.send_game_chat(this, message);
                 });
@@ -145,11 +145,11 @@ namespace nlp {
             auto message = std::string{};
             p_packet >> message;
             if (auto target = m_server.get_player(id)) {
-                std::cout << time << m_name << " private to " << target->get_name() <<
+                std::cout << io::time << m_name << " private to " << target->get_name() <<
                     " says " << message << std::endl;
                 target->send_private_chat(this, message);
             } else {
-                std::cout << time << id << " does not exist!" << std::endl;
+                std::cout << io::time << id << " does not exist!" << std::endl;
             }
         } break;
         default: break;

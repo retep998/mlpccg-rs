@@ -7,6 +7,9 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
   </PropertyGroup>
   <Import Project="common.props" />
+  <PropertyGroup>
+    <IncludePath>$(SolutionDir)/../sdk/include/libuv/;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>

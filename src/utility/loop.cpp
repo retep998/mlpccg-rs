@@ -32,7 +32,7 @@ namespace nlp {
             return m_impl;
         }
         void loop::run() const {
-            check(uv_run(m_impl->m_loop, UV_RUN_DEFAULT));
+            check(uv_run(&m_impl->m_loop, UV_RUN_DEFAULT));
         }
         loop loop::create() {
             auto && a = loop{};
@@ -40,19 +40,20 @@ namespace nlp {
             return a;
         }
         //loop::impl
-        uv_loop_t * loop::impl::get() {
+        uv_loop_t & loop::impl::get() {
             return m_loop;
         }
-        loop::impl::impl() :
-            m_loop{uv_loop_new()} {}
+        loop::impl::impl() {
+            uv_loop_init(&m_loop);
+        }
         //loop::deleter
         void loop::deleter::operator()(impl * p_impl) {
             auto && a = std::unique_ptr<impl>{p_impl};
-            check(uv_run(p_impl->m_loop, UV_RUN_NOWAIT));
-            if (uv_loop_alive(p_impl->m_loop)) {
+            check(uv_run(&p_impl->m_loop, UV_RUN_NOWAIT));
+            if (uv_loop_alive(&p_impl->m_loop)) {
                 throw std::runtime_error{"Loop is still alive"};
             }
-            uv_loop_delete(p_impl->m_loop);
+            check(uv_loop_close(&p_impl->m_loop));
         }
     }
 }
