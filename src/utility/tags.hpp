@@ -16,13 +16,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "loop.hpp"
+#pragma once
 
 namespace nlp {
     namespace uv {
-        class loop::deleter final {
-        public:
-            void operator()(impl *);
-        };
+        struct init_t {};
+        constexpr init_t init;
     }
 }

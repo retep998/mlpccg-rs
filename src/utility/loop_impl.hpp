@@ -27,16 +27,15 @@ namespace nlp {
     namespace uv {
         class loop::impl final {
         public:
+            impl();
             impl(impl const &) = delete;
             impl(impl &&) = delete;
             ~impl() = default;
             impl & operator=(impl const &) = delete;
             impl & operator=(impl &&) = delete;
-            uv_loop_t & get();
-        protected:
-            impl();
+            uv_loop_t * get();
+        private:
             uv_loop_t m_loop;
-            friend loop;
         };
     }
 }

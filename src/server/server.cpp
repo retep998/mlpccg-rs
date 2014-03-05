@@ -29,7 +29,7 @@
 
 namespace nlp {
     server::server() :
-        m_loop{uv::loop::create()},
+        m_loop{uv::init},
         m_tty{m_loop} {
         m_listener = uv::tcp::create(m_loop);
         m_listener.bind(uv::ip::create("0.0.0.0", 273));

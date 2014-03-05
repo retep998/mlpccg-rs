@@ -18,7 +18,6 @@
 
 #include "loop.hpp"
 #include "loop_impl.hpp"
-#include "loop_deleter.hpp"
 #include "check.hpp"
 
 #pragma warning(push, 1)
@@ -28,32 +27,27 @@
 namespace nlp {
     namespace uv {
         //loop
+        loop::loop(init_t const &) :
+            m_impl{std::shared_ptr<impl>{new impl{}, [](impl * p_impl) {
+            std::unique_ptr<impl> a{p_impl};
+            check(uv_run(p_impl->get(), UV_RUN_NOWAIT));
+            if (uv_loop_alive(p_impl->get())) {
+                throw std::runtime_error{"Loop is still alive"};
+            }
+            check(uv_loop_close(p_impl->get()));
+        }}} {}
         std::shared_ptr<loop::impl> const & loop::operator->() const {
             return m_impl;
         }
         void loop::run() const {
-            check(uv_run(&m_impl->m_loop, UV_RUN_DEFAULT));
-        }
-        loop loop::create() {
-            auto && a = loop{};
-            a.m_impl = std::shared_ptr<impl>{new impl{}, deleter{}};
-            return a;
+            check(uv_run(m_impl->get(), UV_RUN_DEFAULT));
         }
         //loop::impl
-        uv_loop_t & loop::impl::get() {
-            return m_loop;
+        uv_loop_t * loop::impl::get() {
+            return &m_loop;
         }
         loop::impl::impl() {
-            uv_loop_init(&m_loop);
-        }
-        //loop::deleter
-        void loop::deleter::operator()(impl * p_impl) {
-            auto && a = std::unique_ptr<impl>{p_impl};
-            check(uv_run(&p_impl->m_loop, UV_RUN_NOWAIT));
-            if (uv_loop_alive(&p_impl->m_loop)) {
-                throw std::runtime_error{"Loop is still alive"};
-            }
-            check(uv_loop_close(&p_impl->m_loop));
+            check(uv_loop_init(&m_loop));
         }
     }
 }

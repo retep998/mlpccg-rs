@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "tags.hpp"
 
 #pragma warning(push, 1)
 #include <memory>
@@ -28,17 +29,16 @@ namespace nlp {
         class loop final {
         public:
             class impl;
-            class deleter;
             loop() = default;
             loop(loop const &) = default;
             loop(loop &&) = default;
+            loop(init_t const &);
             ~loop() = default;
             loop & operator=(loop const &) = default;
             loop & operator=(loop &&) = default;
             std::shared_ptr<impl> const & operator->() const;
             void run() const;
-            static loop create();
-        protected:
+        private:
             std::shared_ptr<impl> m_impl;
         };
     }

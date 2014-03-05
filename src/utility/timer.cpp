@@ -47,7 +47,7 @@ namespace nlp {
         }
         timer::impl::impl(loop const & p_loop) :
             handle::impl{p_loop} {
-            check(uv_timer_init(&m_loop->get(), &m_timer));
+            check(uv_timer_init(m_loop->get(), &m_timer));
             m_timer.data = static_cast<handle::impl *>(this);
         }
     }
