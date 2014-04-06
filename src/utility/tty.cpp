@@ -45,7 +45,7 @@ namespace nlp {
         }
         tty::impl::impl(loop const & p_loop) :
             stream::impl{p_loop} {
-            check(uv_tty_init(m_loop->get(), &m_tty, 1, false));
+            check(uv_tty_init(m_loop->impl().get(), &m_tty, 1, false));
             m_tty.data = static_cast<handle::impl *>(this);
         }
     }

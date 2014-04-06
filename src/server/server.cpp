@@ -29,7 +29,7 @@
 
 namespace nlp {
     server::server() :
-        m_loop{uv::init},
+        m_loop{uv::loop_init()},
         m_tty{m_loop} {
         m_listener = uv::tcp::create(m_loop);
         m_listener.bind(uv::ip::create("0.0.0.0", 273));
@@ -49,7 +49,7 @@ namespace nlp {
         std::cout << io::time << "Server listening on port 273" << std::endl;
     }
     void server::run() {
-        m_loop.run();
+        m_loop->run();
     }
     game & server::create_game(std::string p_name) {
         auto dist = std::uniform_int_distribution<uint32_t>{1, std::numeric_limits<uint32_t>::max()};

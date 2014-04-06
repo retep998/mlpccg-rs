@@ -16,7 +16,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "loop.hpp"
 #include "loop_impl.hpp"
 #include "check.hpp"
 
@@ -26,28 +25,26 @@
 
 namespace nlp {
     namespace uv {
-        //loop
-        loop::loop(init_t const &) :
-            m_impl{std::shared_ptr<impl>{new impl{}, [](impl * p_impl) {
-            std::unique_ptr<impl> a{p_impl};
-            check(uv_run(p_impl->get(), UV_RUN_NOWAIT));
-            if (uv_loop_alive(p_impl->get())) {
-                throw std::runtime_error{"Loop is still alive"};
-            }
-            check(uv_loop_close(p_impl->get()));
-        }}} {}
-        std::shared_ptr<loop::impl> const & loop::operator->() const {
-            return m_impl;
+        void loop_interface::run() {
+            check(uv_run(impl().get(), UV_RUN_DEFAULT));
         }
-        void loop::run() const {
-            check(uv_run(m_impl->get(), UV_RUN_DEFAULT));
+        loop_impl & loop_interface::impl() {
+            return static_cast<loop_impl &>(*this);
         }
-        //loop::impl
-        uv_loop_t * loop::impl::get() {
+        uv_loop_t * loop_impl::get() {
             return &m_loop;
         }
-        loop::impl::impl() {
-            check(uv_loop_init(&m_loop));
+        loop loop_init() {
+            auto ptr = std::make_unique<loop_impl>();
+            check(uv_loop_init(ptr->get()));
+            return{ptr.release(), [](loop_impl * p_impl) {
+                std::unique_ptr<loop_impl> ptr{p_impl};
+                check(uv_run(p_impl->get(), UV_RUN_NOWAIT));
+                if (uv_loop_alive(p_impl->get())) {
+                    throw std::runtime_error{"Trying to destroy loop that is still alive"};
+                }
+                check(uv_loop_close(p_impl->get()));
+            }};
         }
     }
 }

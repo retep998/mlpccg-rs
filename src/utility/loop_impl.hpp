@@ -25,14 +25,7 @@
 
 namespace nlp {
     namespace uv {
-        class loop::impl final {
-        public:
-            impl();
-            impl(impl const &) = delete;
-            impl(impl &&) = delete;
-            ~impl() = default;
-            impl & operator=(impl const &) = delete;
-            impl & operator=(impl &&) = delete;
+        struct loop_impl final : loop_interface {
             uv_loop_t * get();
         private:
             uv_loop_t m_loop;

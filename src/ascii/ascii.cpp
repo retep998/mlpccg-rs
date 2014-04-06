@@ -149,7 +149,7 @@ namespace nlp {
         std::vector<entry> entries{};
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> codecvt{};
         color_double background{0, 0, 0};
-        ttystream tty{uv::init};
+        ttystream tty{uv::loop_init()};
         void calc_coverage() {
             chars_name = "chars" + std::to_string(cwidth) + "x" + std::to_string(cheight) + ".png";
             auto && in = sf::Image{};

@@ -18,6 +18,7 @@
 
 #pragma once
 #include "handle.hpp"
+#include "loop.hpp"
 
 #pragma warning(push, 1)
 #include <functional>
@@ -26,7 +27,6 @@
 
 namespace nlp {
     namespace uv {
-        class loop;
         class timer final : public handle {
         public:
             class impl;

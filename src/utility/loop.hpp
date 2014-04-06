@@ -17,7 +17,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "tags.hpp"
 
 #pragma warning(push, 1)
 #include <memory>
@@ -25,21 +24,12 @@
 
 namespace nlp {
     namespace uv {
-        class handle;
-        class loop final {
-        public:
-            class impl;
-            loop() = default;
-            loop(loop const &) = default;
-            loop(loop &&) = default;
-            loop(init_t const &);
-            ~loop() = default;
-            loop & operator=(loop const &) = default;
-            loop & operator=(loop &&) = default;
-            std::shared_ptr<impl> const & operator->() const;
-            void run() const;
-        private:
-            std::shared_ptr<impl> m_impl;
+        struct loop_impl;
+        struct loop_interface {
+            void run();
+            loop_impl & impl();
         };
+        using loop = std::shared_ptr<loop_interface>;
+        loop loop_init();
     }
 }
