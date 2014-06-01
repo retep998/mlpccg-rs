@@ -20,7 +20,7 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
-    <PlatformToolset>CTP_Nov2013</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -41,9 +41,8 @@
     <ClCompile>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <DisableSpecificWarnings>4061;4265;4350;4514;4710;4711;4820</DisableSpecificWarnings>
-      <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AdditionalOptions>/Zc:forScope /Zc:wchar_t /Zc:auto /Zc:trigraphs /Zc:rvalueCast %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:forScope /Zc:wchar_t /Zc:auto /Zc:rvalueCast /Zc:inline %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>NOMINMAX;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>

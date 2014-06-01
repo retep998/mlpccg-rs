@@ -29,7 +29,7 @@
 
 namespace nlp {
     server::server() :
-        m_loop{uv::loop_init()},
+        m_loop{uv::make_loop()},
         m_tty{m_loop} {
         m_listener = uv::tcp::create(m_loop);
         m_listener.bind(uv::ip::create("0.0.0.0", 273));
@@ -47,6 +47,13 @@ namespace nlp {
         std::getline(in, line, '\0');
         std::cout << line << std::endl;
         std::cout << io::time << "Server listening on port 273" << std::endl;
+        auto timer = uv::timer::create(m_loop);
+        timer.start([this, timer]() mutable {
+            std::cout << io::time << "Server is shutting down" << std::endl;
+            m_loop->stop();
+            timer = {};
+        }, std::chrono::seconds{10}, {});
+        std::cout << io::time << "Server will shut down in 10 seconds" << std::endl;
     }
     void server::run() {
         m_loop->run();

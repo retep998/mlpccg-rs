@@ -26,19 +26,23 @@
 
 namespace nlp {
     namespace uv {
-        class handle::impl {
-        public:
-            impl() = delete;
-            impl(impl const &) = delete;
-            impl(impl &&) = delete;
-            virtual ~impl() = default;
-            impl & operator=(impl const &) = delete;
-            impl & operator=(impl &&) = delete;
-            virtual uv_handle_t & get_handle() = 0;
-        protected:
-            impl(loop const &);
-            loop m_loop;
-            friend handle;
+        template <typename T>
+        struct handle_deleter {
+            void operator()(T * p_handle) {
+                ::uv_close(p_handle->handle::get(), [](::uv_handle_t * p_handle) {
+                    delete static_cast<handle_impl *>(p_handle->data);
+                });
+                p_handle->m_loop.reset();
+            }
         };
+        struct handle_impl : virtual handle_interface {
+            ::uv_handle_t * get();
+        protected:
+            void init();
+        private:
+            ::uv_handle_t * m_handle;
+            loop m_loop;
+        };
+
     }
 }

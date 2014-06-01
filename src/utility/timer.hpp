@@ -22,28 +22,23 @@
 
 #pragma warning(push, 1)
 #include <functional>
+#include <memory>
 #include <chrono>
 #pragma warning(pop)
 
 namespace nlp {
     namespace uv {
-        class timer final : public handle {
-        public:
-            class impl;
-            timer() = default;
-            timer(timer const &) = default;
-            timer(timer &&) = default;
-            ~timer() = default;
-            timer & operator=(timer const &) = default;
-            timer & operator=(timer &&) = default;
-            impl * operator->() const;
-            static timer create(loop const &);
-            void start(std::function<void(void)>, std::chrono::milliseconds, std::chrono::milliseconds);
+        struct timer_impl;
+        struct timer_interface : virtual handle_interface {
+            void start(std::function<void()>, std::chrono::milliseconds, std::chrono::milliseconds);
             void stop();
             void again();
             void set_repeat(std::chrono::milliseconds);
-            std::chrono::milliseconds get_repeat();
-        protected:
+            std::chrono::milliseconds get_repeat() const;
+            timer_impl & impl();
+            timer_impl const & impl() const;
         };
+        using timer = std::shared_ptr<timer_interface>;
+        timer make_timer(loop const &);
     }
 }

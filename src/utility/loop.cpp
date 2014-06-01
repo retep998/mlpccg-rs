@@ -16,35 +16,65 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "loop_impl.hpp"
+#include "loop.hpp"
 #include "check.hpp"
 
 #pragma warning(push, 1)
 #include <stdexcept>
+#include <iostream>
 #pragma warning(pop)
 
 namespace nlp {
     namespace uv {
-        void loop_interface::run() {
-            check(uv_run(impl().get(), UV_RUN_DEFAULT));
+        void loop::run() {
+            check(::uv_run(get(), ::UV_RUN_DEFAULT));
         }
-        loop_impl & loop_interface::impl() {
-            return static_cast<loop_impl &>(*this);
+        void loop::run_once() {
+            check(::uv_run(get(), ::UV_RUN_ONCE));
         }
-        uv_loop_t * loop_impl::get() {
+        void loop::run_nowait() {
+            check(::uv_run(get(), ::UV_RUN_NOWAIT));
+        }
+        bool loop::alive() const {
+            return ::uv_loop_alive(get()) != 0;
+        }
+        void loop::stop() {
+            ::uv_stop(get());
+        }
+        void loop::update_time() {
+            ::uv_update_time(get());
+        }
+        std::chrono::milliseconds loop::now() {
+            return std::chrono::milliseconds{::uv_now(get())};
+        }
+        void loop::walk(std::function<void(handle)> p_func) {
+            uv_walk_cb;
+            ::uv_walk(get(), [](uv_handle_t * p_handle, void * p_arg) {
+                auto & func = *static_cast<std::function<void(handle)> *>(p_arg);
+                auto && hand = handle::from_ptr(p_handle);
+            }, &p_func);
+        }
+        loop::loop() {
+            check(::uv_loop_init(get()));
+        }
+        ::uv_loop_t * loop::get() {
             return &m_loop;
         }
-        loop loop_init() {
-            auto ptr = std::make_unique<loop_impl>();
-            check(uv_loop_init(ptr->get()));
-            return{ptr.release(), [](loop_impl * p_impl) {
-                std::unique_ptr<loop_impl> ptr{p_impl};
-                check(uv_run(p_impl->get(), UV_RUN_NOWAIT));
-                if (uv_loop_alive(p_impl->get())) {
-                    throw std::runtime_error{"Trying to destroy loop that is still alive"};
-                }
-                check(uv_loop_close(p_impl->get()));
-            }};
+        ::uv_loop_t const * loop::get() const {
+            return &m_loop;
+        }
+        void loop::destroy(loop * p_impl) {
+            std::unique_ptr<loop> ptr{p_impl};
+            //Run the loop once more to finish any active requests
+            ptr->run();
+            if (ptr->alive()) {
+                std::cerr << "ERROR: Loop is still alive" << std::endl;
+                std::abort();
+            }
+            check(::uv_loop_close(ptr->get()));
+        }
+        loop make_loop() {
+            return{new loop_impl{}, destroy_loop};
         }
     }
 }

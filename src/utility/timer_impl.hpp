@@ -22,6 +22,9 @@
 
 namespace nlp {
     namespace uv {
+        struct timer_impl final : timer_interface {
+
+        };
         class timer::impl final : public handle::impl{
         public:
             impl() = delete;

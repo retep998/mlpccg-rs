@@ -22,13 +22,20 @@
 #include <uv.h>
 #include <stdexcept>
 #include <string>
+#include <iostream>
 #pragma warning(pop)
 
 namespace nlp {
     namespace uv {
+        __declspec(noinline)
+        void fail(int p_err) {
+            std::cerr << "ERROR: " << ::uv_err_name(p_err);
+            std::cerr << ": " << ::uv_strerror(p_err) << std::endl;
+            std::abort();
+        }
         void check(int p_err) {
-            if (p_err) {
-                throw std::runtime_error{std::string{"ERROR: "} + uv_err_name(p_err) + ": " + uv_strerror(p_err)};
+            if (p_err < 0) {
+                fail(p_err);
             }
         }
     }

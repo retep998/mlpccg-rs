@@ -24,19 +24,15 @@
 
 namespace nlp {
     namespace uv {
-        class handle {
-        public:
-            class impl;
-            class deleter;
-            handle() = default;
-            handle(handle const &) = default;
-            handle(handle &&) = default;
-            ~handle() = default;
-            handle & operator=(handle const &) = default;
-            handle & operator=(handle &&) = default;
-            impl * operator->() const;
-        protected:
-            std::shared_ptr<impl> m_impl;
+        struct handle_impl;
+        struct handle_interface {
+            void ref();
+            void unref();
+            void has_ref() const;
+            bool is_active() const;
+            handle_impl & impl();
+            handle_impl const & impl() const;
         };
+        using handle = std::shared_ptr<handle_interface>;
     }
 }

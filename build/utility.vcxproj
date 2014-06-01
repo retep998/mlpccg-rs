@@ -10,22 +10,14 @@
   <PropertyGroup>
     <IncludePath>$(SolutionDir)/../sdk/include/libuv/;$(IncludePath)</IncludePath>
   </PropertyGroup>
-  <ItemDefinitionGroup>
-    <ClCompile>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\src\utility\framed_stream.hpp" />
     <ClInclude Include="..\src\utility\framed_stream_impl.hpp" />
     <ClInclude Include="..\src\utility\handle.hpp" />
-    <ClInclude Include="..\src\utility\handle_deleter.hpp" />
     <ClInclude Include="..\src\utility\handle_impl.hpp" />
     <ClInclude Include="..\src\utility\ip.hpp" />
     <ClInclude Include="..\src\utility\ip_impl.hpp" />
     <ClInclude Include="..\src\utility\loop.hpp" />
-    <ClInclude Include="..\src\utility\loop_impl.hpp" />
     <ClInclude Include="..\src\utility\packet.hpp" />
     <ClInclude Include="..\src\utility\ptr.hpp" />
     <ClInclude Include="..\src\utility\stream.hpp" />
