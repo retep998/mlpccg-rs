@@ -17,22 +17,27 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "loop.hpp"
 
 #pragma warning(push, 1)
 #include <memory>
 #pragma warning(pop)
 
 namespace nlp {
-    namespace uv {
-        struct handle_impl;
-        struct handle_interface {
-            void ref();
-            void unref();
-            void has_ref() const;
-            bool is_active() const;
-            handle_impl & impl();
-            handle_impl const & impl() const;
-        };
-        using handle = std::shared_ptr<handle_interface>;
-    }
+namespace uv {
+class handle;
+using handle_t = std::shared_ptr<handle>;
+class handle {
+public:
+    bool is_active() const;
+
+protected:
+private:
+    void close(::uv_close_cb);
+    bool has_ref() const;
+    bool is_closing() const;
+    void ref();
+    void unref();
+};
+}
 }

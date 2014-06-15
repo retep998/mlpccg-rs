@@ -21,15 +21,13 @@
 #include "loop_impl.hpp"
 
 namespace nlp {
-    namespace uv {
-        void handle_impl::init() {
-            get()->data = this;
-        }
-        handle make_handle(std::unique_ptr<handle_impl> p_handle) {
-            p_handle->get()->data = p_handle.get();
-            return{p_handle.release(), [](handle_impl * p_handle) {
-                
-            }};
-        }
-    }
+namespace uv {
+void handle_impl::init() {
+    get()->data = this;
+}
+handle make_handle(std::unique_ptr<handle_impl> p_handle) {
+    p_handle->get()->data = p_handle.get();
+    return {p_handle.release(), [](handle_impl *p_handle) {}};
+}
+}
 }

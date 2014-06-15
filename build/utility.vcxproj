@@ -14,7 +14,6 @@
     <ClInclude Include="..\src\utility\framed_stream.hpp" />
     <ClInclude Include="..\src\utility\framed_stream_impl.hpp" />
     <ClInclude Include="..\src\utility\handle.hpp" />
-    <ClInclude Include="..\src\utility\handle_impl.hpp" />
     <ClInclude Include="..\src\utility\ip.hpp" />
     <ClInclude Include="..\src\utility\ip_impl.hpp" />
     <ClInclude Include="..\src\utility\loop.hpp" />

@@ -17,7 +17,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "handle.hpp"
 
 #pragma warning(push, 1)
 #include <chrono>
@@ -28,26 +27,30 @@
 #pragma warning(pop)
 
 namespace nlp {
-    namespace uv {
-        struct loop;
-        using loop_t = std::shared_ptr<loop>;
-        struct loop final {
-            void run();
-            void run_once();
-            void run_nowait();
-            bool alive() const;
-            void stop();
-            void update_time();
-            std::chrono::milliseconds now();
-            void walk(std::function<void(handle)>);
-            static loop_t make();
-        private:
-            loop();
-            void close();
-            ::uv_loop_t * get();
-            ::uv_loop_t const * get() const;
-            static void destroy(loop *);
-            ::uv_loop_t m_loop;
-        };
-    }
+namespace uv {
+class loop;
+class handle;
+using loop_t = std::shared_ptr<loop>;
+class loop final {
+public:
+    bool alive() const;
+    std::chrono::milliseconds now();
+    void run();
+    void run_once();
+    void run_nowait();
+    void stop();
+    void update_time();
+    void walk(std::function<void(handle)>);
+    static loop_t make();
+
+private:
+    loop();
+    void close();
+    ::uv_loop_t *get();
+    ::uv_loop_t const *get() const;
+    static void destroy(loop *);
+    ::uv_loop_t m_loop;
+    std::function<void(handle)> m_walk_func;
+};
+}
 }

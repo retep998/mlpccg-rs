@@ -37,9 +37,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\utility\ptr.hpp" />
-    <ClInclude Include="..\src\utility\handle_impl.hpp">
-      <Filter>uv\handle</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\utility\handle.hpp">
       <Filter>uv\handle</Filter>
     </ClInclude>

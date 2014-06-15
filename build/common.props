@@ -42,7 +42,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <DisableSpecificWarnings>4061;4265;4350;4514;4710;4711;4820</DisableSpecificWarnings>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AdditionalOptions>/Zc:forScope /Zc:wchar_t /Zc:auto /Zc:rvalueCast /Zc:inline %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:forScope /Zc:wchar_t /Zc:auto /Zc:rvalueCast /Zc:inline /Zc:strictStrings %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>NOMINMAX;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>

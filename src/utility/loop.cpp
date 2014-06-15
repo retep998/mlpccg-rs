@@ -25,56 +25,61 @@
 #pragma warning(pop)
 
 namespace nlp {
-    namespace uv {
-        void loop::run() {
-            check(::uv_run(get(), ::UV_RUN_DEFAULT));
-        }
-        void loop::run_once() {
-            check(::uv_run(get(), ::UV_RUN_ONCE));
-        }
-        void loop::run_nowait() {
-            check(::uv_run(get(), ::UV_RUN_NOWAIT));
-        }
-        bool loop::alive() const {
-            return ::uv_loop_alive(get()) != 0;
-        }
-        void loop::stop() {
-            ::uv_stop(get());
-        }
-        void loop::update_time() {
-            ::uv_update_time(get());
-        }
-        std::chrono::milliseconds loop::now() {
-            return std::chrono::milliseconds{::uv_now(get())};
-        }
-        void loop::walk(std::function<void(handle)> p_func) {
-            uv_walk_cb;
-            ::uv_walk(get(), [](uv_handle_t * p_handle, void * p_arg) {
-                auto & func = *static_cast<std::function<void(handle)> *>(p_arg);
-                auto && hand = handle::from_ptr(p_handle);
-            }, &p_func);
-        }
-        loop::loop() {
-            check(::uv_loop_init(get()));
-        }
-        ::uv_loop_t * loop::get() {
-            return &m_loop;
-        }
-        ::uv_loop_t const * loop::get() const {
-            return &m_loop;
-        }
-        void loop::destroy(loop * p_impl) {
-            std::unique_ptr<loop> ptr{p_impl};
-            //Run the loop once more to finish any active requests
-            ptr->run();
-            if (ptr->alive()) {
-                std::cerr << "ERROR: Loop is still alive" << std::endl;
-                std::abort();
-            }
-            check(::uv_loop_close(ptr->get()));
-        }
-        loop make_loop() {
-            return{new loop_impl{}, destroy_loop};
-        }
+namespace uv {
+loop::loop() {
+    check(::uv_loop_init(get()));
+}
+bool loop::alive() const {
+    return ::uv_loop_alive(get()) != 0;
+}
+void loop::close() {
+    check(::uv_loop_close(get()));
+}
+std::chrono::milliseconds loop::now() {
+    return std::chrono::milliseconds{::uv_now(get())};
+}
+void loop::run() {
+    check(::uv_run(get(), ::UV_RUN_DEFAULT));
+}
+void loop::run_once() {
+    check(::uv_run(get(), ::UV_RUN_ONCE));
+}
+void loop::run_nowait() {
+    check(::uv_run(get(), ::UV_RUN_NOWAIT));
+}
+void loop::stop() {
+    ::uv_stop(get());
+}
+void loop::update_time() {
+    ::uv_update_time(get());
+}
+void loop::walk(std::function<void(handle)> p_func) {
+    m_walk_func = std::move(p_func);
+    auto helper = [](uv_handle_t *, void *) {
+        // TODO
+        // m_walk_func(handle::from_ptr(p_handle));
+    };
+    ::uv_walk(get(), helper, nullptr);
+}
+::uv_loop_t *loop::get() {
+    return &m_loop;
+}
+::uv_loop_t const *loop::get() const {
+    return &m_loop;
+}
+void loop::destroy(loop *p_impl) {
+    // Guarantee pointer is deleted when this function ends
+    std::unique_ptr<loop> ptr{p_impl};
+    // Run the loop once more to finish any active requests
+    ptr->run();
+    if (ptr->alive()) {
+        std::cerr << "ERROR: Loop is still alive" << std::endl;
+        std::abort();
     }
+    ptr->close();
+}
+loop_t loop::make() {
+    return {new loop{}, destroy};
+}
+}
 }
