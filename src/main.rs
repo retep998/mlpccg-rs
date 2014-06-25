@@ -1,143 +1,159 @@
 
-#![feature(phase, macro_rules)]
+#![feature(macro_rules)]
 
-#[phase(plugin)]
-extern crate green;
-
-use std::collections::{HashMap, SmallIntMap};
+use std::collections::HashMap;
 use std::comm::{Receiver, Sender};
-use std::io::{Acceptor, BufferedReader, BufferedWriter, BufReader, IoResult, Listener, MemWriter, TcpListener, TcpStream, stdin};
-use std::sync::{Arc, RWLock};
+use std::io::{Acceptor, BufferedReader, BufWriter, Listener, MemWriter, TcpListener, TcpStream};
+use std::io::stdin;
+use std::rand::random;
 
-type Opcode = u16;
 type Id = u32;
+type NullResult<T> = Result<T, ()>;
+type Packet = Vec<u8>;
 
-macro_rules! try(
-    ($e:expr, $f:expr) => (match $e { Ok(e) => e, Err(_) => return $f })
-)
-
-green_start!(main)
-fn main() {
-}
-
-
-fn packet_sender(recv: Receiver<Vec<u8>>, tcp: TcpStream) {
-    let mut buf = BufferedWriter::new(tcp);
-    for msg in recv.iter() {
-        println!("Got packet to send!");
-        try!(buf.write_be_u32(msg.len() as u32), ());
-        try!(buf.write(msg.as_slice()), ());
-        try!(buf.flush(), ());
-    }
-}
 enum Message {
     RemovePlayer(Id),
-    SendPacket(Id, Vec<u8>),
+    SendPacket(Id, Packet),
     AddPlayer(TcpStream),
-    Shutdown,
-}
-fn packet_receiver(send: Sender<Message>, tcp: TcpStream, id: Id) {
-    let mut buf = BufferedReader::new(tcp);
-    (|| {
-        let len = try!(buf.read_be_u32(), ());
-        let data = try!(buf.read_exact(len as uint), ());
-        try!(send.send_opt(SendPacket(id, data)), ());
-    })();
-    try!(send.send_opt(RemovePlayer(0)), ());
-}
-fn broker(recv: Receiver<Message>) {
-    
-}
-fn listener() {
-
-}
-fn commands(send: Sender<Message>) {
-    let cin = stdin();
-    
 }
 
-/*
-type Opcode = u16;
-type Id = u32;
-type Handler = fn(&RWLock<Server>, &RWLock<Player>, BufReader);
+struct Player {
+    id: Id,
+    tcp: TcpStream,
+    name: String,
+    send: Sender<Packet>,
+}
+
+struct Server {
+    players: HashMap<Id, Player>,
+    send: Sender<Message>,
+    recv: Receiver<Message>,
+}
+
+macro_rules! try(
+    ($e:expr) => (match $e { Ok(e) => e, Err(_) => return Err(()) })
+)
 
 fn main() {
-    print!("{}", include_str!("motd.txt"));
-    let listener = TcpListener::bind("0.0.0.0", 273);
-    let mut acceptor = listener.listen();
-    println!("Starting server");
-    for stream in acceptor.incoming() {
+    println!("NoLifePony Server");
+    let mut server = Server::new();
+    server.run();
+    println!("Shutting down");
+}
+
+fn new_packet() -> NullResult<MemWriter> {
+    let mut buf = MemWriter::new();
+    try!(buf.write([0, 0, 0, 0]));
+    Ok(buf)
+}
+
+fn packet_sender(recv: Receiver<Packet>, mut tcp: TcpStream) {
+    for mut msg in recv.iter() {
+        println!("Got packet to send!");
+        let len = msg.len() as u32 - 4;
+        {
+            let mut buf = BufWriter::new(msg.mut_slice_to(4));
+            buf.write_be_u32(len).unwrap();
+        }
+        let msg = msg;
+        tcp.write(msg.as_slice()).unwrap();
+    }
+}
+
+
+fn packet_receiver(send: Sender<Message>, tcp: TcpStream, id: Id) {
+    struct Packets {
+        buf: BufferedReader<TcpStream>,
+    }
+    impl Iterator<Packet> for Packets {
+        fn next(&mut self) -> Option<Packet> {
+            self.buf.read_be_u32().and_then(|len| self.buf.read_exact(len as uint)).ok()
+        }
+    }
+    let mut packets = Packets {
+        buf: BufferedReader::new(tcp),
+    };
+    for packet in packets {
+        println!("Got packet!");
+        send.send(SendPacket(id, packet));
+    }
+    send.send(RemovePlayer(id));
+}
+
+fn listener(send: Sender<Message>) {
+    let listen = TcpListener::bind("0.0.0.0", 273);
+    let mut accept = listen.listen();
+    for stream in accept.incoming() {
         match stream {
-            Ok(stream) => spawn(proc() {
-                match handle_client(stream) {
-                    Ok(_) => (),
-                    Err(e) => println!("Connection aborted: {}", e),
-                }
-            }),
-            Err(e) => fail!("Failed to accept connection: {}", e),
+            Ok(stream) => send.send(AddPlayer(stream)),
+            Err(_) => return,
         }
     }
 }
 
-fn new_packet(opcode: Opcode) -> IoResult<MemWriter> {
-    let mut buf = MemWriter::new();
-    try!(buf.write_be_u16(opcode));
-    Ok(buf)
-}
-
-#[deriving(Share)]
-struct Player {
-    name: String,
-    id: Id,
+fn commands(_: Sender<Message>) -> NullResult<()> {
+    let mut cin = stdin();
+    for line in cin.lines() {
+        let line = try!(line);
+        let line: String = line.as_slice().chars().map(|c| c.to_lowercase())
+            .filter(|c| *c != '\n' && *c != '\r').collect();
+        match line.as_slice() {
+            _ => println!("Unknown command"),
+        }
+    }
+    Ok(())
 }
 
 impl Player {
-    fn handle_ping(server: &RWLock<Server>, player: &RWLock<Player>, buf: BufReader) {
-        
+    fn new(id: Id, tcp: TcpStream, send: Sender<Message>) -> Player {
+        let tcp2 = tcp.clone();
+        spawn(proc() packet_receiver(send, tcp2, id));
+        let (send, recv) = channel::<Packet>();
+        let tcp2 = tcp.clone();
+        spawn(proc() packet_sender(recv, tcp2));
+        Player {
+            id: id,
+            tcp: tcp,
+            name: String::new(),
+            send: send,
+        }
     }
-    fn send(player: &RWLock<Player>, buf: &MemWriter) -> IoResult<()> {
-        let data = buf.get_ref();
-        let mut lock = player.write();
-        let stream = &mut lock.deref_mut().stream;
-        try!(stream.write_be_u32(data.len() as u32));
-        try!(stream.write(data));
-        Ok(())
-    }
-}
-
-struct Server {
-    handlers: SmallIntMap<Handler>,
-    players: HashMap<Id, Arc<RWLock<Player>>>,
 }
 
 impl Server {
     fn new() -> Server {
-        Server{handlers: Server::gen_handlers(), players: HashMap::new()}
+        let (send, recv) = channel::<Message>();
+        Server {
+            players: HashMap::new(),
+            send: send,
+            recv: recv,
+        }
     }
-    fn gen_handlers() -> SmallIntMap<Handler> {
-        let mut map = SmallIntMap::new();
-        unimplemented!();
-        map
+    fn gen_id(&self) -> Id {
+        loop {
+            let id = random();
+            if self.players.find(&id).is_none() { return id }
+        }
     }
-}
-
-fn handle_client(mut stream: TcpStream) -> IoResult<()> {
-    println!("Connection from {}", try!(stream.peer_name()));
-    loop {
-        let length = try!(stream.read_be_u32());
-        let data = try!(stream.read_exact(length as uint));
-        let mut buf = BufReader::new(data.as_slice());
-        let opcode = try!(buf.read_be_u16());
-        match opcode {
-            1 => {
-                let code = try!(buf.read_be_u32());
-                println!("Ping: {}", code);
-                try!(stream.write_be_u32(6));
-                try!(stream.write_be_u16(2));
-                try!(stream.write_be_u32(code));
+    fn add_player(&mut self, mut tcp: TcpStream) {
+        match tcp.peer_name() {
+            Ok(name) => println!("Player connected from {}", name),
+            Err(_) => println!("Failed to get player peer name"),
+        }
+        let player = Player::new(self.gen_id(), tcp, self.send.clone());
+        self.players.insert(player.id, player);
+    }
+    fn run(&mut self) {
+        let send = self.send.clone();
+        spawn(proc() listener(send));
+        let send = self.send.clone();
+        spawn(proc() commands(send).unwrap());
+        loop {
+            let message = self.recv.recv();
+            match message {
+                AddPlayer(tcp) => self.add_player(tcp),
+                _ => println!("Not handled yet"),
             }
-            _ => println!("Unknown opcode: {}", opcode),
         }
     }
 }
-*/
