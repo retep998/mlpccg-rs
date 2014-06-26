@@ -120,6 +120,23 @@ impl Player {
             send: send,
         }
     }
+    fn send_id(&self) {
+        let mut p = new_packet();
+        p.write_be_u16(0x4).unwrap();
+        p.write_be_u32(self.id).unwrap();
+        self.send.send(p.unwrap());
+    }
+    fn send_players(&self, server: &Server) {
+        let mut p = new_packet();
+        p.write_be_u16(0xB).unwrap();
+        p.write_be_u32(server.players.len() as u32).unwrap();
+        for (_, player) in server.players.iter() {
+            p.write_be_u32(player.id).unwrap();
+            p.write_be_u32(player.name.len() as u32).unwrap();
+            p.write_str(player.name.as_slice()).unwrap();
+        }
+        self.send.send(p.unwrap());
+    }
 }
 
 impl Server {
@@ -145,6 +162,9 @@ impl Server {
         let id = self.gen_id();
         let player = Player::new(id, tcp, self.send.clone());
         self.players.insert(player.id, player);
+        let player = self.players.get(&id);
+        player.send_id();
+        player.send_players(self);
     }
     fn remove_player(&mut self, id: Id) {
         let mut player = match self.players.pop(&id) {
