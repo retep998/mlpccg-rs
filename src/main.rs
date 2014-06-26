@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::comm::{Receiver, Sender};
 use std::io::{Acceptor, BufferedReader, BufWriter, Listener, MemReader, MemWriter, TcpListener, TcpStream};
 use std::io::stdin;
-use std::num::ToStrRadix;
 use std::rand::random;
 
 type Id = u32;
@@ -71,7 +70,6 @@ fn packet_receiver(send: Sender<Message>, tcp: TcpStream, id: Id) {
         buf: BufferedReader::new(tcp),
     };
     for packet in packets {
-        println!("Got packet!");
         send.send(HandlePacket(id, packet));
     }
     send.send(RemovePlayer(id));
@@ -102,18 +100,23 @@ fn commands(_: Sender<Message>) {
 
 impl Player {
     fn default_name(id: Id) -> String {
-        "Pony".to_string().append(id.to_str_radix(10).as_slice())
+        format!("Pony{:08X}", id)
     }
-    fn new(id: Id, tcp: TcpStream, send: Sender<Message>) -> Player {
+    fn new(id: Id, mut tcp: TcpStream, send: Sender<Message>) -> Player {
         let tcp2 = tcp.clone();
         spawn(proc() packet_receiver(send, tcp2, id));
         let (send, recv) = channel::<Packet>();
         let tcp2 = tcp.clone();
         spawn(proc() packet_sender(recv, tcp2));
+        let name = Player::default_name(id);
+        match tcp.peer_name() {
+            Ok(ip) => println!("{} connected from {}", name, ip),
+            Err(_) => println!("{} connected from unknown", name),
+        }
         Player {
             id: id,
             tcp: tcp,
-            name: Player::default_name(id),
+            name: name,
             send: send,
         }
     }
@@ -138,11 +141,7 @@ impl Server {
             if self.players.find(&id).is_none() { return id }
         }
     }
-    fn add_player(&mut self, mut tcp: TcpStream) {
-        match tcp.peer_name() {
-            Ok(name) => println!("Player connected from {}", name),
-            Err(_) => println!("Failed to get player peer name"),
-        }
+    fn add_player(&mut self, tcp: TcpStream) {
         let id = self.gen_id();
         let player = Player::new(id, tcp, self.send.clone());
         self.players.insert(player.id, player);
@@ -152,7 +151,7 @@ impl Server {
             Some(player) => player,
             None => return,
         };
-        println!("Removing player {}", id);
+        println!("{} disconnected", player.name);
         player.tcp.close_read().unwrap();
         player.tcp.close_write().unwrap();
     }
@@ -167,7 +166,7 @@ impl Server {
             Err(_) => { println!("Failed to read opcode from player: {}", id); return },
         };
         match opcode {
-            _ => println!("Unknown opcode {}", opcode),
+            _ => println!("Unknown opcode {} from {}", opcode, player.name),
         }
     }
     fn run(&mut self) {
