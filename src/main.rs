@@ -210,16 +210,15 @@ impl Server {
         player.send_players_joined(self);
     }
     fn remove_player(&mut self, id: Id) {
-        {
-            let player = match self.players.find_mut(&id) {
-                Some(player) => player,
-                None => return,
-            };
+        self.player(id, |player| {
             println!("{} disconnected", player.name);
+            self.players(|player| player.send_player_left(id));
+        });
+        self.mut_player(id, |player| {
             player.tcp.close_read().unwrap();
             player.tcp.close_write().unwrap();
-        }
-        self.players(|player| player.send_player_left(id));
+        });
+        self.players.remove(&id);
     }
     fn handle_packet(&mut self, id: Id, packet: Packet) {
         let player = match self.players.find_mut(&id) {
