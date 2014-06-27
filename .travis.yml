@@ -6,3 +6,7 @@ install:
 script:
   - rustc --version
   - rustc src/main.rs
+notifications:
+  irc:
+    - "irc.freenode.net##newboston"
+    - "irc.fyrechat.net#vana-commits"
