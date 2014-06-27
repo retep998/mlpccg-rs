@@ -15,6 +15,7 @@ enum Message {
     RemovePlayer(Id),
     HandlePacket(Id, Packet),
     AddPlayer(TcpStream),
+    ListPlayers,
 }
 
 struct Player {
@@ -45,14 +46,16 @@ fn new_packet() -> MemWriter {
 
 fn packet_sender(recv: Receiver<Packet>, mut tcp: TcpStream) {
     for mut msg in recv.iter() {
-        println!("Got packet to send!");
         let len = msg.len() as u32 - 4;
         {
             let mut buf = BufWriter::new(msg.mut_slice_to(4));
             buf.write_be_u32(len).unwrap();
         }
         let msg = msg;
-        tcp.write(msg.as_slice()).unwrap();
+        match tcp.write(msg.as_slice()) {
+            Ok(_) => (),
+            Err(_) => return,
+        }
     }
 }
 
@@ -86,13 +89,14 @@ fn listener(send: Sender<Message>) {
     }
 }
 
-fn commands(_: Sender<Message>) {
+fn commands(send: Sender<Message>) {
     let mut cin = stdin();
     for line in cin.lines() {
         let line = line.unwrap();
         let line: String = line.as_slice().chars().map(|c| c.to_lowercase())
             .filter(|c| *c != '\n' && *c != '\r').collect();
         match line.as_slice() {
+            "list" => send.send(ListPlayers),
             _ => println!("Unknown command"),
         }
     }
@@ -126,15 +130,41 @@ impl Player {
         p.write_be_u32(self.id).unwrap();
         self.send.send(p.unwrap());
     }
-    fn send_players(&self, server: &Server) {
+    fn send_players_joined(&self, server: &Server) {
         let mut p = new_packet();
         p.write_be_u16(0xB).unwrap();
         p.write_be_u32(server.players.len() as u32).unwrap();
-        for (_, player) in server.players.iter() {
+        server.players(|player| {
             p.write_be_u32(player.id).unwrap();
             p.write_be_u32(player.name.len() as u32).unwrap();
             p.write_str(player.name.as_slice()).unwrap();
-        }
+        });
+        self.send.send(p.unwrap());
+    }
+    fn send_player_joined(&self, player: &Player) {
+        let mut p = new_packet();
+        p.write_be_u16(0xB).unwrap();
+        p.write_be_u32(1).unwrap();
+        p.write_be_u32(player.id).unwrap();
+        p.write_be_u32(player.name.len() as u32).unwrap();
+        p.write_str(player.name.as_slice()).unwrap();
+        self.send.send(p.unwrap());
+    }
+    fn send_player_left(&self, id: Id) {
+        let mut p = new_packet();
+        p.write_be_u16(0xF).unwrap();
+        p.write_be_u32(1).unwrap();
+        p.write_be_u32(id).unwrap();
+        self.send.send(p.unwrap());
+    }
+    fn send_pong(&self, mut packet: MemReader) {
+        let ping = match packet.read_be_u32() {
+            Ok(ping) => ping,
+            Err(_) => { println!("Failed to read ping from {}", self.name); return },
+        };
+        let mut p = new_packet();
+        p.write_be_u16(0x2).unwrap();
+        p.write_be_u32(ping).unwrap();
         self.send.send(p.unwrap());
     }
 }
@@ -152,6 +182,18 @@ impl Server {
             recv: recv,
         }
     }
+    fn player(&self, id: Id, func: |&Player|) {
+        self.players.find(&id).map(func);
+    }
+    fn mut_player(&mut self, id: Id, func: |&mut Player|) {
+        self.players.find_mut(&id).map(func);
+    }
+    fn players(&self, func: |&Player|) {
+        for (_, player) in self.players.iter() { func(player) }
+    }
+    fn mut_players(&mut self, func: |&mut Player|) {
+        for (_, player) in self.players.mut_iter() { func(player) }
+    }
     fn gen_id(&self) -> Id {
         loop {
             let id = random();
@@ -161,19 +203,23 @@ impl Server {
     fn add_player(&mut self, tcp: TcpStream) {
         let id = self.gen_id();
         let player = Player::new(id, tcp, self.send.clone());
+        self.players(|p| p.send_player_joined(&player));
         self.players.insert(player.id, player);
         let player = self.players.get(&id);
         player.send_id();
-        player.send_players(self);
+        player.send_players_joined(self);
     }
     fn remove_player(&mut self, id: Id) {
-        let mut player = match self.players.pop(&id) {
-            Some(player) => player,
-            None => return,
-        };
-        println!("{} disconnected", player.name);
-        player.tcp.close_read().unwrap();
-        player.tcp.close_write().unwrap();
+        {
+            let player = match self.players.find_mut(&id) {
+                Some(player) => player,
+                None => return,
+            };
+            println!("{} disconnected", player.name);
+            player.tcp.close_read().unwrap();
+            player.tcp.close_write().unwrap();
+        }
+        self.players(|player| player.send_player_left(id));
     }
     fn handle_packet(&mut self, id: Id, packet: Packet) {
         let player = match self.players.find_mut(&id) {
@@ -186,6 +232,7 @@ impl Server {
             Err(_) => { println!("Failed to read opcode from player: {}", id); return },
         };
         match opcode {
+            1 => player.send_pong(packet),
             _ => println!("Unknown opcode {} from {}", opcode, player.name),
         }
     }
@@ -196,6 +243,11 @@ impl Server {
                 AddPlayer(tcp) => self.add_player(tcp),
                 RemovePlayer(id) => self.remove_player(id),
                 HandlePacket(id, packet) => self.handle_packet(id, packet),
+                ListPlayers => {
+                    print!("Connected: ");
+                    self.players(|player| print!("{}, ", player.name));
+                    println!("");
+                },
             }
         }
     }
