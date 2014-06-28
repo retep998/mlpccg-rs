@@ -8,5 +8,4 @@ script:
   - rustc src/main.rs
 notifications:
   irc:
-    - "chat.freenode.net##newboston"
     - "irc.fyrechat.net#vana-commits"

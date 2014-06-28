@@ -1,5 +1,8 @@
 
-#![feature(macro_rules)]
+#![feature(phase)]
+#[phase(plugin)]
+extern crate green;
+extern crate libc;
 
 use std::collections::HashMap;
 use std::comm::{Receiver, Sender};
@@ -31,12 +34,19 @@ struct Server {
     recv: Receiver<Message>,
 }
 
+extern {
+    fn signal(signum: libc::c_int, handler: libc::size_t) -> libc::c_int;
+}
+
+green_start!(main)
 fn main() {
     println!("NoLifePony Server");
+    unsafe { signal(11, 1); } // SIGSEGV and SIG_IGN on windows
     let mut server = Server::new();
     server.run();
     println!("Shutting down");
 }
+
 
 fn new_packet() -> MemWriter {
     let mut buf = MemWriter::new();
@@ -103,6 +113,13 @@ fn commands(send: Sender<Message>) {
 }
 
 impl Player {
+    fn send(&self, packet: MemWriter) {
+        let packet = packet.unwrap();
+        match self.send.send_opt(packet) {
+            Ok(_) => return,
+            Err(_) => return, //Remove player if this happens
+        }
+    }
     fn default_name(id: Id) -> String {
         format!("Pony{:08X}", id)
     }
@@ -128,7 +145,7 @@ impl Player {
         let mut p = new_packet();
         p.write_be_u16(0x4).unwrap();
         p.write_be_u32(self.id).unwrap();
-        self.send.send(p.unwrap());
+        self.send(p);
     }
     fn send_players_joined(&self, server: &Server) {
         let mut p = new_packet();
@@ -139,7 +156,7 @@ impl Player {
             p.write_be_u32(player.name.len() as u32).unwrap();
             p.write_str(player.name.as_slice()).unwrap();
         });
-        self.send.send(p.unwrap());
+        self.send(p);
     }
     fn send_player_joined(&self, player: &Player) {
         let mut p = new_packet();
@@ -148,24 +165,25 @@ impl Player {
         p.write_be_u32(player.id).unwrap();
         p.write_be_u32(player.name.len() as u32).unwrap();
         p.write_str(player.name.as_slice()).unwrap();
-        self.send.send(p.unwrap());
+        self.send(p);
     }
     fn send_player_left(&self, id: Id) {
         let mut p = new_packet();
         p.write_be_u16(0xF).unwrap();
         p.write_be_u32(1).unwrap();
         p.write_be_u32(id).unwrap();
-        self.send.send(p.unwrap());
+        self.send(p);
     }
     fn send_pong(&self, mut packet: MemReader) {
         let ping = match packet.read_be_u32() {
             Ok(ping) => ping,
             Err(_) => { println!("Failed to read ping from {}", self.name); return },
         };
+        println!("pong");
         let mut p = new_packet();
         p.write_be_u16(0x2).unwrap();
         p.write_be_u32(ping).unwrap();
-        self.send.send(p.unwrap());
+        self.send(p);
     }
 }
 
@@ -238,6 +256,7 @@ impl Server {
     fn run(&mut self) {
         loop {
             let message = self.recv.recv();
+            //println!("massage");
             match message {
                 AddPlayer(tcp) => self.add_player(tcp),
                 RemovePlayer(id) => self.remove_player(id),
@@ -249,5 +268,6 @@ impl Server {
                 },
             }
         }
+        //println!("pls no");
     }
 }
