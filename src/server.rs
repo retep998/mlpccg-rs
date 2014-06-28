@@ -1,9 +1,14 @@
 
+#![feature(phase)]
+#[phase(plugin)]
+extern crate green;
+
 use std::collections::HashMap;
 use std::comm::{Receiver, Sender};
 use std::io::{Acceptor, BufferedReader, BufWriter, Listener, MemReader, MemWriter, TcpListener, TcpStream};
 use std::io::stdin;
 use std::rand::random;
+use std::task::TaskBuilder;
 
 type Id = u32;
 type NullResult<T> = Result<T, ()>;
@@ -29,6 +34,7 @@ struct Server {
     recv: Receiver<Message>,
 }
 
+green_start!(main)
 fn main() {
     println!("NoLifePony Server");
     let mut server = Server::new();
@@ -112,12 +118,12 @@ impl Player {
     fn default_name(id: Id) -> String {
         format!("Pony{:08X}", id)
     }
-    fn new(id: Id, mut tcp: TcpStream, send: Sender<Message>) -> Player {
-        let tcp2 = tcp.clone();
-        spawn(proc() packet_receiver(send, tcp2, id));
+    fn new(id: Id, mut tcp: TcpStream, sender: Sender<Message>) -> Player {
         let (send, recv) = channel::<Packet>();
         let tcp2 = tcp.clone();
-        spawn(proc() packet_sender(recv, tcp2));
+        TaskBuilder::new().stack_size(32768).spawn(proc() packet_sender(recv, tcp2));
+        let tcp2 = tcp.clone();
+        TaskBuilder::new().stack_size(32768).spawn(proc() packet_receiver(sender, tcp2, id));
         let name = Player::default_name(id);
         match tcp.peer_name() {
             Ok(ip) => println!("{} connected from {}", name, ip),
@@ -168,7 +174,6 @@ impl Player {
             Ok(ping) => ping,
             Err(_) => { println!("Failed to read ping from {}", self.name); return },
         };
-        println!("pong");
         let mut p = new_packet();
         p.write_be_u16(0x2).unwrap();
         p.write_be_u32(ping).unwrap();
@@ -245,7 +250,6 @@ impl Server {
     fn run(&mut self) {
         loop {
             let message = self.recv.recv();
-            //println!("massage");
             match message {
                 AddPlayer(tcp) => self.add_player(tcp),
                 RemovePlayer(id) => self.remove_player(id),
@@ -257,6 +261,5 @@ impl Server {
                 },
             }
         }
-        //println!("pls no");
     }
 }
