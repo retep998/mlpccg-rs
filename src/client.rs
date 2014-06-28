@@ -1,7 +1,4 @@
 
-#![feature(phase)]
-#[phase(plugin)] extern crate green;
-
 use std::io::timer::sleep;
 use std::io::{BufferedWriter, TcpStream};
 
@@ -16,9 +13,8 @@ fn client() {
     }
 }
 
-green_start!(main)
 fn main() {
-    for i in range(0, 1u) {
+    for i in range(0, 100u) {
         spawn(proc() client());
         println!("{}", i);
     }

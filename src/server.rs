@@ -1,9 +1,4 @@
 
-#![feature(phase)]
-#[phase(plugin)]
-extern crate green;
-extern crate libc;
-
 use std::collections::HashMap;
 use std::comm::{Receiver, Sender};
 use std::io::{Acceptor, BufferedReader, BufWriter, Listener, MemReader, MemWriter, TcpListener, TcpStream};
@@ -34,14 +29,8 @@ struct Server {
     recv: Receiver<Message>,
 }
 
-extern {
-    fn signal(signum: libc::c_int, handler: libc::size_t) -> libc::c_int;
-}
-
-green_start!(main)
 fn main() {
     println!("NoLifePony Server");
-    unsafe { signal(11, 1); } // SIGSEGV and SIG_IGN on windows
     let mut server = Server::new();
     server.run();
     println!("Shutting down");

@@ -5,7 +5,8 @@ install:
   - sudo apt-get install rust-nightly
 script:
   - rustc --version
-  - rustc src/main.rs
+  - rustc src/client.rs
+  - rustc src/server.rs
 notifications:
   irc:
     - "irc.fyrechat.net#vana-commits"
