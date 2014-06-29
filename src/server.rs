@@ -3,6 +3,7 @@
 #[phase(plugin)]
 extern crate green;
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::comm::{Receiver, Sender};
 use std::io::{Acceptor, BufferedReader, BufWriter, Listener, MemReader, MemWriter, TcpListener, TcpStream};
@@ -29,7 +30,7 @@ struct Player {
 }
 
 struct Server {
-    players: HashMap<Id, Player>,
+    players: HashMap<Id, RefCell<Player>>,
     send: Sender<Message>,
     recv: Receiver<Message>,
 }
@@ -195,16 +196,19 @@ impl Server {
         }
     }
     fn player(&self, id: Id, func: |&Player|) {
-        self.players.find(&id).map(func);
+        match self.players.find(&id) {
+            Some(player) => func(&*player.borrow()),
+            None => (),
+        }
     }
-    fn mut_player(&mut self, id: Id, func: |&mut Player|) {
-        self.players.find_mut(&id).map(func);
+    fn mut_player(&self, id: Id, func: |&mut Player|) {
+        match self.players.find(&id) {
+            Some(player) => func(&mut*player.borrow_mut()),
+            None => (),
+        }
     }
     fn players(&self, func: |&Player|) {
-        for (_, player) in self.players.iter() { func(player) }
-    }
-    fn mut_players(&mut self, func: |&mut Player|) {
-        for (_, player) in self.players.mut_iter() { func(player) }
+        for (_, player) in self.players.iter() { func(&*player.borrow()) }
     }
     fn gen_id(&self) -> Id {
         loop {
@@ -216,27 +220,27 @@ impl Server {
         let id = self.gen_id();
         let player = Player::new(id, tcp, self.send.clone());
         self.players(|p| p.send_player_joined(&player));
-        self.players.insert(player.id, player);
-        let player = self.players.get(&id);
-        player.send_id();
-        player.send_players_joined(self);
+        self.players.insert(player.id, RefCell::new(player));
+        self.player(id, |player| {
+            player.send_id();
+            player.send_players_joined(self);
+        });
     }
     fn remove_player(&mut self, id: Id) {
-        self.player(id, |player| {
-            println!("{} disconnected", player.name);
-            self.players(|player| player.send_player_left(id));
-        });
         self.mut_player(id, |player| {
+            println!("{} disconnected", player.name);
             player.tcp.close_read().unwrap();
             player.tcp.close_write().unwrap();
         });
         self.players.remove(&id);
+        self.players(|player| player.send_player_left(id));
     }
-    fn handle_packet(&mut self, id: Id, packet: Packet) {
-        let player = match self.players.find_mut(&id) {
+    fn handle_packet(&self, id: Id, packet: Packet) {
+        let player = match self.players.find(&id) {
             Some(player) => player,
             None => { println!("Packet from non-existant player: {}", id); return },
         };
+        let player = &*player.borrow();
         let mut packet = MemReader::new(packet);
         let opcode = match packet.read_be_u16() {
             Ok(opcode) => opcode,

@@ -14,7 +14,7 @@ fn client() {
         buf.write_be_u32(6).unwrap();
         buf.write_be_u16(0x1).unwrap();
         buf.write_be_u32(0).unwrap();
-        buf.flush();
+        buf.flush().unwrap();
         sleep(1000);
     }
 }
