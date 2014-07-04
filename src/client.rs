@@ -4,26 +4,29 @@
 extern crate green;
 
 use std::io::timer::sleep;
-use std::io::{BufferedWriter, TcpStream};
+use std::io::{TcpStream};
 use std::task::TaskBuilder;
-
-fn client() {
-    let tcp = TcpStream::connect("127.0.0.1", 273).unwrap();
-    let mut buf = BufferedWriter::new(tcp);
-    loop {
-        buf.write_be_u32(6).unwrap();
-        buf.write_be_u16(0x1).unwrap();
-        buf.write_be_u32(0).unwrap();
-        buf.flush().unwrap();
-        sleep(1000);
-    }
-}
+use std::sync::Arc;
+use std::sync::atomics::{AtomicUint, SeqCst};
 
 green_start!(main)
 fn main() {
-    for i in range(0, 1000u) {
-        println!("{}", i);
-        TaskBuilder::new().stack_size(32768).spawn(proc() client());
-        sleep(10);
+    let count = Arc::new(AtomicUint::new(0));
+    loop {
+        let clone = count.clone();
+        TaskBuilder::new().stack_size(32768).spawn(proc() {
+            let mut tcp = match TcpStream::connect("24.28.66.222", 8484) {
+                Ok(tcp) => tcp,
+                Err(_) => return,
+            };
+            println!("+{}", clone.fetch_add(1, SeqCst));
+            loop {
+                if tcp.read_u8().is_err() {
+                    println!("-{}", clone.fetch_add(-1, SeqCst));
+                    return;
+                }
+            }
+        });
+        sleep(1);
     }
 }
