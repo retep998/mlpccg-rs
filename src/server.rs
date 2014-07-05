@@ -1,5 +1,5 @@
 
-#![feature(phase)]
+#![feature(phase, macro_rules)]
 #[phase(plugin)]
 extern crate green;
 
@@ -13,28 +13,7 @@ use std::rand::random;
 use std::task::TaskBuilder;
 
 type Id = u32;
-type NullResult<T> = Result<T, ()>;
 type Packet = Vec<u8>;
-
-enum Message {
-    RemovePlayer(Id),
-    HandlePacket(Id, Packet),
-    AddPlayer(TcpStream),
-    ListPlayers,
-}
-
-struct Player {
-    id: Id,
-    tcp: TcpStream,
-    name: String,
-    send: Sender<Packet>,
-}
-
-struct Server {
-    players: HashMap<Id, RefCell<Player>>,
-    send: Sender<Message>,
-    recv: Receiver<Message>,
-}
 
 green_start!(main)
 fn main() {
@@ -44,48 +23,14 @@ fn main() {
     println!("Shutting down");
 }
 
-
 fn new_packet() -> MemWriter {
     let mut buf = MemWriter::new();
-    buf.write([0, 0, 0, 0]).unwrap();
+    // Reserve space for the length
+    buf.write_be_u32(0).unwrap();
     buf
 }
 
-fn packet_sender(recv: Receiver<Packet>, mut tcp: TcpStream) {
-    for mut msg in recv.iter() {
-        let len = msg.len() as u32 - 4;
-        {
-            let mut buf = BufWriter::new(msg.mut_slice_to(4));
-            buf.write_be_u32(len).unwrap();
-        }
-        let msg = msg;
-        match tcp.write(msg.as_slice()) {
-            Ok(_) => (),
-            Err(_) => return,
-        }
-    }
-}
-
-
-fn packet_receiver(send: Sender<Message>, tcp: TcpStream, id: Id) {
-    struct Packets {
-        buf: BufferedReader<TcpStream>,
-    }
-    impl Iterator<Packet> for Packets {
-        fn next(&mut self) -> Option<Packet> {
-            self.buf.read_be_u32().and_then(|len| self.buf.read_exact(len as uint)).ok()
-        }
-    }
-    let mut packets = Packets {
-        buf: BufferedReader::new(tcp),
-    };
-    for packet in packets {
-        send.send(HandlePacket(id, packet));
-    }
-    send.send(RemovePlayer(id));
-}
-
-fn listener(send: Sender<Message>) {
+fn listener(send: Sender<ToServer>) {
     let listen = TcpListener::bind("0.0.0.0", 273);
     let mut accept = listen.listen();
     for stream in accept.incoming() {
@@ -96,7 +41,7 @@ fn listener(send: Sender<Message>) {
     }
 }
 
-fn commands(send: Sender<Message>) {
+fn commands(send: Sender<ToServer>) {
     let mut cin = stdin();
     for line in cin.lines() {
         let line = line.unwrap();
@@ -109,33 +54,99 @@ fn commands(send: Sender<Message>) {
     }
 }
 
+enum ToServer {
+    RemovePlayer(Id),
+    HandlePacket(Id, Packet),
+    AddPlayer(TcpStream),
+    ListPlayers,
+}
+
+enum ToPlayer {
+    Packet(Packet),
+    Disconnect,
+}
+
+struct Room {
+    id: Id,
+}
+
+struct Player {
+    id: Id,
+    name: String,
+    tx: Sender<ToPlayer>,
+}
+
 impl Player {
+    /// Sends packets to clients
+    fn sender(rx: Receiver<ToPlayer>, mut tcp: TcpStream) {
+        for msg in rx.iter() {
+            match msg {
+                Packet(mut msg) => {
+                    assert!(msg.len() >= 4);
+                    let len = msg.len() as u32 - 4;
+                    // Write the length in the space we reserved earlier
+                    BufWriter::new(msg.mut_slice_to(4)).write_be_u32(len).unwrap();
+                    match tcp.write(msg.as_slice()) {
+                        Ok(_) => (),
+                        Err(_) => break,
+                    }
+                },
+                Disconnect => break,
+            }
+        }
+        // Done here so close the tcp stream
+        // We don't really care about the errors here
+        let _ = tcp.close_read();
+        let _ = tcp.close_write();
+    }
+    /// Receives packets from clients
+    fn receiver(tx: Sender<ToServer>, tcp: TcpStream, id: Id) {
+        struct Packets {
+            buf: BufferedReader<TcpStream>,
+        }
+        impl Iterator<Packet> for Packets {
+            fn next(&mut self) -> Option<Packet> {
+                self.buf.read_be_u32().and_then(|len| self.buf.read_exact(len as uint)).ok()
+            }
+        }
+        let mut packets = Packets {
+            buf: BufferedReader::new(tcp),
+        };
+        for packet in packets {
+            match tx.send_opt(HandlePacket(id, packet)) {
+                Ok(_) => (),
+                Err(_) => break,
+            }
+        }
+        // We're done so tell the server to remove the player
+        let _ = tx.send_opt(RemovePlayer(id));
+    }
     fn send(&self, packet: MemWriter) {
         let packet = packet.unwrap();
-        match self.send.send_opt(packet) {
+        match self.tx.send_opt(Packet(packet)) {
             Ok(_) => return,
-            Err(_) => return, //Remove player if this happens
+            // FIXME: Remove the player from server
+            Err(_) => return,
         }
     }
     fn default_name(id: Id) -> String {
         format!("Pony{:08X}", id)
     }
-    fn new(id: Id, mut tcp: TcpStream, sender: Sender<Message>) -> Player {
-        let (send, recv) = channel::<Packet>();
-        let tcp2 = tcp.clone();
-        TaskBuilder::new().stack_size(32768).spawn(proc() packet_sender(recv, tcp2));
-        let tcp2 = tcp.clone();
-        TaskBuilder::new().stack_size(32768).spawn(proc() packet_receiver(sender, tcp2, id));
+    fn new(id: Id, mut tcp: TcpStream, recv_tx: Sender<ToServer>) -> Player {
         let name = Player::default_name(id);
         match tcp.peer_name() {
             Ok(ip) => println!("{} connected from {}", name, ip),
             Err(_) => println!("{} connected from unknown", name),
         }
+        let (send_tx, send_rx) = channel();
+        let tcp_rx = tcp.clone();
+        let tcp_tx = tcp;
+        TaskBuilder::new().stack_size(32768).spawn(proc() Player::sender(send_rx, tcp_tx));
+        TaskBuilder::new().stack_size(32768).spawn(proc() Player::receiver(recv_tx, tcp_rx, id));
         Player {
             id: id,
-            tcp: tcp,
             name: name,
-            send: send,
+            tx: send_tx,
         }
     }
     fn send_id(&self) {
@@ -183,17 +194,23 @@ impl Player {
     }
 }
 
+struct Server {
+    players: HashMap<Id, RefCell<Player>>,
+    tx: Sender<ToServer>,
+    rx: Receiver<ToServer>,
+}
+
 impl Server {
     fn new() -> Server {
-        let (send, recv) = channel::<Message>();
-        let send2 = send.clone();
-        spawn(proc() listener(send2));
-        let send2 = send.clone();
-        spawn(proc() commands(send2));
+        let (tx, rx) = channel();
+        let listen_tx = tx.clone();
+        spawn(proc() listener(listen_tx));
+        let command_tx = tx.clone();
+        spawn(proc() commands(command_tx));
         Server {
             players: HashMap::new(),
-            send: send,
-            recv: recv,
+            tx: tx,
+            rx: rx,
         }
     }
     fn player(&self, id: Id, func: |&Player|) {
@@ -219,7 +236,7 @@ impl Server {
     }
     fn add_player(&mut self, tcp: TcpStream) {
         let id = self.gen_id();
-        let player = Player::new(id, tcp, self.send.clone());
+        let player = Player::new(id, tcp, self. tx.clone());
         self.players(|p| p.send_player_joined(&player));
         self.players.insert(player.id, RefCell::new(player));
         self.player(id, |player| {
@@ -230,8 +247,7 @@ impl Server {
     fn remove_player(&mut self, id: Id) {
         self.mut_player(id, |player| {
             println!("{} disconnected", player.name);
-            player.tcp.close_read().unwrap();
-            player.tcp.close_write().unwrap();
+            let _ = player.tx.send_opt(Disconnect);
         });
         self.players.remove(&id);
         self.players(|player| player.send_player_left(id));
@@ -254,7 +270,7 @@ impl Server {
     }
     fn run(&mut self) {
         loop {
-            let message = self.recv.recv();
+            let message = self.rx.recv();
             match message {
                 AddPlayer(tcp) => self.add_player(tcp),
                 RemovePlayer(id) => self.remove_player(id),

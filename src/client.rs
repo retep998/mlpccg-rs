@@ -15,7 +15,7 @@ fn main() {
     loop {
         let clone = count.clone();
         TaskBuilder::new().stack_size(32768).spawn(proc() {
-            let mut tcp = match TcpStream::connect("24.28.66.222", 8484) {
+            let mut tcp = match TcpStream::connect("127.0.0.1", 273) {
                 Ok(tcp) => tcp,
                 Err(_) => return,
             };
@@ -27,6 +27,6 @@ fn main() {
                 }
             }
         });
-        sleep(1);
+        sleep(1000);
     }
 }
