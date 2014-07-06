@@ -1,8 +1,8 @@
 [package]
 
-name = "nolifepony"
+name = "NoLifePony"
 version = "0.1.0"
-authors = ["retep998@gmail.com"]
+authors = ["Peter Atashian <retep998@gmail.com>"]
 
 [[bin]]
 

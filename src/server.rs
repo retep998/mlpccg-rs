@@ -23,37 +23,6 @@ fn main() {
     println!("Shutting down");
 }
 
-fn new_packet() -> MemWriter {
-    let mut buf = MemWriter::new();
-    // Reserve space for the length
-    buf.write_be_u32(0).unwrap();
-    buf
-}
-
-fn listener(send: Sender<ToServer>) {
-    let listen = TcpListener::bind("0.0.0.0", 273);
-    let mut accept = listen.listen();
-    for stream in accept.incoming() {
-        match stream {
-            Ok(stream) => send.send(AddPlayer(stream)),
-            Err(_) => return,
-        }
-    }
-}
-
-fn commands(send: Sender<ToServer>) {
-    let mut cin = stdin();
-    for line in cin.lines() {
-        let line = line.unwrap();
-        let line: String = line.as_slice().chars().map(|c| c.to_lowercase())
-            .filter(|c| *c != '\n' && *c != '\r').collect();
-        match line.as_slice() {
-            "list" => send.send(ListPlayers),
-            _ => println!("Unknown command"),
-        }
-    }
-}
-
 enum ToServer {
     RemovePlayer(Id),
     HandlePacket(Id, Packet),
@@ -73,7 +42,8 @@ struct Room {
 struct Player {
     id: Id,
     name: String,
-    tx: Sender<ToPlayer>,
+    player_tx: Sender<ToPlayer>,
+    server_tx: Sender<ToServer>,
 }
 
 impl Player {
@@ -99,6 +69,7 @@ impl Player {
         let _ = tcp.close_read();
         let _ = tcp.close_write();
     }
+
     /// Receives packets from clients
     fn receiver(tx: Sender<ToServer>, tcp: TcpStream, id: Id) {
         struct Packets {
@@ -121,53 +92,73 @@ impl Player {
         // We're done so tell the server to remove the player
         let _ = tx.send_opt(RemovePlayer(id));
     }
+
+    fn new_packet() -> MemWriter {
+        let mut buf = MemWriter::new();
+        // Reserve space for the length
+        buf.write_be_u32(0).unwrap();
+        buf
+    }
+
     fn send(&self, packet: MemWriter) {
         let packet = packet.unwrap();
-        match self.tx.send_opt(Packet(packet)) {
+        match self.player_tx.send_opt(Packet(packet)) {
             Ok(_) => return,
-            // FIXME: Remove the player from server
-            Err(_) => return,
+            Err(_) => {
+                self.server_tx.send(RemovePlayer(self.id));
+                return
+            }
         }
     }
+
     fn default_name(id: Id) -> String {
         format!("Pony{:08X}", id)
     }
+
     fn new(id: Id, mut tcp: TcpStream, recv_tx: Sender<ToServer>) -> Player {
         let name = Player::default_name(id);
         match tcp.peer_name() {
             Ok(ip) => println!("{} connected from {}", name, ip),
             Err(_) => println!("{} connected from unknown", name),
         }
+        let server_tx = recv_tx.clone();
         let (send_tx, send_rx) = channel();
         let tcp_rx = tcp.clone();
         let tcp_tx = tcp;
-        TaskBuilder::new().stack_size(32768).spawn(proc() Player::sender(send_rx, tcp_tx));
-        TaskBuilder::new().stack_size(32768).spawn(proc() Player::receiver(recv_tx, tcp_rx, id));
+        // Custom stack size because 2 MB per task is way too much
+        // Plus these tasks don't really do any recursion, so we're okay
+        TaskBuilder::new().stack_size(0x8000).spawn(proc() Player::sender(send_rx, tcp_tx));
+        TaskBuilder::new().stack_size(0x8000).spawn(proc() Player::receiver(recv_tx, tcp_rx, id));
         Player {
             id: id,
             name: name,
-            tx: send_tx,
+            player_tx: send_tx,
+            server_tx: server_tx,
         }
     }
+
     fn send_id(&self) {
-        let mut p = new_packet();
+        let mut p = Player::new_packet();
         p.write_be_u16(0x4).unwrap();
         p.write_be_u32(self.id).unwrap();
         self.send(p);
     }
+
     fn send_players_joined(&self, server: &Server) {
-        let mut p = new_packet();
+        let mut p = Player::new_packet();
         p.write_be_u16(0xB).unwrap();
         p.write_be_u32(server.players.len() as u32).unwrap();
-        server.players(|player| {
+        for (_, player) in server.players.iter() {
+            let player = player.borrow();
             p.write_be_u32(player.id).unwrap();
             p.write_be_u32(player.name.len() as u32).unwrap();
             p.write_str(player.name.as_slice()).unwrap();
-        });
+        }
         self.send(p);
     }
+
     fn send_player_joined(&self, player: &Player) {
-        let mut p = new_packet();
+        let mut p = Player::new_packet();
         p.write_be_u16(0xB).unwrap();
         p.write_be_u32(1).unwrap();
         p.write_be_u32(player.id).unwrap();
@@ -175,19 +166,21 @@ impl Player {
         p.write_str(player.name.as_slice()).unwrap();
         self.send(p);
     }
+
     fn send_player_left(&self, id: Id) {
-        let mut p = new_packet();
+        let mut p = Player::new_packet();
         p.write_be_u16(0xF).unwrap();
         p.write_be_u32(1).unwrap();
         p.write_be_u32(id).unwrap();
         self.send(p);
     }
+
     fn send_pong(&self, mut packet: MemReader) {
         let ping = match packet.read_be_u32() {
             Ok(ping) => ping,
             Err(_) => { println!("Failed to read ping from {}", self.name); return },
         };
-        let mut p = new_packet();
+        let mut p = Player::new_packet();
         p.write_be_u16(0x2).unwrap();
         p.write_be_u32(ping).unwrap();
         self.send(p);
@@ -204,39 +197,44 @@ impl Server {
     fn new() -> Server {
         let (tx, rx) = channel();
         let listen_tx = tx.clone();
-        spawn(proc() listener(listen_tx));
+        spawn(proc() Server::listener(listen_tx));
         let command_tx = tx.clone();
-        spawn(proc() commands(command_tx));
+        spawn(proc() Server::commands(command_tx));
         Server {
             players: HashMap::new(),
             tx: tx,
             rx: rx,
         }
     }
+
     fn player(&self, id: Id, func: |&Player|) {
         match self.players.find(&id) {
             Some(player) => func(&*player.borrow()),
             None => (),
         }
     }
+
     fn mut_player(&self, id: Id, func: |&mut Player|) {
         match self.players.find(&id) {
             Some(player) => func(&mut*player.borrow_mut()),
             None => (),
         }
     }
+
     fn players(&self, func: |&Player|) {
         for (_, player) in self.players.iter() { func(&*player.borrow()) }
     }
+
     fn gen_id(&self) -> Id {
         loop {
             let id = random();
             if self.players.find(&id).is_none() { return id }
         }
     }
+
     fn add_player(&mut self, tcp: TcpStream) {
         let id = self.gen_id();
-        let player = Player::new(id, tcp, self. tx.clone());
+        let player = Player::new(id, tcp, self.tx.clone());
         self.players(|p| p.send_player_joined(&player));
         self.players.insert(player.id, RefCell::new(player));
         self.player(id, |player| {
@@ -244,14 +242,16 @@ impl Server {
             player.send_players_joined(self);
         });
     }
+
     fn remove_player(&mut self, id: Id) {
         self.mut_player(id, |player| {
             println!("{} disconnected", player.name);
-            let _ = player.tx.send_opt(Disconnect);
+            let _ = player.player_tx.send_opt(Disconnect);
         });
         self.players.remove(&id);
         self.players(|player| player.send_player_left(id));
     }
+
     fn handle_packet(&self, id: Id, packet: Packet) {
         let player = match self.players.find(&id) {
             Some(player) => player,
@@ -268,6 +268,7 @@ impl Server {
             _ => println!("Unknown opcode {} from {}", opcode, player.name),
         }
     }
+
     fn run(&mut self) {
         loop {
             let message = self.rx.recv();
@@ -280,6 +281,30 @@ impl Server {
                     self.players(|player| print!("{}, ", player.name));
                     println!("");
                 },
+            }
+        }
+    }
+
+    fn listener(tx: Sender<ToServer>) {
+        let listen = TcpListener::bind("0.0.0.0", 273);
+        let mut accept = listen.listen();
+        for tcp in accept.incoming() {
+            match tcp {
+                Ok(tcp) => tx.send(AddPlayer(tcp)),
+                Err(_) => return,
+            }
+        }
+    }
+
+    fn commands(tx: Sender<ToServer>) {
+        let mut cin = stdin();
+        for line in cin.lines() {
+            let line = line.unwrap();
+            let line: String = line.as_slice().chars().map(|c| c.to_lowercase())
+                .filter(|c| *c != '\n' && *c != '\r').collect();
+            match line.as_slice() {
+                "list" => tx.send(ListPlayers),
+                _ => println!("Unknown command"),
             }
         }
     }
