@@ -1,15 +1,11 @@
 
-#![feature(phase)]
-#[phase(plugin)]
-extern crate green;
-
 use std::io::timer::sleep;
 use std::io::{TcpStream};
-use std::task::TaskBuilder;
 use std::sync::Arc;
 use std::sync::atomics::{AtomicUint, SeqCst};
+use std::task::TaskBuilder;
+use std::time::duration::Duration;
 
-green_start!(main)
 fn main() {
     let count = Arc::new(AtomicUint::new(0));
     loop {
@@ -27,6 +23,6 @@ fn main() {
                 }
             }
         });
-        sleep(1000);
+        sleep(Duration::seconds(1));
     }
 }

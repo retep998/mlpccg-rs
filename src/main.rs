@@ -1,8 +1,4 @@
 
-#![feature(phase, macro_rules)]
-#[phase(plugin)]
-extern crate green;
-
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::comm::{Receiver, Sender};
@@ -15,7 +11,6 @@ use std::task::TaskBuilder;
 type Id = u32;
 type Packet = Vec<u8>;
 
-green_start!(main)
 fn main() {
     println!("NoLifePony Server");
     let mut server = Server::new();

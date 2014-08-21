@@ -1,15 +1,5 @@
 [package]
 
-name = "NoLifePony"
+name = "mlpccg"
 version = "0.1.0"
 authors = ["Peter Atashian <retep998@gmail.com>"]
-
-[[bin]]
-
-name = "server"
-path = "src/server.rs"
-
-[[bin]]
-
-name = "client"
-path = "src/client.rs"
