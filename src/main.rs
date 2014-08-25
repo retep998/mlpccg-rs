@@ -1,3 +1,4 @@
+// Copyright © 2014, Peter Atashian
 
 use std::cell::RefCell;
 use std::collections::HashMap;

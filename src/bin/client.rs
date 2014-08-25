@@ -1,3 +1,4 @@
+// Copyright © 2014, Peter Atashian
 
 use std::io::timer::sleep;
 use std::io::{TcpStream};
