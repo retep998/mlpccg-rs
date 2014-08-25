@@ -1,5 +1,4 @@
-install:
-  - curl https://static.rust-lang.org/rustup.sh | sudo bash -
+language: rust
 script:
   - cargo build --verbose
   - cargo test --verbose
@@ -8,5 +7,6 @@ notifications:
   irc:
     channels:
       - "irc.fyrechat.net#vana-commits"
-    on_success: change
-    on_failure: always
+    template:
+      - "%{repository_slug}/%{branch} (%{commit} - %{author}): %{message}"
+    skip_join: true
