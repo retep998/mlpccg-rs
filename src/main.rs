@@ -27,7 +27,7 @@ enum ToServer {
 }
 
 enum ToPlayer {
-    Packet(Packet),
+    SomePacket(Packet),
     Disconnect,
 }
 
@@ -47,11 +47,11 @@ impl Player {
     fn sender(rx: Receiver<ToPlayer>, mut tcp: TcpStream) {
         for msg in rx.iter() {
             match msg {
-                Packet(mut msg) => {
+                SomePacket(mut msg) => {
                     assert!(msg.len() >= 4);
                     let len = msg.len() as u32 - 4;
                     // Write the length in the space we reserved earlier
-                    BufWriter::new(msg.mut_slice_to(4)).write_be_u32(len).unwrap();
+                    BufWriter::new(msg.slice_to_mut(4)).write_be_u32(len).unwrap();
                     match tcp.write(msg.as_slice()) {
                         Ok(_) => (),
                         Err(_) => break,
@@ -98,7 +98,7 @@ impl Player {
 
     fn send(&self, packet: MemWriter) {
         let packet = packet.unwrap();
-        match self.player_tx.send_opt(Packet(packet)) {
+        match self.player_tx.send_opt(SomePacket(packet)) {
             Ok(_) => return,
             Err(_) => {
                 self.server_tx.send(RemovePlayer(self.id));
